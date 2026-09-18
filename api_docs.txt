@@ -1,0 +1,666 @@
+DOCUMENTO DE ARQUITECTURA
+07_Diseno_API_y_OpenAPI
+Contratos REST WebSocket y webhooks
+Proyecto: Excelencia Inmobiliaria
+Versión: 1.0
+Estado: Propuesta de diseño
+Fuentes: Documentos de arquitectura 01 a 06
+55 OPERACIONES HTTP  |  9 MÓDULOS  |  7 DIAGRAMAS
+1 Propósito y alcance
+Este documento define cómo el frontend y los integradores autorizados consumen el backend de Excelencia Inmobiliaria. Traduce las decisiones arquitectónicas y los agregados del dominio a rutas, solicitudes, respuestas, permisos, errores y garantías observables. La API propuesta usa REST con JSON para operaciones ordinarias, WebSocket para chat humano y un adaptador de webhooks para pagos. El chatbot inmobiliario conserva su interfaz HTTP independiente.
+El documento y su contrato complementario openapi.json constituyen una propuesta revisable, no evidencia de implementación o aprobación. Se conserva un monolito FastAPI con nueve módulos, MySQL privado, almacenamiento externo privado y tareas programadas separadas. No se incluyen citas, visitas, negociación, contratos legales, cierre de operaciones, reparto de comisiones ni notificaciones automáticas de matching.
+Las rutas, DTO, límites de payload y códigos específicos definidos aquí son precisiones nuevas de diseño. Las reglas abiertas de los documentos anteriores siguen pendientes. Ninguna ruta habilita cobros reales, sanciones o publicaciones con políticas sin resolver. Los usuarios y administradores no escriben tablas ni activan periodos pagados mediante un cambio directo de estado.
+2 Fuentes y trazabilidad de decisiones
+Fuente
+Aplicación en la API
+01_Architecture_Drivers_​y_Atributos_​de_Calidad
+Drivers de desempeño y seguridad; escenarios verificables
+02_Modelo_​de_Dominio_DDD
+Agregados, invariantes y decisiones PD-001 a PD-010
+03_Arquitectura_C4
+Clientes, contenedores Railway y fronteras de confianza
+04_Arquitectura_Hexagonal_​y_Modular
+Puertos PIN-001 a PIN-029 y contratos internos CINT
+05_ADR_Decisiones_Arquitectonicas
+ADR-001 a ADR-020 y límites de las propuestas
+06_Diseno_Base_​de_Datos
+38 tablas, claves, versiones y deduplicación persistente
+ADR-001 y ADR-002 determinan los propietarios y la separación de DTO, dominio y persistencia. ADR-003 gobierna contratos versionados. ADR-006 y ADR-007 exigen atomicidad e idempotencia de pagos; ADR-011 exige autorización efectiva y sesiones revocables; ADR-014 separa persistencia y entrega del chat; ADR-016 mantiene matching calculado; ADR-017 distingue publicación, visibilidad y disponibilidad. Las rutas no convierten los contratos CINT en llamadas HTTP internas.
+3 Vista de integración y límites
+Figura 1. Fronteras de consumo del backend. Fuente: elaboración propia a partir de los documentos 01 a 06.
+CNT-01 consume CNT-02 mediante HTTPS y WSS; CNT-03 sólo admite conexiones privadas desde infraestructura autorizada. CNT-04 ejecuta PIN-024 y PIN-025 sin exponer una ruta pública de cron. React nunca recibe credenciales de MySQL ni secretos de firma. El proxy conserva el identificador de correlación y aplica límites coherentes con los del backend.
+OpenAPI 3.1.0 se fija como versión de esta propuesta para describir operaciones HTTP y esquemas JSON. La versión del negocio es /api/v1 y la del archivo es 1.0.0-draft; son conceptos distintos. WebSocket se especifica en la sección 10 porque una descripción de rutas HTTP no define por sí sola el protocolo de mensajes. El webhook entrante se modela en paths; no se inventa un contrato de firma comercial. Referencia: OpenAPI 3.1.0.
+4 Convenciones del contrato
+Elemento
+Regla propuesta
+Base
+/api/v1; servidor relativo para no inventar dominio. HTTPS y TLS 1.2 o superior.
+Nombres
+Recursos en plural y snake_​case en JSON. Métodos GET de lectura; POST para creación o comando; PATCH parcial; PUT para reemplazar subrecurso.
+Identificadores
+BIGINT se serializa como cadena decimal; UUID de comando como texto canónico. No convertir a Number en JavaScript.
+Importes
+DECIMAL como cadena, moneda explícita de tres letras. No usar flotantes ni asumir MXN para planes.
+Instantes
+RFC 3339 UTC con Z; presentación local a America/Mexico_City. Periodos [inicio, fin).
+Campos
+Entradas rechazan campos desconocidos. Ausente en PATCH significa conservar; null sólo limpia un campo nullable. PATCH vacío devuelve 422.
+Paginación
+limit por defecto 20, máximo 100; cursor opaco, next_​cursor=null al finalizar. Orden estable por fecha e ID, o secuencia para mensajes.
+Errores
+application/problem+json con code y trace_​id; nunca exponer SQL, stack traces, secretos ni datos de otro actor.
+Concurrencia
+ETag fuerte e If-Match en cambios versionados. Comparar y escribir atómicamente; 428 si falta, 412 si cambió.
+Cache
+Privados, sesiones y URL temporales: Cache-Control no-store. Lecturas públicas deben revalidarse para no ofrecer propiedades retiradas.
+Límites técnicos
+Propuesta: chat 4000 caracteres, chatbot 1000, descripciones 10000 y páginas de hasta 100. Ajustar bajo pruebas y versionar cambios incompatibles.
+El cursor contiene o referencia los valores del último ordenamiento y el conjunto de filtros, protegido contra manipulación. Si se reutiliza con filtros distintos, devolver 400 CURSOR_INVALIDO. La paginación no promete una fotografía inmutable del catálogo: cada página vuelve a comprobar elegibilidad. Para mensajes no combinar cursor y after_sequence; devolver 422 si ambos se envían. El servidor limita la consulta en la base, sin descargar todas las filas para paginar en memoria.
+5 Autenticación y autorización
+Política
+Condición efectiva
+PUBLICO
+No requiere token; sólo datos y operaciones públicas expresamente definidas.
+ACTIVO
+JWT válido, sid vigente y no revocado, cuenta ACTIVA.
+GENERAL
+ACTIVO y rol GENERAL; propiedad de necesidad o interés cuando corresponda.
+ASESOR
+ACTIVO y rol ASESOR; permite revisar expediente y regularizar plan sin conceder funciones profesionales.
+PROFESIONAL
+ASESOR aprobado y periodo pagado vigente; además pertenencia del inmueble y capacidad del plan.
+CHAT
+GENERAL con origen propio válido, o ASESOR profesional; destinatario asesor habilitado. Siempre membresía de conversación.
+ADMIN
+ACTIVO y único rol SUPERADMINISTRADOR; motivo y delegación al dueño del agregado.
+PROVEEDOR
+Firma del proveedor sobre cuerpo original, identidad del emisor, tolerancia temporal y prevención de replay según contrato aprobado.
+El servidor valida algoritmo permitido, firma, issuer, audience y expiración del JWT y consulta la sesión sid. Los claims no sustituyen la lectura del estado actual de cuenta, validación y periodo. Se propone conservar el access token en memoria del cliente; al expirar se autentica de nuevo. No se introduce un refresh token sin un contrato adicional. CORS se limita a orígenes configurados y el token no viaja en URL. Las respuestas de login son genéricas para no revelar existencia de correos.
+El control por recurso se aplica antes de cargar o serializar datos privados. Un identificador ajeno puede responder 404 para evitar enumeración; un permiso funcional insuficiente responde 403. Aplicar el mismo criterio en REST y WSS. Tras cinco intentos fallidos de autenticación en 15 minutos se aplica restricción temporal conforme a la línea base; el alcance por cuenta e IP, duración y límites de otras rutas se documentarán en configuración operativa y se ensayarán contra abuso.
+Figura 2. Decisión de acceso antes de ejecutar una operación. Fuente: elaboración propia a partir de los documentos 01 a 06.
+6 Catálogo de operaciones REST
+Todas las rutas siguientes son relativas a /api/v1. Req y Res identifican esquemas del contrato; LIST indica una página con items y next_cursor. Los códigos mostrados son de éxito; los errores comunes se explican en la sección 8. Las condiciones de autorización se acumulan con las reglas del recurso. Las operaciones condicionadas deben responder 503 POLITICA_PENDIENTE o DEPENDENCIA_NO_DISPONIBLE sin efectos.
+6 1 Identidad y acceso
+API-001 Registrar usuario general
+POST /cuentas
+Entrada: Registro. Salida: 201 Cuenta. Acceso: PUBLICO. Traza: PIN-001 y CU-001.
+El servidor fija GENERAL; nunca acepta rol ni estado enviados por el cliente.
+API-002 Autenticar cuenta
+POST /sesiones
+Entrada: Login. Salida: 200 Sesion. Acceso: PUBLICO. Traza: PIN-004 y CU-004.
+JWT con sub, sid, iss, aud, iat y exp; validar firma y sesión revocable.
+API-003 Cerrar sesión
+DELETE /sesiones/actual
+Entrada: sin cuerpo. Salida: 204 sin cuerpo. Acceso: ACTIVO. Traza: PIN-004 y CU-004.
+Revoca sid; un segundo cierre puede recibir 401 al estar revocado.
+API-004 Consultar perfil
+GET /me
+Entrada: sin cuerpo. Salida: 200 Cuenta. Acceso: ACTIVO. Traza: PIN-005 y CU-005.
+No devuelve hash, controles de acceso ni sesiones ajenas.
+API-005 Actualizar perfil
+PATCH /me
+Entrada: PerfilPatch. Salida: 200 Cuenta. Acceso: ACTIVO. Traza: PIN-005 y CU-005. Requiere If-Match.
+Correo y rol no son editables por este contrato.
+6 2 Asesores y validación
+API-006 Registrar asesor
+POST /asesores
+Entrada: AsesorRegistro. Salida: 201 Asesor. Acceso: PUBLICO. Traza: PIN-002 y CU-002.
+Alta atómica de cuenta ASESOR, perfil y solicitud pendiente. La evidencia se adjunta antes de revisión.
+API-007 Consultar perfil profesional
+GET /asesores/me
+Entrada: sin cuerpo. Salida: 200 Asesor. Acceso: ASESOR. Traza: PIN-002 y CU-002.
+API-008 Consultar solicitud vigente
+GET /asesores/me/solicitud
+Entrada: sin cuerpo. Salida: 200 Solicitud. Acceso: ASESOR. Traza: PIN-002 y CU-002.
+API-009 Adjuntar evidencia
+POST /asesores/me/solicitud/documentos
+Entrada: MULTIPART. Salida: 201 Archivo. Acceso: ASESOR. Traza: PIN-002 y CU-002.
+Sólo solicitud pendiente propia; archivo privado validado antes de asociarlo. Habilitación pendiente: Proveedor de objetos y política documental.
+API-010 Listar solicitudes
+GET /admin/solicitudes
+Entrada: sin cuerpo. Salida: 200 LIST:Solicitud. Acceso: ADMIN. Traza: PIN-003 y CU-003.
+API-011 Consultar evidencia privada
+GET /admin/documentos/{id}/url
+Entrada: sin cuerpo. Salida: 200 UrlArchivo. Acceso: ADMIN. Traza: PIN-003 y CU-003.
+Registrar consulta; URL de hasta 15 minutos.
+API-012 Revisar asesor
+POST /admin/solicitudes/{id}/decision
+Entrada: Decision. Salida: 200 Solicitud. Acceso: ADMIN. Traza: PIN-003 y CU-003. Requiere If-Match.
+Revisor derivado del token; decisión y auditoría atómicas.
+API-054 Consultar expediente para decisión
+GET /admin/solicitudes/{id}
+Entrada: sin cuerpo. Salida: 200 Solicitud. Acceso: ADMIN. Traza: PIN-003 y CU-003.
+Devuelve ETag para decisión concurrente y referencias a evidencias privadas.
+6 3 Propiedades y catálogo
+API-013 Consultar catálogos
+GET /catalogos/{catalogo}
+Entrada: sin cuerpo. Salida: 200 LIST:Catalogo. Acceso: PUBLICO. Traza: PIN-013 y CU-013.
+Lista permitida de catálogos; sin acceso a tablas arbitrarias.
+API-014 Consultar catálogo elegible
+GET /propiedades
+Entrada: sin cuerpo. Salida: 200 LIST:PropiedadPublica. Acceso: PUBLICO. Traza: PIN-013 y CU-013.
+PUBLICADA, visible y disponible; versión vigente en la misma consulta.
+API-015 Consultar ficha pública
+GET /propiedades/{id}
+Entrada: sin cuerpo. Salida: 200 PropiedadPublica. Acceso: PUBLICO. Traza: PIN-013 y CU-013.
+404 si no es elegible; no filtrar borradores.
+API-016 Consultar propiedades propias
+GET /me/propiedades
+Entrada: sin cuerpo. Salida: 200 LIST:Propiedad. Acceso: ASESOR. Traza: PIN-010 y CU-010.
+Lectura propia incluso sin periodo pago para regularización; no concede publicación.
+API-017 Consultar detalle propio
+GET /me/propiedades/{id}
+Entrada: sin cuerpo. Salida: 200 Propiedad. Acceso: ASESOR. Traza: PIN-010 y CU-010.
+Devuelve ETag de la versión vigente.
+API-018 Registrar propiedad
+POST /propiedades
+Entrada: PropiedadCrear. Salida: 201 Propiedad. Acceso: PROFESIONAL. Traza: PIN-009 y CU-009.
+Asesor y fechas derivados; inicia borrador. Validar cuota según PD-001 bajo bloqueo. Habilitación pendiente: PD-001.
+API-019 Editar propiedad
+PATCH /me/propiedades/{id}
+Entrada: PropiedadPatch. Salida: 200 Propiedad. Acceso: PROFESIONAL. Traza: PIN-010 y CU-010. Requiere If-Match.
+Propiedad propia; preservar estados controlados.
+API-020 Cambiar publicación
+POST /me/propiedades/{id}/publicacion
+Entrada: Publicacion. Salida: 200 Propiedad. Acceso: PROFESIONAL. Traza: PIN-010 y CU-010. Requiere If-Match.
+Transición permitida, capacidad de plan y auditoría en una transacción. Habilitación pendiente: PD-001 para PUBLICAR.
+API-021 Actualizar disponibilidad
+PUT /me/propiedades/{id}/disponibilidad
+Entrada: Disponibilidad. Salida: 200 Propiedad. Acceso: PROFESIONAL. Traza: PIN-010 y CU-010. Requiere If-Match.
+No confundir disponibilidad con estado de publicación.
+API-022 Configurar colaboración
+PUT /me/propiedades/{id}/comision
+Entrada: Comision. Salida: 200 Propiedad. Acceso: PROFESIONAL. Traza: PIN-021 y CU-021. Requiere If-Match.
+No representa contrato de comisión ni reparto de dinero.
+API-023 Adjuntar fotografía
+POST /me/propiedades/{id}/fotografias
+Entrada: MULTIPART. Salida: 201 Archivo. Acceso: PROFESIONAL. Traza: PIN-009 y CU-009.
+Revisar propiedad propia y máximo de 50 con bloqueo antes de confirmar metadatos. Habilitación pendiente: PD-005 y proveedor de objetos.
+API-024 Consultar fotografías elegibles
+GET /propiedades/{id}/fotografias
+Entrada: sin cuerpo. Salida: 200 LIST:Archivo. Acceso: PUBLICO. Traza: PIN-013 y CU-013.
+Sólo metadatos de fotos verificadas de ficha elegible.
+API-025 Obtener fotografía temporal
+GET /propiedades/{id}/fotografias/{foto_id}/url
+Entrada: sin cuerpo. Salida: 200 UrlArchivo. Acceso: PUBLICO. Traza: PIN-013 y CU-013.
+Verificar asociación y elegibilidad; máximo 15 minutos; bucket privado.
+6 4 Planes y suscripciones
+API-026 Consultar planes
+GET /planes
+Entrada: sin cuerpo. Salida: 200 LIST:Plan. Acceso: PUBLICO. Traza: PIN-006 y CU-006.
+500, 800 y 1000 con límites 10, 15 y 20; moneda y duración pendientes, contratable=false.
+API-027 Consultar vigencia y capacidad
+GET /me/suscripcion
+Entrada: sin cuerpo. Salida: 200 Suscripcion. Acceso: ASESOR. Traza: PIN-006 y CU-006.
+No confundir tolerancia con derecho profesional.
+API-028 Seleccionar plan
+PUT /me/seleccion-plan
+Entrada: SeleccionPlan. Salida: 200 Resultado. Acceso: ASESOR. Traza: PIN-006 y CU-006.
+Selección no activa vigencia ni cambia un periodo pagado. Reconciliar con intención pendiente de pago. Habilitación pendiente: Moneda duración y reglas de cambio.
+API-029 Reactivar publicaciones
+POST /me/reactivaciones
+Entrada: Reactivacion. Salida: 200 ReactivacionResultado. Acceso: PROFESIONAL. Traza: PIN-026 y CU-026.
+Bloquear cupo y propiedades; rollback total ante conflicto. No escoger prioridad sin PD-004. Habilitación pendiente: PD-001 y PD-004.
+6 5 Pagos y webhooks
+API-030 Crear intención de pago
+POST /me/pagos
+Entrada: PagoCrear. Salida: 201 Pago. Acceso: ASESOR. Traza: PIN-007 y CU-007.
+UQ solicitud_id; mismo payload devuelve pago existente; otro payload produce 409. El servidor calcula monto. Habilitación pendiente: Proveedor moneda duración renovación.
+API-031 Consultar pago propio
+GET /me/pagos/{id}
+Entrada: sin cuerpo. Salida: 200 Pago. Acceso: ASESOR. Traza: PIN-007 y CU-007.
+El retorno del navegador no confirma pagos.
+API-032 Recibir evento del proveedor
+POST /integraciones/pagos/{proveedor}/webhook
+Entrada: RAW. Salida: 200 Resultado. Acceso: PROVEEDOR. Traza: PIN-007 y CU-007.
+Verificar cuerpo original y firma antes de normalizar. Evento y referencia económica únicos; confirmar después del commit. Habilitación pendiente: Proveedor y contrato de firma.
+6 6 Búsqueda y matching
+API-033 Buscar con filtros
+POST /busquedas
+Entrada: Criterios. Salida: 200 LIST:PropiedadPublica. Acceso: PUBLICO. Traza: PIN-014 y CU-014.
+Consulta sin persistir; misma elegibilidad del catálogo.
+API-034 Registrar necesidad
+POST /me/necesidades
+Entrada: NecesidadCrear. Salida: 201 Necesidad. Acceso: GENERAL. Traza: PIN-016 y CU-016.
+Cuenta tomada del token; validar precio_min <= precio_max en misma moneda.
+API-035 Listar necesidades propias
+GET /me/necesidades
+Entrada: sin cuerpo. Salida: 200 LIST:Necesidad. Acceso: GENERAL. Traza: PIN-016 y CU-016.
+API-036 Consultar necesidad propia
+GET /me/necesidades/{id}
+Entrada: sin cuerpo. Salida: 200 Necesidad. Acceso: GENERAL. Traza: PIN-016 y CU-016.
+API-037 Actualizar necesidad
+PATCH /me/necesidades/{id}
+Entrada: NecesidadPatch. Salida: 200 Necesidad. Acceso: GENERAL. Traza: PIN-016 y CU-016. Requiere If-Match.
+No aceptar cuenta_id.
+API-038 Matching directo
+GET /me/necesidades/{id}/coincidencias
+Entrada: sin cuerpo. Salida: 200 LIST:PropiedadPublica. Acceso: GENERAL. Traza: PIN-016 y CU-016.
+Sólo necesidad propia activa; no persiste resultados.
+API-039 Matching inverso
+GET /me/propiedades/{id}/coincidencias
+Entrada: sin cuerpo. Salida: 200 LIST:Necesidad. Acceso: PROFESIONAL. Traza: PIN-017 y CU-017.
+Propiedad propia elegible; proyección de criterios sin nombre, contacto ni cuenta del demandante.
+API-040 Expresar interés
+POST /me/intereses
+Entrada: InteresCrear. Salida: 201 Interes. Acceso: GENERAL. Traza: PIN-018 y CU-018.
+UQ cuenta y solicitud_id; verificar elegibilidad al confirmar. Repetición semántica futura no se prohíbe sin regla.
+6 7 Chat interno
+API-041 Crear conversación
+POST /conversaciones
+Entrada: ConversacionCrear. Salida: 201 Conversacion. Acceso: CHAT. Traza: PIN-019 y CU-019.
+Cliente propio y asesor habilitado desde propiedad o interés; entre asesores, ambos habilitados. Exactamente dos participantes.
+API-042 Listar conversaciones propias
+GET /conversaciones
+Entrada: sin cuerpo. Salida: 200 LIST:Conversacion. Acceso: ACTIVO. Traza: PIN-019 y CU-019.
+Sólo membresía autorizada; no permite buscar conversaciones ajenas.
+API-043 Recuperar historial
+GET /conversaciones/{id}/mensajes
+Entrada: sin cuerpo. Salida: 200 LIST:Mensaje. Acceso: ACTIVO. Traza: PIN-019 y CU-019.
+Miembro autorizado; después de secuencia ascendente; verifica acceso actual.
+API-044 Enviar mensaje persistente
+POST /conversaciones/{id}/mensajes
+Entrada: MensajeCrear. Salida: 201 Mensaje. Acceso: CHAT. Traza: PIN-019 y CU-019.
+Misma UoW que WSS; emisor del token. Dedupe conversación/emisor/UUID; distinto contenido 409.
+6 8 Chatbot inmobiliario
+API-045 Interpretar búsqueda inmobiliaria
+POST /chatbot/consultas
+Entrada: ChatbotEntrada. Salida: 200 ChatbotSalida. Acceso: PUBLICO. Traza: PIN-015 y CU-015.
+HTTP independiente del chat humano; devuelve aclaración sin inventar criterios.
+6 9 Administración y confianza
+API-046 Consultar cuentas
+GET /admin/cuentas
+Entrada: sin cuerpo. Salida: 200 LIST:Cuenta. Acceso: ADMIN. Traza: PIN-022 y CU-022.
+API-047 Administrar estado de cuenta
+PUT /admin/cuentas/{id}/estado
+Entrada: AccionAdmin. Salida: 200 Cuenta. Acceso: ADMIN. Traza: PIN-022 y CU-022. Requiere If-Match.
+Delega a MOD-01; revoca sesiones cuando proceda; proteger último administrador activo.
+API-048 Administrar publicación
+POST /admin/propiedades/{id}/moderacion
+Entrada: PublicacionAdmin. Salida: 200 Propiedad. Acceso: ADMIN. Traza: PIN-022 y CU-022. Requiere If-Match.
+Delega a MOD-03; motivo y auditoría obligatorios.
+API-049 Consultar suscripciones
+GET /admin/suscripciones
+Entrada: sin cuerpo. Salida: 200 LIST:Suscripcion. Acceso: ADMIN. Traza: PIN-023 y CU-023.
+No hay endpoint para marcar un pago como confirmado sin evidencia externa.
+API-050 Reportar cuenta o contenido
+POST /reportes
+Entrada: ReporteCrear. Salida: 201 Reporte. Acceso: ACTIVO. Traza: PIN-027 y CU-027.
+Should; sólo recepción, sin sanción automática. Habilitación pendiente: PD-008.
+API-051 Valorar asesor
+POST /valoraciones
+Entrada: ValoracionCrear. Salida: 201 Valoracion. Acceso: GENERAL. Traza: PIN-028 y CU-028.
+Should; entero 1 a 5; elegibilidad sin resolver. Habilitación pendiente: PD-006 y PD-007.
+API-052 Consultar trazabilidad
+GET /admin/auditoria
+Entrada: sin cuerpo. Salida: 200 LIST:Auditoria. Acceso: ADMIN. Traza: PIN-029 y CU-029.
+Lectura filtrada; sin edición, borrado ni inserción pública.
+API-053 Consultar propiedad para administración
+GET /admin/propiedades/{id}
+Entrada: sin cuerpo. Salida: 200 Propiedad. Acceso: ADMIN. Traza: PIN-022 y CU-022.
+Acceso administrativo explícito a ficha y ETag, aunque no sea pública.
+API-055 Consultar cuenta para administración
+GET /admin/cuentas/{id}
+Entrada: sin cuerpo. Salida: 200 Cuenta. Acceso: ADMIN. Traza: PIN-022 y CU-022.
+Devuelve ETag para el cambio de estado; sin secretos ni hash.
+La selección de plan es una intención; se valida nuevamente al crear el pago. No existe una tabla nueva de selección ni una activación derivada del navegador. El alta de asesor permite completar evidencias antes de una decisión; no permite aprobar un expediente vacío. Esa secuencia concreta el alta conceptual de PIN-002 sin dar acceso profesional temprano.
+PIN-008 controla capacidad dentro de los comandos de propiedades. PIN-011 asigna actor y fechas dentro de esos comandos. PIN-012 conserva revisión de duplicidad como Should condicionada a PD-002; no se publica un detector definitivo. PIN-020 comparte las rutas del chat con tipo ASESOR_ASESOR. PIN-024 y PIN-025 son procesos internos y PIN-029 se invoca desde cada operación auditable; su lectura administrativa no autoriza inserción pública.
+La administración de suscripciones de PIN-023 queda concretada como consulta; cambios comerciales administrativos adicionales no se habilitan hasta definir acciones, motivos y efectos sobre pagos y periodos. Esta restricción es una brecha de diseño explícita, no una declaración de cobertura funcional terminada.
+7 Modelos de entrada y salida
+El archivo openapi.json contiene todos los esquemas y sus campos requeridos. Esta sección resume su responsabilidad y mapeo; las proyecciones públicas nunca equivalen a serializar una fila completa. Las longitudes nuevas de texto y contraseña son propuestas técnicas, y deben revisarse con requisitos y pruebas antes de convertirse en restricciones de producción.
+Modelo
+Datos y validación
+Persistencia o resultado
+Registro y Cuenta
+Nombre, correo, contraseña sólo escritura y teléfono; rol y estado asignados en backend.
+id_​cuentas e id_​roles; hash y controles excluidos.
+Asesor y Solicitud
+Perfil, estado de validación, documentos y versión; revisor autenticado.
+as_​perfiles, as_​solicitudes y as_​documentos.
+PropiedadCrear y Patch
+Tipos, operación, zona, descripción, precio/moneda, superficies y amenidades. IDs deben existir.
+pr_​propiedades y pr_​propiedad_​amenidad; actor y fechas no editables.
+PropiedadPublica
+Proyección elegible; sin dirección exacta, correo, documentos privados ni porcentaje de comisión.
+Consulta de MOD-03; política de exposición propuesta y conservadora.
+Comision
+Indicador y porcentaje decimal opcional entre 0 y 100. Si no comparte, porcentaje null.
+No añade negociación, contrato ni reparto.
+Plan y Periodo
+Precio, moneda y duración explícitos, límite y contratable; inicio menor que fin.
+pl_​versiones_​plan y pl_​periodos; versiones borrador no contratables.
+PagoCrear y Pago
+solicitud_​id UUID y versión de plan; no acepta monto del navegador.
+pg_​pagos; monto/moneda verificados con proveedor.
+Criterios y Necesidad
+Filtros combinables, rango de precio consistente y misma moneda.
+Consulta o ma_​necesidades; sin tabla de coincidencias.
+Conversacion y Mensaje
+Dos participantes derivados; emisor del token y cliente_​mensaje_​id único por conversación/emisor.
+ch_​conversaciones, ch_​participantes y ch_​mensajes.
+ChatbotSalida
+RESULTADOS, ACLARACION o SIN_RESULTADOS, criterios reconocidos y proyección pública.
+Transitorio; no guardar consulta NLP ni inventar score calibrado.
+Reporte y Valoracion
+Reporte a cuenta, propiedad o mensaje con clave compuesta; puntuación entera 1 a 5.
+ad_​reportes y ad_​valoraciones sólo tras resolver políticas Should.
+Auditoria
+Módulo, acción, resultado, fecha y correlación; actor/fuente desde contexto.
+ad_​auditoria; lectura restringida, escritura interna.
+Para evitar asignación masiva, el modelo de entrada no admite id, asesor_id, cuenta_id, aprobado, pagado, creado_at ni version cuando corresponde derivarlos. Pydantic valida la forma en el adaptador, la aplicación autoriza el comando y el dominio aplica invariantes. Repositorios y UoW traducen resultados a MySQL; el dominio no importa modelos HTTP u ORM.
+7 1 Ejemplo de búsqueda
+Solicitud POST /api/v1/busquedas con Content-Type application/json:
+{
+  "operacion_id": "1",
+  "tipo_id": "2",
+  "zona_id": "15",
+  "precio_max": "2500000.00",
+  "moneda": "MXN",
+  "habitaciones_min": 2
+}
+MXN y los identificadores son datos ilustrativos de una propiedad, no la moneda aprobada de los planes. La respuesta usa items de PropiedadPublica y next_cursor; sin coincidencias devuelve 200 con items vacío.
+7 2 Ejemplo de modificación concurrente
+PATCH /api/v1/me/propiedades/125
+Authorization: Bearer <token>
+If-Match: "v7"
+Content-Type: application/json
+{"titulo":"Casa con patio"}
+Si la versión sigue siendo 7, el cambio produce 200 y ETag "v8". Si otra operación ya la modificó, produce 412 y el cliente debe releer, mostrar el conflicto y decidir el nuevo cambio; no sobrescribe silenciosamente. Para la aprobación de asesor y los cambios administrativos, el ETag se obtiene de la consulta de detalle administrativa correspondiente.
+8 Errores y semántica de respuesta
+Se adopta el formato Problem Details como envoltura de fallos HTTP; code y trace_id son extensiones de esta API. El status del cuerpo coincide con el estado HTTP. El mensaje ayuda al usuario sin revelar infraestructura. Referencia: RFC 9457.
+HTTP
+Código de aplicación orientativo
+Tratamiento del cliente
+400
+JSON_INVALIDO o CURSOR_INVALIDO
+Corregir sintaxis o reiniciar paginación.
+401
+SESION_INVALIDA o FIRMA_INVALIDA
+Autenticar de nuevo; no repetir credenciales automáticamente.
+403
+PERMISO_INSUFICIENTE
+Mostrar restricción; no sortearla desde el frontend.
+404
+RECURSO_NO_ENCONTRADO
+No revelar si el ID pertenece a otro usuario.
+409
+CUPO_AGOTADO, TRANSICION_INVALIDA, REPLAY_DIFERENTE
+Releer estado o cambiar comando; no reintentar a ciegas.
+412 / 428
+VERSION_OBSOLETA / PRECONDICION_REQUERIDA
+Releer ETag o enviar If-Match.
+413 / 415
+ARCHIVO_DEMASIADO_GRANDE / TIPO_NO_PERMITIDO
+Ajustar archivo a política aprobada.
+422
+DATOS_INVALIDOS
+Mostrar errors por campo; no reenviar el mismo payload.
+429
+LIMITE_SOLICITUDES
+Respetar Retry-After y aplicar espera con variación aleatoria.
+500
+ERROR_INTERNO
+Mostrar trace_​id; no afirmar que el comando no se ejecutó.
+503
+POLITICA_PENDIENTE o DEPENDENCIA_NO_DISPONIBLE
+No habilitar flujo; reintentar sólo si causa temporal y es seguro.
+{
+  "type": "urn:excelencia:problem:version-obsoleta",
+  "title": "La propiedad cambió",
+  "status": 412,
+  "code": "VERSION_OBSOLETA",
+  "detail": "Consulta la versión actual antes de guardar.",
+  "trace_id": "ejemplo-correlacion-07"
+}
+Los adaptadores HTTP normalizan las excepciones de validación del framework al esquema Problem. Respuestas 401 de rutas Bearer incluyen WWW-Authenticate: Bearer. Respuestas 429 incluyen Retry-After; 503 lo incluye sólo cuando existe una espera razonable conocida. No se utiliza 200 para ocultar un error de negocio.
+9 Flujos críticos e integridad
+9 1 Publicación y capacidad
+El caso de uso comprueba sesión, propiedad, validación y periodo pagado vigente. Bloquea el ámbito de capacidad del asesor y la versión de la propiedad, calcula ocupación según PD-001 y confirma estado y auditoría juntos. Dos solicitudes concurrentes por el último cupo no pueden ganar ambas. La propuesta no interpreta qué estados consumen cupo hasta resolver PD-001. La tolerancia de más de 15 días tras vencimiento no concede derechos profesionales; sólo gobierna la pausa automática.
+Figura 3. Publicación sin exceder el cupo por concurrencia. Fuente: elaboración propia a partir de los documentos 01 a 06.
+9 2 Pago y webhook
+La intención se identifica por solicitud_id persistente. Antes de llamar al proveedor se registra la intención local; el adaptador usa una clave estable si el proveedor soporta idempotencia. Ante timeout incierto, se consulta/reconcilia la misma referencia y no se crea otro cobro. Si el proveedor no permite esta garantía, la integración permanece bloqueada hasta definir recuperación. No mantener una transacción de base abierta durante llamadas externas.
+El webhook recibe los bytes originales y verifica firma, emisor y vigencia antes de interpretar el evento. Comprueba la relación entre pago, versión de plan, monto, moneda y referencia económica; no confía en el navegador. Evento, pago confirmado, periodo y auditoría se confirman en una sola UoW. La unicidad de proveedor/evento evita replay del evento; la de proveedor/referencia económica evita aplicar dos eventos al mismo cobro; la de periodo/pago impide duplicar vigencia.
+Eventos repetidos válidos responden 200 después de verificar que el efecto ya fue confirmado. Un fallo antes de commit se revierte y recibe un error recuperable. Reordenamientos se resuelven con transiciones permitidas y consulta al proveedor cuando sea necesaria. Reembolsos, contracargos y prorrateos requieren política adicional; no se inventa su efecto. Si falta moneda, duración o inicio del periodo no se habilitan cobros. La reactivación automática sigue condicionada a cupo y prioridad.
+Figura 4. Confirmación y deduplicación del webhook. Fuente: elaboración propia a partir de los documentos 01 a 06.
+9 3 Archivos privados
+Se propone carga multipart a través del backend para no introducir una tabla de tickets de subida. Primero se valida identidad, propiedad, tamaño máximo aprobado, tipo real y nombre saneado. El adaptador deposita el archivo en almacenamiento privado; sólo tras verificar el objeto se confirma su referencia y metadatos en la UoW. Una segunda validación de cupo bajo bloqueo impide superar 50 fotografías.
+Si falla la confirmación local, se intenta borrar el objeto recién creado y se registra su identificador en un registro técnico de compensación protegido para reconciliación. Un objeto huérfano nunca aparece en el catálogo. La transferencia no mantiene bloqueos de MySQL. El proveedor, los MIME y los tamaños siguen pendientes; no se interpreta extensión como prueba de contenido. La barra de progreso del cliente aparece cuando la carga supera dos segundos.
+Las URLs de lectura requieren comprobar autorización y asociación del archivo cada vez que se emiten. Las fotos públicas siguen perteneciendo a objetos privados; una ficha retirada deja de obtener URLs nuevas. Una URL ya emitida puede seguir funcionando hasta su vencimiento máximo de 15 minutos; si se exige revocación inmediata deberá revisarse el mecanismo. Los documentos profesionales sólo son visibles al propietario por flujos que se autoricen y a revisores; esta versión sólo expone su lectura al revisor.
+Figura 5. Carga y consulta de archivos privados. Fuente: elaboración propia a partir de los documentos 01 a 06.
+10 Contrato WebSocket del chat humano
+Se propone WSS /api/v1/ws/chat. El navegador no puede fijar libremente Authorization en el constructor WebSocket; por ello el primer frame es una autenticación con access token. La conexión abierta no concede acceso: hasta validar el frame no hay suscripciones ni entrega de datos. Se propone cerrar a los cinco segundos si falta autenticación, limitar conexiones pendientes y validar Origin contra la lista permitida. No colocar el token en query string, logs o subprotocolos.
+Tras autenticar, el backend obtiene las conversaciones autorizadas. Cada envío vuelve a comprobar cuenta, membresía y condiciones profesionales; el cierre de sesión o expiración invalida la conexión. REST y WSS llaman al mismo caso de uso. Se admite un backend de chat con una instancia en V1; escalar a varias exige resolver coordinación antes de anunciar entrega entre instancias.
+Evento
+Emisor y campos
+Semántica
+auth
+Cliente: type, access_​token
+Primer frame; no se persiste ni registra token.
+auth.ok
+Servidor: type, expires_​at
+Sesión autenticada; no representa suscripción pagada.
+message.send
+Cliente: type, conversacion_​id, cliente_​mensaje_​id, contenido
+Mismas reglas de MensajeCrear; emisor siempre derivado.
+message.ack
+Servidor: type, mensaje
+Confirma persistencia durable y devuelve Mensaje; no prueba lectura del destinatario.
+message.created
+Servidor: type, mensaje
+Entrega a miembros conectados; se deduplica por conversación/secuencia.
+error
+Servidor: type, code, trace_​id, cliente_​mensaje_​id opcional
+Sin contenido privado ni estado HTTP dentro del transporte WSS.
+ping / pong
+Cliente o servidor: type
+Latido de aplicación propuesto cada 25 segundos; umbral operativo a ensayar.
+Se propone 1008 para violación de política, 1009 para payload excesivo y 1011 para fallo interno. No enviar ack antes de commit. La clave única conversación/emisor/cliente_mensaje_id permite reintentar con el mismo UUID tras una interrupción: mismo contenido devuelve el mensaje original y distinto contenido produce REPLAY_DIFERENTE. No se promete entrega exactamente una vez; se obtiene un único efecto persistente y consumidores capaces de deduplicar.
+Al reconectar, el cliente conserva la última secuencia confirmada de cada conversación, abre y autentica WSS, almacena temporalmente eventos entrantes y consulta REST con after_sequence. Repite páginas hasta next_cursor=null y fusiona por conversación/secuencia antes de mostrar; así cubre mensajes perdidos entre consulta y conexión. Reintenta conexión dentro de diez segundos con espera progresiva y variación aleatoria, informa interrupción y no pierde UUID de envíos inciertos.
+Figura 6. Persistencia y recuperación del chat. Fuente: elaboración propia a partir de los documentos 01 a 06.
+11 Búsqueda chatbot y privacidad
+POST /busquedas combina criterios estructurados y siempre consulta el catálogo elegible. Los identificadores de zona, tipo y operación corresponden a catálogos del MOD-03. Rangos de precios se comparan sólo en una misma moneda; no se introduce conversión cambiaria. El matching directo usa necesidad propia activa y el inverso propiedad propia elegible; sus resultados son calculados y paginados, sin tabla de historial ni notificaciones.
+El chatbot utiliza TF-IDF, LinearSVC y reglas dentro del backend; no es un proveedor generativo externo. Extrae criterios reconocidos y solicita aclaración cuando falta información necesaria. El contrato no afirma que el margen de un clasificador sea una probabilidad. Los resultados se validan por el mismo puerto de catálogo; no genera propiedades inexistentes ni ofrece fichas no elegibles. Los textos libres no se incorporan automáticamente al corpus ni a logs.
+12 Operación observabilidad y pruebas
+Escenario
+Criterio de aceptación
+REST ordinario
+p95 <= 2 s; separar latencia externa de tiempo interno.
+Búsqueda y chatbot
+Búsqueda p95 <= 3 s; chatbot p95 <= 5 s. Corpus aprobado y métricas NLP de la línea base.
+Chat humano
+Entrega <= 2 s p95 con ambos conectados, al menos 99 % según escenario de origen; reconexión <= 10 s.
+Carga de referencia
+50 sesiones durante 15 minutos, errores < 1 %; datos y ambiente representativos.
+Proveedor caído
+Respuesta controlada en <= 10 s; sin activación ni corrupción por timeout.
+ID ajeno
+Cuenta A no lee ni modifica necesidad, pago, evidencia o conversación de B; probar REST y WSS.
+Dos publicaciones simultáneas
+Último cupo: una sola publicación autorizada; saldo y auditoría coherentes.
+Pago repetido
+Mismo evento, eventos distintos del mismo pago y replay después de reinicio: un solo periodo.
+Fallo transaccional
+Inyectar fallo antes de commit: ninguna entidad parcial; después de commit: replay recupera resultado.
+Chat desconectado
+Reenviar UUID tras perder ack; un mensaje persistente y recuperación completa por secuencia.
+Archivo concurrente
+Dos cargas al límite de 50; sólo una confirma, sin archivo huérfano visible.
+Contrato
+Referencias resolubles, operationId único, parámetros de ruta requeridos, ejemplos válidos y sin secretos.
+Cada solicitud recibe trace_id generado o saneado en el borde; propagarlo a casos de uso y adaptadores. Registrar ruta normalizada, método, código, duración y resultado; no correo, contraseña, token, URL firmada, documento o contenido del chat. Auditoría de negocio conserva actor/fuente, fecha, operación y resultado en el mismo compromiso transaccional cuando sea crítico. No expone logs o métricas a usuarios públicos.
+La verificación del archivo OpenAPI y del documento comprueba diseño estático. Los tiempos, pruebas de carga, seguridad, restauración y aceptación sólo se acreditan al implementar el backend. No se informa cumplimiento de esos objetivos por haber generado documentación.
+13 Contrato OpenAPI y control de cambios
+openapi.json acompaña a este documento como especificación completa de las operaciones HTTP enumeradas. Contiene paths, operationId, tags por módulo, seguridad Bearer, solicitudes, respuestas, parámetros y schemas. x-access-policy, x-use-case y x-gate preservan reglas de autorización y dependencias que no ejecuta OpenAPI. Estas extensiones son documentación, no mecanismos de seguridad.
+La operación webhook mantiene RAW y proveedor sin firma comercial concreta: no se declara lista para integrar hasta elegir proveedor, content-type, encabezados, algoritmo, secreto y ventana temporal. El protocolo WSS de la sección 10 es complementario y no se publica como si OpenAPI validara sus frames. El contrato JSON permite revisión y validación sin copiar miles de líneas en el documento Word.
+El backend implementará routers y modelos Pydantic de borde compatibles con este contrato. La salida generada de FastAPI deberá compararse con el archivo versionado en integración continua; cualquier diferencia se revisa explícitamente. El frontend consume modelos generados o comprobados contra el mismo archivo. La comprobación no exige que dominio y ORM tengan los mismos nombres o campos que el DTO.
+Una eliminación de campo, cambio de tipo, nueva obligatoriedad o restricción incompatible exige plan de migración y versión mayor. Añadir campos de respuesta requiere clientes tolerantes a extensiones; entradas permanecen estrictas. Conservar una bitácora del contrato con motivo, rutas afectadas, migración, pruebas y aprobación. No renumerar los identificadores API existentes cuando se incorporen nuevas operaciones.
+Figura 7. Evolución contractual y puerta de liberación. Fuente: elaboración propia a partir de los documentos 01 a 06.
+14 Pendientes y cobertura de puertos
+Pendiente
+Efecto contractual
+PD-001
+Definir estados que consumen cupo antes de habilitar altas/publicaciones sujetas al límite.
+PD-002
+Definir duplicidad; PIN-012 Should permanece interno y condicionado.
+PD-003
+Aprobar acciones que reinician inactividad; no inventar endpoint de actividad.
+PD-004
+Definir prioridad de reactivación cuando no caben todas las propiedades.
+PD-005
+Aprobar MIME y tamaño de fotografías; carga permanece condicionada.
+PD-006 y PD-007
+Valorar asesor y reputación/moderación deshabilitados hasta política aprobada.
+PD-008
+Reporte y sanciones requieren definición; no hay sanción automática.
+PD-009 y PD-010
+Sin historial persistido de matching ni notificaciones automáticas.
+Planes y pagos
+Moneda, duración, inicio, renovación y cambio/prorrateo antes de cobros reales.
+Integraciones
+Proveedores de pagos, objetos y mapas; contratos de firma y carga por completar.
+PIN-023
+Falta definir comandos administrativos de suscripción además de consulta; no marcar cobertura como terminada.
+Propuestas API nuevas
+Revisar acceso GENERAL a necesidades, exposición pública conservadora, token en memoria, límites y autenticación WSS.
+Puerto y caso
+Operaciones o mecanismo
+Cobertura
+PIN-001 / CU-001
+API-001
+Operaciones HTTP propuestas
+PIN-002 / CU-002
+API-006, API-007, API-008, API-009
+Operaciones HTTP propuestas
+PIN-003 / CU-003
+API-010, API-011, API-012, API-054
+Operaciones HTTP propuestas
+PIN-004 / CU-004
+API-002, API-003
+Operaciones HTTP propuestas
+PIN-005 / CU-005
+API-004, API-005
+Operaciones HTTP propuestas
+PIN-006 / CU-006
+API-026, API-027, API-028
+Operaciones HTTP propuestas
+PIN-007 / CU-007
+API-030, API-031, API-032
+Operaciones HTTP propuestas
+PIN-008 / CU-008
+API-018, API-020, API-029
+Política interna transversal, PD-001
+PIN-009 / CU-009
+API-018, API-023
+Operaciones HTTP propuestas
+PIN-010 / CU-010
+API-016, API-017, API-019, API-020, API-021
+Operaciones HTTP propuestas
+PIN-011 / CU-011
+API-018 a API-023
+Actor y fechas derivados dentro del caso de uso
+PIN-012 / CU-012
+Interno
+Should, PD-002; detector sin contrato definitivo
+PIN-013 / CU-013
+API-013, API-014, API-015, API-024, API-025
+Operaciones HTTP propuestas
+PIN-014 / CU-014
+API-033
+Operaciones HTTP propuestas
+PIN-015 / CU-015
+API-045
+Operaciones HTTP propuestas
+PIN-016 / CU-016
+API-034, API-035, API-036, API-037, API-038
+Operaciones HTTP propuestas
+PIN-017 / CU-017
+API-039
+Operaciones HTTP propuestas
+PIN-018 / CU-018
+API-040
+Operaciones HTTP propuestas
+PIN-019 / CU-019
+API-041, API-042, API-043, API-044
+Operaciones HTTP propuestas
+PIN-020 / CU-020
+API-041, API-042, API-043, API-044
+Mismas rutas del chat con tipo ASESOR_ASESOR
+PIN-021 / CU-021
+API-022
+Operaciones HTTP propuestas
+PIN-022 / CU-022
+API-046, API-047, API-048, API-053, API-055
+Operaciones HTTP propuestas
+PIN-023 / CU-023
+API-049
+Consulta definida; cambios administrativos pendientes
+PIN-024 / CU-024
+CNT-04
+Tarea programada interna; no endpoint público
+PIN-025 / CU-025
+CNT-04
+Tarea programada interna; no endpoint público
+PIN-026 / CU-026
+API-029
+Operaciones HTTP propuestas
+PIN-027 / CU-027
+API-050
+Operaciones HTTP propuestas
+PIN-028 / CU-028
+API-051
+Operaciones HTTP propuestas
+PIN-029 / CU-029
+API-052
+Registro interno transversal y lectura administrativa
+15 Lista de diagramas y referencias
+Figura
+Contenido
+1
+Fronteras de consumo del backend
+2
+Decisión de acceso
+3
+Publicación y cupo
+4
+Webhook transaccional
+5
+Carga privada de archivos
+6
+Chat y recuperación
+7
+Evolución contractual
+Los siete diagramas se conservan como Mermaid editable en este Markdown y como imágenes incorporadas en Word. Complementan las vistas C4, hexagonales y entidad relación de los documentos anteriores sin cambiar sus propietarios ni cardinalidades.
+Referencias técnicas: OpenAPI Specification 3.1.0 para la estructura del contrato HTTP; RFC 9457 Problem Details para errores interoperables. Consulta: 9 de septiembre de 2026. Las decisiones específicas de negocio proceden de las seis fuentes locales enumeradas en la sección 2.
+Decisiones aprobadas para la Version 1
+Esta enmienda sustituye los puntos abiertos y las propuestas del documento que tratan los temas listados. Las decisiones son obligatorias para la implementacion de la Version 1.
+Politica comercial y suscripciones
+Planes mensuales en MXN: Basic $500 y 10 propiedades, Pro $800 y 15, Premium $1,000 y 20.
+Stripe Checkout procesa tarjetas y autorrenovacion; Stripe reintenta durante siete dias.
+La tolerancia permite solo consulta y pago; a los quince dias vencidos se pausan publicaciones.
+El asesor elige que publicaciones reactivar; no existe reactivacion automatica.
+Seguridad y operacion
+Correo verificado y recuperacion por Resend; Argon2id; JWT HS256 con sesion revocable de 30 minutos.
+Cinco fallos bloquean cuenta e IP por quince minutos. Limites: 60 publicas, 120 autenticadas por minuto y diez cargas por diez minutos.
+Railway opera desarrollo y produccion. La tarea diaria corre a las 02:00 America/Mexico_City. No hay purga automatica.
+Propiedades y geografia
+León, Guanajuato es la unica cobertura inicial; venta en MXN. Catálogos administrados solo por superadministrador.
+Direccion privada completa y pin obligatorios. El catalogo publico solo expone colonia, codigo postal y poligono GeoJSON.
+Fotos JPG o WebP hasta 5 MB, maximo 50. Para publicar se requiere una foto y descripcion de 50 caracteres.
+Matching, reportes y comunicacion
+Matching basico por zona, operacion, tipo y precio. Se guarda solo el estado de la notificacion deduplicada.
+Ambas partes reciben avisos internos. Vencimientos y cobros fallidos se avisan por correo e internamente.
+Reportes con categoria y explicacion, resueltos manualmente. Un mensaje puede ocultarse para participantes y conservarse para auditoria.
+Cambios especificos del documento
+Cambios de contrato aprobadosLa especificación OpenAPI 1.1 añade confirmación de correo, recuperación de contraseña, consulta y lectura de notificaciones, control de autorrenovación, acceso al Portal Stripe, administración de catálogos y resolución de reportes. Los DTO públicos de propiedad incluyen colonia, codigo_postal y zona_geojson; excluyen calle, número, dirección completa, latitud y longitud. Las cargas se autorizan mediante URLs temporales de R2 y una confirmación posterior de metadatos. Los contratos de reporte incluyen cuenta, propiedad o mensaje como objetivo, categoría, explicación y resolución manual.
+Elemento
+Decision V1
+PD-001 a PD-005
+Cupo, actividad, reactivacion y archivos quedan cerrados.
+PD-006 y PD-007
+Valoraciones y reputacion fuera de V1.
+PD-008
+Reportes humanos, con auditoria y sin sancion automatica.
+PD-009 y PD-010
+Sin historial general; notificacion persistente y deduplicada.
+Proveedores
+Stripe, R2, Mapbox y Resend mediante adaptadores.

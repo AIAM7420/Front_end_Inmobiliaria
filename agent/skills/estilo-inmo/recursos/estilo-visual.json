@@ -1,0 +1,54 @@
+{
+  "marca": {
+    "nombre": "INMO",
+    "eslogan": "Excelencia Inmobiliaria"
+  },
+  "colores": {
+    "primario": {
+      "valor": "#FA003F",
+      "descripcion": "Rojo vibrante. Usar como acento y acciones principales."
+    },
+    "texto_e_iconos": {
+      "valor": "#333333",
+      "descripcion": "Gris oscuro / Carbón. Usar para textos principales e iconos."
+    },
+    "fondo": {
+      "valor": "#FFFFFF",
+      "descripcion": "Blanco. Fondo general de la aplicación y tarjetas."
+    },
+    "bordes_y_placeholder": {
+      "valor": "Gris claro",
+      "descripcion": "Para bordes sutiles y textos de placeholder."
+    }
+  },
+  "formas": {
+    "botones_inputs": {
+      "estilo": "píldora",
+      "tailwind_class": "rounded-full",
+      "descripcion": "Botones de acción principal e inputs de texto."
+    },
+    "tarjetas_banners": {
+      "estilo": "bordes amplios",
+      "tailwind_class": "rounded-2xl o rounded-3xl",
+      "descripcion": "Contenedores, tarjetas de propiedades y banners promocionales."
+    }
+  },
+  "iconos": {
+    "libreria": "Lucide React",
+    "estilo": "outline (sin relleno)",
+    "grosor_trazo": "1.5px a 2px",
+    "descripcion": "Iconos limpios y ligeros. No usar versiones rellenas (solid)."
+  },
+  "layout": {
+    "enfoque": "Mobile-First",
+    "navegacion": {
+      "tipo": "Barra de navegación flotante inferior",
+      "estilo": "píldora",
+      "tailwind_class": "rounded-full"
+    },
+    "chatbot": {
+      "tipo": "Botón flotante circular (FAB) independiente",
+      "posicion": "Esquina inferior derecha (por encima de la navegación)"
+    }
+  }
+}
