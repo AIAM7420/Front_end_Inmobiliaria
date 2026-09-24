@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Bell, Heart, TrendingUp, Podium, Home, Building2, MapPin, Briefcase } from 'lucide-react';
+import { Bell, Heart, TrendingUp, Podium, Home, Building2, MapPin, Briefcase, Activity } from 'lucide-react';
+import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { APIProvider, Map } from '@vis.gl/react-google-maps';
 import { BottomSheet } from '../../organisms/BottomSheet';
 import { IconButton } from '../../atoms/IconButton';
@@ -17,6 +18,16 @@ const MOCK_NOTIFICATIONS = [
   { id: 2, title: 'Visita agendada', body: 'Mañana a las 10:00 AM en "Casa Bosques".', time: 'Hace 1 hora', unread: true },
   { id: 3, title: 'Mensaje de Ana', body: '¿Sigue disponible la propiedad de Lomas?', time: 'Hace 3 horas', unread: false },
   { id: 4, title: 'Propiedad pausada', body: 'El anuncio de "Terreno Tulum" ha expirado.', time: 'Ayer', unread: false },
+];
+
+const mockChartData = [
+  { day: 'Lun', views: 420 },
+  { day: 'Mar', views: 650 },
+  { day: 'Mié', views: 450 },
+  { day: 'Jue', views: 800 },
+  { day: 'Vie', views: 550 },
+  { day: 'Sáb', views: 900 },
+  { day: 'Dom', views: 750 }
 ];
 
 export const AsesorOverview: React.FC = () => {
@@ -125,106 +136,112 @@ export const AsesorOverview: React.FC = () => {
       <div className={`grid grid-cols-12 ${activeSidePanel !== null ? 'md:grid-cols-[1fr_1fr_1fr_1fr_auto]' : 'md:grid-cols-5'} gap-3 md:gap-4 shrink-0 transition-all duration-500`}>
         
         {/* Nuevos Leads */}
-        <div className="col-span-4 md:col-span-1 bg-white dark:bg-inmo-darkcard rounded-card p-3 md:p-4 shadow-soft flex flex-col items-center text-center h-full min-h-[96px] md:min-h-[110px] relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[100ms] fill-mode-both hover:scale-[1.02] transition-transform">
-          <div className="hidden md:flex absolute right-0 lg:right-4 top-1/2 -translate-y-1/2 text-gray-100 dark:text-white/[0.03] pointer-events-none z-0">
-             <TrendingUp className="w-24 h-24 lg:w-32 lg:h-32" strokeWidth={2} />
+        <div className="col-span-6 md:col-span-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[100ms] fill-mode-both">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 30 Q 25 15 50 25 T 100 10 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 30 Q 25 15 50 25 T 100 10" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
           </div>
-          <div className="flex-1 flex items-center justify-center w-full relative z-10">
-            <span className="font-montserrat font-black text-4xl lg:text-5xl text-inmo-secondary dark:text-white">12</span>
+          <div className="flex items-center gap-1.5 justify-center relative z-10">
+            <span className="font-inter text-caption md:text-xs text-gray-500 dark:text-gray-400 font-medium">Nuevos Leads</span>
+            <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
           </div>
-          <div className="mt-2 w-full flex flex-col items-center justify-end relative z-10">
-            <p className="font-inter text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Nuevos Leads</p>
-            <p className="font-inter text-[9px] md:text-[10px] font-bold text-inmo-accent uppercase tracking-wider leading-tight">Últimos 7 días</p>
+          <div className="mt-1.5 md:mt-3 relative z-10">
+            <span className="font-montserrat font-bold text-3xl md:text-4xl lg:text-5xl text-inmo-secondary dark:text-white">12</span>
+          </div>
+          <div className="mt-1.5 md:mt-3 flex justify-center w-full relative z-10">
+            <div className="px-1.5 md:px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center gap-1 group-hover:bg-inmo-secondary group-hover:text-white transition-colors">
+              <span className="font-inter text-caption md:text-caption font-bold">Últimos 7 días</span>
+            </div>
           </div>
         </div>
 
         {/* Mensajes */}
-        <div className="col-span-4 md:col-span-1 bg-white dark:bg-inmo-darkcard rounded-card p-3 md:p-4 shadow-soft flex flex-col items-center text-center h-full min-h-[96px] md:min-h-[110px] relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[200ms] fill-mode-both hover:scale-[1.02] transition-transform">
-          <div className="hidden md:flex absolute right-0 lg:right-4 top-1/2 -translate-y-1/2 text-gray-100 dark:text-white/[0.03] pointer-events-none z-0">
-             <Bell className="w-24 h-24 lg:w-32 lg:h-32" strokeWidth={2} />
+        <div className="col-span-6 md:col-span-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[200ms] fill-mode-both">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 25 Q 30 35 60 20 T 100 5 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 25 Q 30 35 60 20 T 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
           </div>
-          <div className="flex-1 flex items-center justify-center w-full relative z-10">
-            <span className="font-montserrat font-black text-4xl lg:text-5xl text-inmo-secondary dark:text-white">4</span>
+          <div className="flex items-center gap-1.5 justify-center relative z-10">
+            <span className="font-inter text-caption md:text-xs text-gray-500 dark:text-gray-400 font-medium">Mensajes</span>
+            <Bell className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
           </div>
-          <div className="mt-2 w-full flex flex-col items-center justify-end relative z-10">
-            <p className="font-inter text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Mensajes</p>
-            <p className="font-inter text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Pendientes</p>
+          <div className="mt-1.5 md:mt-3 relative z-10">
+            <span className="font-montserrat font-bold text-3xl md:text-4xl lg:text-5xl text-inmo-secondary dark:text-white">4</span>
+          </div>
+          <div className="mt-1.5 md:mt-3 flex justify-center w-full relative z-10">
+            <div className="px-1.5 md:px-2 py-0.5 rounded bg-inmo-warning/10 dark:bg-inmo-warning/20 text-inmo-warning flex items-center gap-1">
+              <span className="font-inter text-caption md:text-caption font-bold">Pendientes</span>
+            </div>
           </div>
         </div>
 
         {/* Botones Interactivos Mobile (Ocultos en Desktop) */}
-        <div className="col-span-4 flex flex-col gap-2 md:hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[300ms] fill-mode-both">
+        <div className="col-span-12 flex flex-row gap-2 md:hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[300ms] fill-mode-both mt-1">
           <Button 
             onClick={() => setActiveSidePanel('ranking')}
             variant="accent"
-            className="flex-1 !rounded-[20px] !flex-col !gap-1 !py-2 !h-auto hover:scale-[1.02] transition-transform"
-            icon={<Podium className="w-7 h-7 text-white" strokeWidth={1.5} />}
+            className="flex-1 !rounded-[20px] !flex-row !gap-2 !py-3 !h-auto hover:scale-[1.02] transition-transform"
+            icon={<Podium className="w-5 h-5 text-white" strokeWidth={1.5} />}
           >
-            <span className="font-inter font-medium text-xs text-white leading-tight text-center">Ranking</span>
+            <span className="font-inter font-medium text-xs text-white leading-tight">Ranking</span>
           </Button>
 
           <Button 
             onClick={() => setActiveSidePanel('portafolio')}
             variant="secondary"
-            className="flex-1 !rounded-[20px] !flex-col !gap-1 !py-2 !h-auto hover:scale-[1.02] transition-transform"
-            icon={<Briefcase className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.5} />}
+            className="flex-1 !rounded-[20px] !flex-row !gap-2 !py-3 !h-auto hover:scale-[1.02] transition-transform"
+            icon={<Briefcase className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={1.5} />}
           >
-            <span className="font-inter font-medium text-xs text-inmo-secondary dark:text-white leading-tight text-center">Portafolio</span>
+            <span className="font-inter font-medium text-xs text-inmo-secondary dark:text-white leading-tight">Portafolio</span>
           </Button>
         </div>
 
         {/* Visitas */}
-        <div className="col-span-6 md:col-span-1 bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft flex flex-col relative h-full min-h-[96px] md:min-h-[110px] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[300ms] fill-mode-both hover:scale-[1.02] transition-transform">
-          {/* Mobile view */}
-          <div className="flex md:hidden flex-col justify-between h-full w-full relative z-10">
-            <p className="text-body text-xs">Visitas</p>
-            <div className="mt-1 flex items-center">
-              <span className="font-montserrat font-black text-3xl text-inmo-secondary dark:text-white">1.2k</span>
-              <div className="flex-1 flex flex-col items-center justify-center text-inmo-success">
-                <TrendingUp className="w-7 h-7" />
-                <p className="font-inter text-[10px] font-semibold mt-0.5">+15%</p>
-              </div>
-            </div>
+        <div className="col-span-6 md:col-span-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[300ms] fill-mode-both">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 35 Q 20 20 40 25 T 80 15 L 100 5 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 35 Q 20 20 40 25 T 80 15 L 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
           </div>
-          {/* Desktop view */}
-          <div className="hidden md:flex flex-col items-center text-center h-full w-full">
-            <div className="hidden md:flex absolute right-0 lg:right-4 top-1/2 -translate-y-1/2 text-gray-100 dark:text-white/[0.03] pointer-events-none z-0">
-              <TrendingUp className="w-24 h-24 lg:w-32 lg:h-32" strokeWidth={2} />
-            </div>
-            <div className="flex-1 flex items-center justify-center w-full relative z-10">
-              <span className="font-montserrat font-black text-4xl lg:text-5xl text-inmo-secondary dark:text-white">1.2k</span>
-            </div>
-            <div className="mt-2 w-full flex flex-col items-center justify-end relative z-10">
-              <p className="font-inter text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Visitas</p>
-              <p className="font-inter text-[9px] md:text-[10px] font-bold text-inmo-success uppercase tracking-wider leading-tight">+15%</p>
+          <div className="flex items-center gap-1.5 justify-center relative z-10">
+            <span className="font-inter text-caption md:text-xs text-gray-500 dark:text-gray-400 font-medium">Visitas</span>
+            <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
+          </div>
+          <div className="mt-1.5 md:mt-3 relative z-10">
+            <span className="font-montserrat font-bold text-3xl md:text-4xl lg:text-5xl text-inmo-secondary dark:text-white">1.2k</span>
+          </div>
+          <div className="mt-1.5 md:mt-3 flex justify-center w-full relative z-10">
+            <div className="px-1.5 md:px-2 py-0.5 rounded bg-inmo-success/10 dark:bg-inmo-success/20 text-inmo-success flex items-center gap-1">
+              <TrendingUp className="w-2.5 h-2.5 md:w-3 md:h-3" />
+              <span className="font-inter text-caption md:text-caption font-bold">+15%</span>
             </div>
           </div>
         </div>
 
         {/* Favoritos */}
-        <div className="col-span-6 md:col-span-1 bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft flex flex-col relative h-full min-h-[96px] md:min-h-[110px] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[400ms] fill-mode-both hover:scale-[1.02] transition-transform">
-          {/* Mobile view */}
-          <div className="flex md:hidden flex-col justify-between h-full w-full relative z-10">
-            <p className="text-body text-xs">Favoritos</p>
-            <div className="mt-1 flex items-center">
-              <span className="font-montserrat font-black text-3xl text-inmo-secondary dark:text-white">142</span>
-              <div className="flex-1 flex flex-col items-center justify-center text-inmo-accent">
-                <Heart className="w-7 h-7 fill-inmo-accent" />
-                <p className="font-inter text-[10px] font-semibold mt-0.5">+8%</p>
-              </div>
-            </div>
+        <div className="col-span-6 md:col-span-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[400ms] fill-mode-both">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 5 Q 30 20 60 10 T 100 25 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 5 Q 30 20 60 10 T 100 25" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
           </div>
-          {/* Desktop view */}
-          <div className="hidden md:flex flex-col items-center text-center h-full w-full">
-            <div className="hidden md:flex absolute right-0 lg:right-4 top-1/2 -translate-y-1/2 text-gray-100 dark:text-white/[0.03] pointer-events-none z-0">
-              <Heart className="w-24 h-24 lg:w-32 lg:h-32" strokeWidth={2} />
-            </div>
-            <div className="flex-1 flex items-center justify-center w-full relative z-10">
-              <span className="font-montserrat font-black text-4xl lg:text-5xl text-inmo-secondary dark:text-white">142</span>
-            </div>
-            <div className="mt-2 w-full flex flex-col items-center justify-end relative z-10">
-              <p className="font-inter text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Favoritos</p>
-              <p className="font-inter text-[9px] md:text-[10px] font-bold text-inmo-accent uppercase tracking-wider leading-tight">+8%</p>
+          <div className="flex items-center gap-1.5 justify-center relative z-10">
+            <span className="font-inter text-caption md:text-xs text-gray-500 dark:text-gray-400 font-medium">Favoritos</span>
+            <Heart className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
+          </div>
+          <div className="mt-1.5 md:mt-3 relative z-10">
+            <span className="font-montserrat font-bold text-3xl md:text-4xl lg:text-5xl text-inmo-secondary dark:text-white">142</span>
+          </div>
+          <div className="mt-1.5 md:mt-3 flex justify-center w-full relative z-10">
+            <div className="px-1.5 md:px-2 py-0.5 rounded bg-inmo-success/10 dark:bg-inmo-success/20 text-inmo-success flex items-center gap-1">
+              <TrendingUp className="w-2.5 h-2.5 md:w-3 md:h-3" />
+              <span className="font-inter text-caption md:text-caption font-bold">+8%</span>
             </div>
           </div>
         </div>
@@ -263,10 +280,11 @@ export const AsesorOverview: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Mapa Interactivo (Crecido) */}
-      <div className="flex-auto min-h-[160px] flex flex-col relative shrink animate-in fade-in slide-in-from-bottom-8 duration-700 delay-[600ms] fill-mode-both -mb-[112px] md:mb-0">
+      {/* 4. Mapa Interactivo y Gráfica */}
+      <div className="flex-auto min-h-[160px] flex flex-col md:flex-row gap-4 relative shrink animate-in fade-in slide-in-from-bottom-8 duration-700 delay-[600ms] fill-mode-both -mb-[112px] md:mb-0">
 
-        <div className="flex-1 w-full bg-gray-100 dark:bg-inmo-darktertiary rounded-[32px] relative overflow-hidden shadow-soft border-4 border-white dark:border-inmo-darkcard">
+        {/* Mapa Interactivo (70%) */}
+        <div className="flex-1 md:flex-none md:w-[70%] w-full bg-gray-100 dark:bg-inmo-darktertiary rounded-[32px] relative overflow-hidden shadow-soft border-4 border-white dark:border-inmo-darkcard">
            
            {apiKey ? (
              <div className="absolute inset-0 pointer-events-none">
@@ -368,6 +386,78 @@ export const AsesorOverview: React.FC = () => {
              
            </div>
         </div>
+
+        {/* Gráfica de Tráfico (30%) */}
+        <div className="hidden md:flex w-[30%] bg-white dark:bg-inmo-darkcard rounded-card border-4 border-white dark:border-inmo-darkcard shadow-soft p-5 relative flex-col justify-between gap-4 transition-all duration-300">
+          <div className="flex flex-col relative z-20">
+            <div className="flex items-center gap-1.5">
+              <Activity className="w-4 h-4 text-gray-400" />
+              <h4 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Tráfico Semanal</h4>
+            </div>
+            <p className="font-inter text-caption text-gray-400 mt-0.5">Visitas a tu portafolio</p>
+          </div>
+          
+          <div className="flex-1 w-full h-full relative pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={mockChartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="currentColor" className="text-inmo-accent" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="currentColor" className="text-inmo-accent" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="currentColor" className="text-gray-200 dark:text-white/5" />
+                <XAxis 
+                  dataKey="day" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'currentColor', className: 'text-gray-400 font-inter text-[11px]' }} 
+                  dy={10} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'currentColor', className: 'text-gray-400 font-inter text-[11px]' }} 
+                  tickFormatter={(value) => `${value}`}
+                />
+                <RechartsTooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-white/10 rounded-xl p-3 shadow-soft font-inter">
+                          <p className="font-montserrat font-bold text-inmo-secondary dark:text-gray-200 mb-1">{label}</p>
+                          <p className="text-inmo-accent font-bold text-xs">
+                            Visitas: {payload[0].value}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                  cursor={{ stroke: 'currentColor', className: 'text-gray-100 dark:text-white/5' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="views" 
+                  stroke="none" 
+                  fillOpacity={1} 
+                  fill="url(#colorViews)" 
+                  activeDot={false}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="views" 
+                  stroke="currentColor" 
+                  strokeWidth={3} 
+                  dot={false}
+                  className="text-inmo-accent [filter:drop-shadow(0px_8px_8px_theme(colors.inmo.accent))]"
+                  activeDot={{ r: 6, strokeWidth: 0, fill: "currentColor", className: "text-inmo-accent" }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
       </div>
       </div>
     </ModuleLayout>
@@ -438,7 +528,7 @@ export const AsesorOverview: React.FC = () => {
                 <span className="font-montserrat font-black text-3xl md:text-4xl text-inmo-secondary dark:text-white">12</span>
                 <div className="flex-1 ml-3 relative h-14 md:h-16 flex items-center justify-center">
                   <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
-                    <path d="M 0 25 C 20 25, 30 10, 50 15 C 70 20, 80 5, 100 10" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M 0 25 C 20 25, 30 10, 50 15 C 70 20, 80 5, 100 10" fill="none" stroke="currentColor" className="text-inmo-success" strokeWidth="3" strokeLinecap="round" />
                   </svg>
                   <span className="absolute -top-4 right-0 font-inter text-[9px] font-bold text-inmo-success">+15%</span>
                 </div>
@@ -451,9 +541,9 @@ export const AsesorOverview: React.FC = () => {
                 <span className="font-montserrat font-black text-3xl md:text-4xl text-inmo-secondary dark:text-white">3</span>
                 <div className="flex-1 ml-3 relative h-14 md:h-16 flex items-center justify-center">
                   <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
-                    <path d="M 0 15 C 20 20, 40 10, 60 25 C 80 15, 90 25, 100 5" fill="none" stroke="#3B82F6" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M 0 15 C 20 20, 40 10, 60 25 C 80 15, 90 25, 100 5" fill="none" stroke="currentColor" className="text-inmo-info" strokeWidth="3" strokeLinecap="round" />
                   </svg>
-                  <span className="absolute -top-4 right-0 font-inter text-[9px] font-bold text-blue-500">-2%</span>
+                  <span className="absolute -top-4 right-0 font-inter text-[9px] font-bold text-inmo-info">-2%</span>
                 </div>
               </div>
             </div>
@@ -463,7 +553,7 @@ export const AsesorOverview: React.FC = () => {
             <div className="bg-white dark:bg-inmo-darkcard rounded-card p-5 border border-gray-100 dark:border-inmo-darktertiary shadow-soft flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500"><Home className="w-5 h-5"/></div>
+                  <div className="w-10 h-10 rounded-full bg-inmo-info/10 flex items-center justify-center text-inmo-info"><Home className="w-5 h-5"/></div>
                   <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Casas</span>
                 </div>
                 <span className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">8</span>
@@ -471,7 +561,7 @@ export const AsesorOverview: React.FC = () => {
               <div className="w-full h-px bg-gray-50 dark:bg-inmo-darktertiary"></div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-500"><Building2 className="w-5 h-5"/></div>
+                  <div className="w-10 h-10 rounded-full bg-inmo-accent/10 flex items-center justify-center text-inmo-accent"><Building2 className="w-5 h-5"/></div>
                   <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Departamentos</span>
                 </div>
                 <span className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">5</span>
@@ -479,7 +569,7 @@ export const AsesorOverview: React.FC = () => {
               <div className="w-full h-px bg-gray-50 dark:bg-inmo-darktertiary"></div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500"><MapPin className="w-5 h-5"/></div>
+                  <div className="w-10 h-10 rounded-full bg-inmo-success/10 flex items-center justify-center text-inmo-success"><MapPin className="w-5 h-5"/></div>
                   <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Terrenos</span>
                 </div>
                 <span className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">2</span>

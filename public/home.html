@@ -1,0 +1,147 @@
+<div class="dash-layout custom-scroll">
+    <header class="dash-header">
+        <div class="dash-greeting">
+            <h2 id="lblGreeting">Hola</h2>
+            <p>Resumen operativo y estado del sistema en tiempo real.</p>
+        </div>
+    </header>
+
+    <section class="kpi-bento">
+        <div class="bento-card" id="cardSales">
+            <div class="kpi-top">
+                <div class="kpi-title-group">
+                    <span class="kpi-label">Ingresos del Período</span>
+                    <div class="kpi-info-wrapper">
+                        <div class="kpi-info-pill">
+                            <i data-lucide="info" class="kpi-info-icon"></i>
+                            <span class="kpi-tooltip-text">Total de ventas cobradas</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-icon neutral"><i data-lucide="banknote"></i></div>
+            </div>
+            <div class="kpi-body">
+                <h3 id="dashSales">$0.00</h3>
+                <div class="kpi-footer">
+                    <div class="kpi-trend neutral" id="dashSalesTrend">
+                        <i data-lucide="minus"></i> <span>0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-card" id="cardTickets">
+            <div class="kpi-top">
+                <div class="kpi-title-group">
+                    <span class="kpi-label">Tickets Emitidos</span>
+                    <div class="kpi-info-wrapper">
+                        <div class="kpi-info-pill">
+                            <i data-lucide="info" class="kpi-info-icon"></i>
+                            <span class="kpi-tooltip-text">Total de operaciones completadas</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-icon neutral"><i data-lucide="receipt-text"></i></div>
+            </div>
+            <div class="kpi-body kpi-body-split">
+                <div class="kpi-data-left">
+                    <h3 id="dashTickets">0</h3>
+                    <div class="kpi-footer">
+                        <div class="kpi-trend neutral" id="dashTicketsTrend">
+                            <i data-lucide="minus"></i> <span>0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-chart-right">
+                    <canvas id="sparklineTickets"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-card" id="cardAvg">
+            <div class="kpi-top">
+                <div class="kpi-title-group">
+                    <span class="kpi-label">Ticket Promedio</span>
+                    <div class="kpi-info-wrapper">
+                        <div class="kpi-info-pill">
+                            <i data-lucide="info" class="kpi-info-icon"></i>
+                            <span class="kpi-tooltip-text">Ingresos divididos entre tickets</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-icon neutral"><i data-lucide="calculator"></i></div>
+            </div>
+            <div class="kpi-body kpi-body-split">
+                <div class="kpi-data-left">
+                    <h3 id="dashAvg">$0.00</h3>
+                    <div class="kpi-footer">
+                        <div class="kpi-trend neutral" id="dashAvgTrend">
+                            <i data-lucide="minus"></i> <span>0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-chart-right pulse-chart">
+                    <canvas id="sparklineAvg"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-card" id="cardTopProducts" style="padding: 15px; display: flex; flex-direction: column; justify-content: center;">
+            <div class="kpi-top" style="margin-bottom: 5px;">
+                <div class="kpi-title-group">
+                    <span class="kpi-label">Top Productos</span>
+                    <div class="kpi-info-wrapper">
+                        <div class="kpi-info-pill">
+                            <i data-lucide="info" class="kpi-info-icon"></i>
+                            <span class="kpi-tooltip-text">Productos más vendidos</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kpi-icon neutral"><i data-lucide="pie-chart"></i></div>
+            </div>
+            <div id="topProductsContainer" style="display: flex; align-items: center; justify-content: center; height: 100%; gap: 10px; position: relative;">
+                <div style="flex: 1; position: relative; height: 80px; max-width: 80px;">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+                <div id="topProductsList" style="flex: 1; display: flex; flex-direction: column; gap: 5px; overflow: hidden;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dash-content-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="bento-panel span-2">
+            <div class="panel-header">
+                <div>
+                    <h3><i data-lucide="trending-up"></i> Rendimiento de Ventas</h3>
+                    <span class="panel-sub">Evolución en el rango seleccionado</span>
+                </div>
+            </div>
+            <div class="panel-body" style="position: relative; width: 100%; flex: 1; min-height: 250px;">
+                <canvas id="salesChart"></canvas>
+                <!-- Placeholder for line chart -->
+                <div id="salesChartEmpty" class="chart-empty hidden">
+                    <i data-lucide="line-chart" style="width: 32px; height: 32px; opacity: 0.5; margin-bottom: 10px;"></i>
+                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">Aún no hay ventas registradas en este período</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-panel">
+            <div class="panel-header">
+                <div>
+                    <h3><i data-lucide="activity"></i> Operaciones y Alertas</h3>
+                    <span class="panel-sub">Citas próximas y stock</span>
+                </div>
+            </div>
+            <div class="panel-body custom-scroll" style="padding: 15px; overflow-y: auto;">
+                <div class="activity-feed" id="activityFeed">
+                    <div class="activity-empty">
+                        <i data-lucide="loader-circle" class="spinning-slow"></i>
+                        <p>Cargando actividad...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

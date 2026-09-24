@@ -39,9 +39,8 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
     ],
     asesor: [
       { id: 'asesor', label: 'Inicio' },
-      { id: 'asesor/propiedades', label: 'Propiedades' },
+      { id: 'asesor/propiedades', label: 'Inmuebles' },
       { id: 'asesor/mensajes', label: 'Mensajes' },
-      { id: 'asesor/suscripcion', label: 'Suscripción' },
     ],
     admin: [
       { id: 'admin', label: 'Inicio' },

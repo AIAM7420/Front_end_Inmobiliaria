@@ -12,6 +12,7 @@ import { BottomSheet } from '../organisms/BottomSheet';
 import { SidePanel } from '../organisms/SidePanel';
 import { PropertyDetailView } from '../organisms/PropertyDetailView';
 import { PropertyCardSkeleton } from '../molecules/PropertyCardSkeleton';
+import { AsesorChat } from '../organisms/AsesorChat';
 import { useAppContext } from '../../context/AppContext';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
 
@@ -158,6 +159,9 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<PropertyCategory>('all');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  
+  const [isViewingProfile, setIsViewingProfile] = useState(false);
+  const [isChatting, setIsChatting] = useState(false);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -168,22 +172,42 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
     setActiveFilter(newFilter);
     if (selectedPropertyId) {
       setSelectedPropertyId(null);
+      setIsViewingProfile(false);
+      setIsChatting(false);
     }
   };
 
   const handleMarkerClick = (id: number) => {
     setSelectedPropertyId(id);
+    setIsViewingProfile(false);
+    setIsChatting(false);
     setIsSheetOpen(true);
   };
 
   const handleCoincidenciasClick = () => {
     setSelectedPropertyId(null);
+    setIsViewingProfile(false);
+    setIsChatting(false);
     setIsSheetOpen(true);
   };
 
   const renderSheetContent = () => (
     selectedPropertyId ? (
-      <PropertyDetailView property={displayedProperties[0]} />
+      isChatting ? (
+        <div className="w-full h-full bg-white dark:bg-inmo-darkcard overflow-hidden">
+          <AsesorChat hideHeader={true} asesorName="Daniel Ayomide" initialMessage="¡Hola! Veo que te interesa la propiedad, ¿en qué te puedo ayudar?" />
+        </div>
+      ) : (
+        <div className="w-full h-full overflow-hidden flex flex-col">
+          <PropertyDetailView 
+            property={displayedProperties[0]} 
+            layout="vertical"
+            showAsesorProfile={isViewingProfile}
+            onShowAsesorProfileChange={setIsViewingProfile}
+            onContactClick={() => setIsChatting(true)}
+          />
+        </div>
+      )
     ) : (
       <>
         <div className="grid gap-4 grid-cols-1">
@@ -277,13 +301,15 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
       <div className="md:hidden">
         <BottomSheet 
           isOpen={isSheetOpen} 
-          onClose={() => setIsSheetOpen(false)}
-          title={selectedPropertyId 
+          onClose={(isViewingProfile || isChatting) ? undefined : () => setIsSheetOpen(false)}
+          onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
+          title={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : selectedPropertyId 
             ? undefined 
             : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
           }
-          noPadding={!!selectedPropertyId}
-          isHero={!!selectedPropertyId}
+          noPadding={!!selectedPropertyId || isChatting}
+          isHero={!!selectedPropertyId && !isViewingProfile && !isChatting}
+          fullHeight={!!selectedPropertyId}
         >
           {renderSheetContent()}
         </BottomSheet>
@@ -292,11 +318,13 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
       {/* DESKTOP SIDE PANEL */}
       <SidePanel 
         isOpen={isSheetOpen} 
-        onClose={() => setIsSheetOpen(false)}
-        title={selectedPropertyId 
+        onClose={(isViewingProfile || isChatting) ? undefined : () => setIsSheetOpen(false)}
+        onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
+        title={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : selectedPropertyId 
           ? undefined 
           : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
         }
+        noPadding={!!selectedPropertyId || isChatting}
       >
         {renderSheetContent()}
       </SidePanel>

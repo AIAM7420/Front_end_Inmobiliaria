@@ -23,6 +23,9 @@ export interface PropertyDetailViewProps {
   onShowAsesorProfileChange?: (isProfile: boolean) => void;
   // deprecated prop from previous iteration
   onProfileViewChange?: (isProfile: boolean) => void;
+  onContactClick?: () => void;
+  customHeaderActions?: React.ReactNode;
+  customBottomBar?: React.ReactNode;
 }
 
 export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({ 
@@ -31,6 +34,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
   showAsesorProfile = false, 
   onShowAsesorProfileChange,
   onProfileViewChange,
+  onContactClick,
   customHeaderActions,
   customBottomBar
 }) => {
@@ -58,7 +62,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
   };
 
   if (showAsesorProfile) {
-    return <AsesorInlineProfile onBack={handleHideAsesor} />;
+    return <AsesorInlineProfile onBack={handleHideAsesor} onContactClick={onContactClick} />;
   }
 
   // HORIZONTAL LAYOUT (Desktop Modal)
@@ -181,17 +185,14 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                        <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400">Ver Perfil</span>
                     </div>
                  </div>
-                 <div className="flex gap-2 pr-1">
-                    <IconButton 
-                      icon={<MessageCircle className="w-[18px] h-[18px]" />}
-                      variant="secondary"
-                      className="!w-[44px] !h-[44px] !rounded-full !bg-white/80 dark:!bg-black/60 backdrop-blur-md !text-inmo-secondary dark:!text-white hover:!bg-white !shadow-sm"
-                    />
-                    <IconButton 
-                      icon={<Phone className="w-[18px] h-[18px]" />}
+                 <div className="flex pr-1 shrink-0">
+                    <Button 
                       variant="accent"
-                      className="!w-[44px] !h-[44px] !rounded-full !shadow-glow"
-                    />
+                      className="!rounded-full !py-2.5 !px-6 shadow-glow font-inter font-bold text-sm"
+                      onClick={onContactClick}
+                    >
+                      Contactar
+                    </Button>
                  </div>
               </div>
             )}
@@ -204,115 +205,119 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
 
   // VERTICAL LAYOUT (Mobile, SidePanel, BottomSheet)
   return (
-    <div className="flex flex-col pb-32 relative bg-white dark:bg-inmo-darkcard min-h-full">
-      {/* Hero Image */}
-      <div className="w-full relative rounded-b-[32px] overflow-hidden bg-gray-100 dark:bg-inmo-darkbg">
-        <img src={property.image} alt={property.title} className="w-full h-[300px] object-cover" />
-        {/* Floating Actions on Image */}
-        {customHeaderActions ? customHeaderActions : (
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
-            <IconButton 
-              icon={<Heart className="w-5 h-5 text-gray-900 dark:text-gray-300" strokeWidth={2.5} />}
-              variant="ghost"
-              className="!w-10 !h-10 !rounded-full !bg-white/90 dark:!bg-inmo-darkbg/90 backdrop-blur-md hover:!bg-white !shadow-sm"
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="p-6 flex flex-col gap-5">
-        <div>
-          <h2 className="text-[22px] font-montserrat font-bold text-inmo-secondary dark:text-white mb-2 leading-tight">
-            {property.title}
-          </h2>
-          <div className="flex items-center text-gray-500 dark:text-gray-400 mb-4">
-            <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="font-medium text-sm">{property.location}</span>
-          </div>
-          <div className="flex items-center">
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold font-montserrat text-inmo-accent">$</span>
-              <span className="text-[32px] font-black font-montserrat text-inmo-secondary dark:text-white tracking-tighter leading-none">
-                {property.price.toLocaleString('es-MX')}
-              </span>
+    <div className="flex flex-col relative bg-white dark:bg-inmo-darkcard h-full w-full overflow-hidden">
+      
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar pb-6">
+        {/* Hero Image */}
+        <div className="w-full relative rounded-b-[32px] overflow-hidden bg-gray-100 dark:bg-inmo-darkbg shrink-0">
+          <img src={property.image} alt={property.title} className="w-full h-[300px] object-cover" />
+          {/* Floating Actions on Image */}
+          {customHeaderActions ? customHeaderActions : (
+            <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
+              <IconButton 
+                icon={<Heart className="w-5 h-5 text-gray-900 dark:text-gray-300" strokeWidth={2.5} />}
+                variant="ghost"
+                className="!w-10 !h-10 !rounded-full !bg-white/90 dark:!bg-inmo-darkbg/90 backdrop-blur-md hover:!bg-white !shadow-sm"
+              />
             </div>
-            {isRenta && (
-              <span className="text-sm font-medium text-gray-500 ml-2 mt-2">/Mes</span>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Divider */}
-        <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+        <div className="p-6 flex flex-col gap-5 flex-1">
+          <div>
+            <h2 className="text-[22px] font-montserrat font-bold text-inmo-secondary dark:text-white mb-2 leading-tight">
+              {property.title}
+            </h2>
+            <div className="flex items-center text-gray-500 dark:text-gray-400 mb-4">
+              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="font-medium text-sm">{property.location}</span>
+            </div>
+            <div className="flex items-center">
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold font-montserrat text-inmo-accent">$</span>
+                <span className="text-[32px] font-black font-montserrat text-inmo-secondary dark:text-white tracking-tighter leading-none">
+                  {property.price.toLocaleString('es-MX')}
+                </span>
+              </div>
+              {isRenta && (
+                <span className="text-sm font-medium text-gray-500 ml-2 mt-2">/Mes</span>
+              )}
+            </div>
+          </div>
 
-        {/* NEW: Badges / Highlights */}
-        <div className="flex flex-wrap gap-2">
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-inmo-darktertiary px-3 py-2 rounded-xl text-inmo-secondary dark:text-white">
-            <Dog className="w-4 h-4" />
-            <span className="text-[11px] font-bold tracking-wide uppercase">Pet Friendly</span>
-          </div>
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-inmo-darktertiary px-3 py-2 rounded-xl text-inmo-secondary dark:text-white">
-            <Sun className="w-4 h-4" />
-            <span className="text-[11px] font-bold tracking-wide uppercase">Luz Natural</span>
-          </div>
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-inmo-darktertiary px-3 py-2 rounded-xl text-inmo-secondary dark:text-white">
-            <CheckCircle2 className="w-4 h-4" />
-            <span className="text-[11px] font-bold tracking-wide uppercase">Remodelada</span>
-          </div>
-        </div>
+          {/* Divider */}
+          <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
 
-        {/* Amenities */}
-        <div className="flex flex-wrap gap-2 w-full">
-          <div className="flex-1 flex items-center justify-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 py-2.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
-            <Bed className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <span className="text-xs sm:text-sm font-bold text-inmo-secondary dark:text-gray-300">{property.beds} <span className="font-medium">Beds</span></span>
+          {/* NEW: Badges / Highlights */}
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-inmo-darktertiary px-3 py-2 rounded-xl text-inmo-secondary dark:text-white">
+              <Dog className="w-4 h-4" />
+              <span className="text-[11px] font-bold tracking-wide uppercase">Pet Friendly</span>
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-inmo-darktertiary px-3 py-2 rounded-xl text-inmo-secondary dark:text-white">
+              <Sun className="w-4 h-4" />
+              <span className="text-[11px] font-bold tracking-wide uppercase">Luz Natural</span>
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-inmo-darktertiary px-3 py-2 rounded-xl text-inmo-secondary dark:text-white">
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="text-[11px] font-bold tracking-wide uppercase">Remodelada</span>
+            </div>
           </div>
-          <div className="flex-1 flex items-center justify-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 py-2.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
-            <Bath className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <span className="text-xs sm:text-sm font-bold text-inmo-secondary dark:text-gray-300">{property.baths} <span className="font-medium">Baths</span></span>
-          </div>
-          <div className="flex-1 flex items-center justify-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 py-2.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
-            <Maximize className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <span className="text-xs sm:text-sm font-bold text-inmo-secondary dark:text-gray-300">{property.sqft} <span className="font-medium">m²</span></span>
-          </div>
-        </div>
-        
-        {/* Full width Map */}
-        <div className="w-full h-[140px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0">
-           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-50" />
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-inmo-accent/20 p-2.5 rounded-full">
-             <div className="w-4 h-4 bg-inmo-accent rounded-full border-[3px] border-white shadow-lg" />
-           </div>
-        </div>
 
-        {/* Description */}
-        <div>
-          <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white mb-2">Descripcion</h3>
-          <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-            Hermosa propiedad ubicada en una de las zonas mas exclusivas y de mayor plusvalia de la ciudad. Cuenta con amplios espacios excelentemente distribuidos, iluminacion natural abundante y acabados de lujo de primera calidad.
-          </p>
-        </div>
+          {/* Amenities */}
+          <div className="flex flex-wrap gap-2 w-full">
+            <div className="flex-1 flex items-center justify-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 py-2.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+              <Bed className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-xs sm:text-sm font-bold text-inmo-secondary dark:text-gray-300">{property.beds} <span className="font-medium">Beds</span></span>
+            </div>
+            <div className="flex-1 flex items-center justify-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 py-2.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+              <Bath className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-xs sm:text-sm font-bold text-inmo-secondary dark:text-gray-300">{property.baths} <span className="font-medium">Baths</span></span>
+            </div>
+            <div className="flex-1 flex items-center justify-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 py-2.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+              <Maximize className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-xs sm:text-sm font-bold text-inmo-secondary dark:text-gray-300">{property.sqft} <span className="font-medium">m²</span></span>
+            </div>
+          </div>
+          
+          {/* Full width Map */}
+          <div className="w-full h-[140px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-50" />
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-inmo-accent/20 p-2.5 rounded-full">
+               <div className="w-4 h-4 bg-inmo-accent rounded-full border-[3px] border-white shadow-lg" />
+             </div>
+          </div>
 
-        {/* Galeria */}
-        <div className="flex flex-col gap-3">
-          <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">Galeria</h3>
-          <div className="flex overflow-x-auto gap-3 pb-2 [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
-            <img src={property.image} className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 1" />
-            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 2" />
-            <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 3" />
-            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 4" />
+          {/* Description */}
+          <div>
+            <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white mb-2">Descripcion</h3>
+            <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+              Hermosa propiedad ubicada en una de las zonas mas exclusivas y de mayor plusvalia de la ciudad. Cuenta con amplios espacios excelentemente distribuidos, iluminacion natural abundante y acabados de lujo de primera calidad.
+            </p>
+          </div>
+
+          {/* Galeria */}
+          <div className="flex flex-col gap-3">
+            <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">Galeria</h3>
+            <div className="flex overflow-x-auto gap-3 pb-2 [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+              <img src={property.image} className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 1" />
+              <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 2" />
+              <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 3" />
+              <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" className="w-[140px] h-[100px] object-cover rounded-[16px] shrink-0 snap-center shadow-sm" alt="Gallery 4" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Floating Bottom Action Bar */}
-      <div className="fixed md:sticky bottom-4 left-0 right-0 mx-auto px-4 z-20 flex justify-center w-full pointer-events-none">
+      {/* FIXED Bottom Action Bar */}
+      <div className="w-full px-4 pb-4 pt-4 z-20 flex justify-center bg-gradient-to-t from-white via-white to-transparent dark:from-inmo-darkcard dark:via-inmo-darkcard dark:to-transparent shrink-0">
         {customBottomBar ? (
-          <div className="pointer-events-auto flex justify-center w-full max-w-[400px]">
+          <div className="w-full max-w-[400px]">
             {customBottomBar}
           </div>
         ) : (
-          <div className="bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] h-[64px] rounded-full flex items-center justify-between px-2 w-full max-w-[400px] pointer-events-auto">
+          <div className="bg-white/60 dark:bg-black/60 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] h-[64px] rounded-full flex items-center justify-between px-2 w-full max-w-[400px]">
              {/* Asesor info */}
              <div 
                className="flex items-center gap-2 pl-2 cursor-pointer hover:opacity-80 transition-opacity"
@@ -330,17 +335,14 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                 </div>
              </div>
              {/* Botones */}
-             <div className="flex items-center gap-1.5 pr-1 shrink-0">
-               <IconButton 
-                 icon={<MessageCircle className="w-[18px] h-[18px]" />}
-                 variant="secondary"
-                 className="!w-[42px] !h-[42px] !rounded-full !bg-white/80 dark:!bg-black/60 backdrop-blur-md !text-inmo-secondary dark:!text-white hover:!bg-white !shadow-sm"
-               />
-               <IconButton 
-                 icon={<Phone className="w-[18px] h-[18px]" />}
+             <div className="flex pr-1 shrink-0">
+               <Button 
                  variant="accent"
-                 className="!w-[42px] !h-[42px] !rounded-full !shadow-glow"
-               />
+                 className="!rounded-full !py-2.5 !px-5 sm:!px-6 shadow-glow font-inter font-bold text-[13px] sm:text-sm"
+                 onClick={onContactClick}
+               >
+                 Contactar
+               </Button>
              </div>
           </div>
         )}

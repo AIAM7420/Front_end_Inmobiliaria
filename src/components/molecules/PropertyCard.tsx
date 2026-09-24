@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Heart, MapPin, Bed, Bath, Maximize, Eye, MessageCircle } from 'lucide-react';
 import { Badge } from '../atoms/Badge';
 import { IconButton } from '../atoms/IconButton';
-import { Button } from '../atoms/Button';
 
 export interface PropertyCardProps {
   image: string;
@@ -57,10 +56,10 @@ export const PropertyCard = React.memo(({
       onClick={onClick}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px]">
-        <img src={image} alt={title} className="object-cover w-full h-full" loading="lazy" decoding="async" />
+        <img src={image} alt={title} className="object-cover w-full h-full transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
         
         {/* TAGS */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+        <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
           {tags && tags.length > 0 ? (
             tags.map((tag, idx) => (
               <Badge key={idx} text={tag.text} variant={tag.variant} />
@@ -69,6 +68,22 @@ export const PropertyCard = React.memo(({
             <Badge text={badgeText} variant={badgeVariant} />
           ) : null}
         </div>
+
+        {/* FAVORITE */}
+        {variant === 'standard' && (
+          <div className="absolute top-3 right-3 z-10">
+            <IconButton 
+              onClick={handleFavoriteClick}
+              icon={<Heart className={`w-[20px] h-[20px] ${favorite ? 'fill-inmo-accent text-inmo-accent' : 'text-gray-700 dark:text-gray-300'}`} strokeWidth={2.5} />}
+              variant="secondary"
+              className={`!w-[40px] !h-[40px] !rounded-full shadow-sm ${
+                favorite 
+                  ? '!bg-white dark:!bg-inmo-darkcard' 
+                  : '!bg-white/80 dark:!bg-inmo-darkcard/80 backdrop-blur-md hover:!bg-white dark:hover:!bg-inmo-darkcard'
+              }`}
+            />
+          </div>
+        )}
       </div>
 
       <div className="pt-4 flex flex-col gap-4">
@@ -136,25 +151,6 @@ export const PropertyCard = React.memo(({
             </div>
           </div>
         )}
-
-        {/* ROW 4: ACTIONS */}
-        <div className="flex items-center gap-3 pt-1">
-          <Button className="flex-1 !rounded-full !py-3.5 !text-[15px]">
-            Ver Detalles
-          </Button>
-          {variant === 'standard' && (
-            <IconButton 
-              onClick={handleFavoriteClick}
-              icon={<Heart className={`w-[22px] h-[22px] ${favorite ? 'fill-inmo-accent text-inmo-accent' : 'text-gray-900 dark:text-gray-300'}`} strokeWidth={2.5} />}
-              variant="secondary"
-              className={`!w-[52px] !h-[52px] !rounded-full shrink-0 ${
-                favorite 
-                  ? '!bg-inmo-accent/10 dark:!bg-inmo-accent/20 border border-inmo-accent/20' 
-                  : '!bg-gray-50 dark:!bg-inmo-darkbg hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary border border-gray-100 dark:border-inmo-darktertiary'
-              }`}
-            />
-          )}
-        </div>
       </div>
     </div>
   );

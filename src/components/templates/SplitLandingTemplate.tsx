@@ -15,6 +15,7 @@ import { HeroCarousel } from '../organisms/HeroCarousel';
 import { PromoBanner } from '../molecules/PromoBanner';
 import { FilterDropdown } from '../molecules/FilterDropdown';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
+import { AsesorChat } from '../organisms/AsesorChat';
 
 const CAROUSEL_IMAGES = [
   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
@@ -85,6 +86,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const [isViewingProfile, setIsViewingProfile] = useState(false);
+  const [isChatting, setIsChatting] = useState(false);
   const [isSplitOpen, setIsSplitOpen] = useState(false);
   const [gridMode, setGridMode] = useState<'full' | 'split'>('full');
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -126,14 +128,80 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const landingGrid = (
+    <main className={`px-6 flex flex-col gap-8 pt-[100px] pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all ${isTransitioning ? 'blur-[2px] opacity-80 pointer-events-none' : ''}`}>
+      {isWireframeMode ? (
+        <div className="w-full h-[220px] rounded-[32px] bg-gray-200 dark:bg-inmo-darkcard animate-pulse mt-2 shadow-sm" />
+      ) : (
+        <HeroCarousel images={CAROUSEL_IMAGES} />
+      )}
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-150">
+          <div className="flex items-center gap-2 w-full">
+            <SearchBar 
+              placeholder="Buscar propiedades..." 
+              size="slim" 
+              glass 
+              className="flex-1 shadow-lg" 
+            />
+            <IconButton 
+              onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+              icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
+              variant="secondary"
+              className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
+            />
+          </div>
+
+          <FilterDropdown isOpen={isFiltersOpen} onApply={() => setIsFiltersOpen(false)} />
+        </div>
+
+        <div
+          className={`grid gap-6 transition-all duration-500 ${
+            gridMode === 'split' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4'
+          }`}
+        >
+          {(isWireframeMode || isLoading)
+            ? Array.from({ length: 4 }).map((_, idx) => <PropertyCardSkeleton key={idx} />)
+            : MOCK_PROPERTIES.map((property) => (
+            <PropertyCard
+              key={property.id}
+              image={property.image}
+              title={property.title}
+              location={property.location}
+              price={property.price}
+              beds={property.beds}
+              baths={property.baths}
+              sqft={property.sqft}
+              tags={(property as any).tags}
+              isFavorite={property.isFavorite}
+              onClick={() => handleSelectProperty(property.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {isWireframeMode ? (
+        <div className="w-full h-[180px] rounded-card bg-gray-200 dark:bg-inmo-darkcard animate-pulse shadow-sm" />
+      ) : (
+        <PromoBanner 
+          title="¿Necesitas remodelar antes de vender?"
+          description="Aumenta el valor de tu propiedad con nuestro equipo de expertos en remodelación. Cotiza sin compromiso."
+          buttonText="Más información"
+        />
+      )}
+    </main>
+  );
+
   return (
     <>
       <SplitViewLayout
         isOpen={isSplitOpen}
-        onClose={isViewingProfile ? undefined : () => {
+        onClose={(isViewingProfile || isChatting) ? undefined : () => {
           setIsSplitOpen(false);
           setIsSheetOpen(false);
           setIsViewingProfile(false);
+          setIsChatting(false);
           setIsTransitioning(true);
           setGridMode('full');
           setTimeout(() => {
@@ -141,16 +209,22 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
             setIsTransitioning(false);
           }, 500);
         }}
-        onBack={isViewingProfile ? () => setIsViewingProfile(false) : undefined}
-        sideTitle={isViewingProfile ? "Perfil del Asesor" : "Detalle de Propiedad"}
-        sidePanelWidthClass={isViewingProfile ? "w-[30%] lg:w-[30%] xl:w-[30%]" : "w-[50%] lg:w-[50%] xl:w-[50%]"}
-        mainPanelWidthClass={isViewingProfile ? "w-[70%] lg:w-[70%] xl:w-[70%]" : "md:w-[50%] lg:w-[50%] xl:w-[50%]"}
-        bottomSheetHeightMode={isViewingProfile ? 'content' : 'fixed-75'}
-        bottomSheetIsHero={!isViewingProfile}
+        onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
+        sideTitle={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : "Detalle de Propiedad"}
+        sidePanelWidthClass={(isViewingProfile || isChatting) ? "w-[30%] lg:w-[30%] xl:w-[30%]" : "w-[50%] lg:w-[50%] xl:w-[50%]"}
+        mainPanelWidthClass={(isViewingProfile || isChatting) ? "w-[70%] lg:w-[70%] xl:w-[70%]" : "md:w-[50%] lg:w-[50%] xl:w-[50%]"}
+        bottomSheetHeightMode={(isViewingProfile || isChatting) ? 'content' : 'fixed-75'}
+        bottomSheetIsHero={!(isViewingProfile || isChatting)}
+        bottomSheetNoPadding={true}
+        bottomSheetFullHeight={true}
         sideContent={
           selectedPropertyId && (
             isDetailLoading ? (
               <PropertyDetailSkeleton />
+            ) : isChatting ? (
+              <div className="w-full h-full bg-white dark:bg-inmo-darkcard overflow-hidden">
+                <AsesorChat hideHeader={true} asesorName="Daniel Ayomide" initialMessage="¡Hola! Veo que te interesa la propiedad, ¿en qué te puedo ayudar?" />
+              </div>
             ) : (
               <>
                 {/* Desktop version (Horizontal) */}
@@ -160,129 +234,28 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
                     layout="horizontal"
                     showAsesorProfile={isViewingProfile}
                     onShowAsesorProfileChange={setIsViewingProfile}
+                    onContactClick={() => setIsChatting(true)}
                   />
                 </div>
 
                 {/* Mobile version (Vertical in BottomSheet) */}
-                <div className="block md:hidden w-full h-full">
+                <div className="flex md:hidden w-full flex-1 flex-col min-h-0 overflow-hidden">
                   <PropertyDetailView 
                     property={MOCK_PROPERTIES.find(p => p.id === selectedPropertyId)!} 
                     layout="vertical"
                     showAsesorProfile={isViewingProfile}
                     onShowAsesorProfileChange={setIsViewingProfile}
+                    onContactClick={() => setIsChatting(true)}
                   />
                 </div>
               </>
             )
           )
         }
-        mainContent={
-          <main className={`px-6 flex flex-col gap-8 pt-[100px] pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all ${isTransitioning ? 'blur-[2px] opacity-80 pointer-events-none' : ''}`}>
-          {isWireframeMode ? (
-            <div className="w-full h-[220px] rounded-[32px] bg-gray-200 dark:bg-inmo-darkcard animate-pulse mt-2 shadow-sm" />
-          ) : (
-            <HeroCarousel images={CAROUSEL_IMAGES} />
-          )}
-
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-150">
-              <div className="flex items-center gap-2 w-full">
-                <SearchBar 
-                  placeholder="Buscar propiedades..." 
-                  size="slim" 
-                  glass 
-                  className="flex-1 shadow-lg" 
-                />
-                <IconButton 
-                  onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                  icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
-                  variant="secondary"
-                  className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
-                />
-              </div>
-
-              <FilterDropdown isOpen={isFiltersOpen} onApply={() => setIsFiltersOpen(false)} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <h3 className="text-section-label">
-                Explorar Catálogo
-              </h3>
-            </div>
-
-            <div
-              className={`grid gap-6 transition-all duration-500 ${
-                gridMode === 'split' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4'
-              }`}
-            >
-              {(isWireframeMode || isLoading)
-                ? Array.from({ length: 4 }).map((_, idx) => <PropertyCardSkeleton key={idx} />)
-                : MOCK_PROPERTIES.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  image={property.image}
-                  title={property.title}
-                  location={property.location}
-                  price={property.price}
-                  beds={property.beds}
-                  baths={property.baths}
-                  sqft={property.sqft}
-                  tags={(property as any).tags}
-                  isFavorite={property.isFavorite}
-                  onClick={() => handleSelectProperty(property.id)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {isWireframeMode ? (
-            <div className="w-full h-[180px] rounded-card bg-gray-200 dark:bg-inmo-darkcard animate-pulse shadow-sm" />
-          ) : (
-            <PromoBanner 
-              title="¿Necesitas remodelar antes de vender?"
-              description="Aumenta el valor de tu propiedad con nuestro equipo de expertos en remodelación. Cotiza sin compromiso."
-              buttonText="Más información"
-            />
-          )}
-
-        </main>
-        }
+        mainContent={landingGrid}
       />
 
-      {/* MOBILE BOTTOM SHEET */}
-      <div className="md:hidden">
-        <BottomSheet 
-          isOpen={isSheetOpen} 
-          onClose={() => {
-             setIsSheetOpen(false);
-             setTimeout(() => setSelectedPropertyId(null), 300);
-          }}
-          title="Detalle de Propiedad"
-          defaultExpanded={false}
-          noPadding={true}
-          isHero={true}
-        >
-          {selectedPropertyId && (
-            isDetailLoading ? (
-              <div className="p-6 flex flex-col gap-4">
-                <Skeleton className="w-full h-[200px]" variant="rectangular" />
-                <Skeleton className="w-3/4 h-5" variant="text" />
-                <Skeleton className="w-1/2 h-4" variant="text" />
-                <Skeleton className="w-1/3 h-8" variant="text" />
-                <div className="flex gap-2">
-                  <Skeleton className="flex-1 h-10" variant="rectangular" />
-                  <Skeleton className="flex-1 h-10" variant="rectangular" />
-                  <Skeleton className="flex-1 h-10" variant="rectangular" />
-                </div>
-              </div>
-            ) : (
-              <PropertyDetailView 
-                property={MOCK_PROPERTIES.find(p => p.id === selectedPropertyId)!} 
-              />
-            )
-          )}
-        </BottomSheet>
-      </div>
+
     </>
   );
 };

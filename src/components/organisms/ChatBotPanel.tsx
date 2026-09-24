@@ -5,6 +5,9 @@ import { Button } from '../atoms/Button';
 import { IconButton } from '../atoms/IconButton';
 import { Input } from '../atoms/Input';
 
+import { useAppContext } from '../../context/AppContext';
+import { useLocation } from 'react-router-dom';
+
 interface ChatbotPanelProps {
   onClose: () => void;
   hideCloseButton?: boolean;
@@ -17,11 +20,49 @@ interface Message {
   sender: 'bot' | 'user';
 }
 
+
+
 export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseButton = false, isEmbedded = false }) => {
+  const { role } = useAppContext();
+  const location = useLocation();
+
   const [inputValue, setInputValue] = useState('');
+  
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', text: '¡Hola! ¿En qué te puedo ayudar hoy a encontrar tu espacio ideal?', sender: 'bot' }
+    { id: '1', text: 'Cargando...', sender: 'bot' }
   ]);
+
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length > 1) return prev;
+
+      let possibleGreetings: string[] = [];
+
+      if (role === 'asesor') {
+        if (location.pathname.includes('propiedades')) {
+          possibleGreetings = ['Analicemos tu portafolio.', 'Gestionemos tus inmuebles.', '¿Revisamos tus propiedades?'];
+        } else if (location.pathname.includes('mensajes')) {
+          possibleGreetings = ['Te ayudo con clientes.', 'Respondamos tus mensajes.', '¿Mensajes pendientes?'];
+        } else {
+          possibleGreetings = ['Gestionemos tus inmuebles.', '¿Qué haremos hoy?', 'Bienvenido a tu panel.'];
+        }
+      } else if (role === 'admin') {
+        possibleGreetings = ['Revisemos las métricas.', 'Supervisemos el sistema.', '¿Qué analizamos hoy?'];
+      } else {
+        if (location.pathname.includes('map')) {
+          possibleGreetings = ['Exploremos el mapa.', '¿Filtramos por zona?', 'Busquemos por ubicación.'];
+        } else if (location.pathname.includes('favorites')) {
+          possibleGreetings = ['Comparemos tus favoritos.', 'Revisemos tus guardados.', 'Tu selección ideal.'];
+        } else {
+          possibleGreetings = ['¿Qué haremos hoy?', 'Encontremos tu espacio ideal.', '¿Buscas algo específico?', '¿En qué te ayudo?'];
+        }
+      }
+
+      const finalGreeting = possibleGreetings[Math.floor(Math.random() * possibleGreetings.length)];
+
+      return [{ id: '1', text: finalGreeting, sender: 'bot' }];
+    });
+  }, [role, location.pathname]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -77,8 +118,8 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
       {/* INITIAL STATE (Gemini-like) */}
       {!hasStarted && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 animate-in fade-in zoom-in-95 duration-500">
-          <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-inmo-secondary dark:text-white mb-8 text-center">
-            Hola, ¿qué quieres hacer?
+          <h2 className="text-xl md:text-2xl font-montserrat font-bold text-inmo-secondary dark:text-white mb-8 text-center leading-relaxed">
+            {messages[0]?.text || 'Cargando...'}
           </h2>
           
           <div className="w-full max-w-md relative">

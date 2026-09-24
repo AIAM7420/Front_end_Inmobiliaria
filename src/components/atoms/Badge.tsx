@@ -16,7 +16,7 @@ export const Badge: React.FC<BadgeProps> = ({
   className = '',
   responsiveText = true
 }) => {
-  const baseStyles = `flex items-center justify-center gap-1.5 px-3 @xs:px-4 py-1.5 @xs:py-2 rounded-atom text-xs @xs:text-sm font-inter font-bold shadow-sm tracking-wide whitespace-nowrap transition-all`;
+  const baseStyles = `flex items-center justify-center gap-1.5 px-3 @xs:px-4 py-1.5 @xs:py-2 rounded-atom text-xs @xs:text-sm font-inter font-medium shadow-sm tracking-wide whitespace-nowrap transition-all`;
   
   const variants = {
     venta: { classes: "bg-inmo-accent text-white", Icon: Tag },
@@ -38,7 +38,7 @@ export const Badge: React.FC<BadgeProps> = ({
   const iconClasses = isLg 
     ? "w-4 h-4 @xs:w-5 @xs:h-5 shrink-0" 
     : "w-3.5 h-3.5 @xs:w-4 @xs:h-4 shrink-0";
-  const strokeW = isLg ? 3 : 2.5;
+  const strokeW = isLg ? 2 : 1.5;
 
   const hasContent = Boolean(text || children);
 

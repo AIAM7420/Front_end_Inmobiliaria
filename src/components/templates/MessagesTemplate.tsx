@@ -21,7 +21,7 @@ export interface MessagesTemplateProps {}
 export const MessagesTemplate: React.FC<MessagesTemplateProps> = () => {
   const [isWireframeMode, setIsWireframeMode] = useState(true);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [selectedChat, setSelectedChat] = useState<typeof MOCK_CHATS[0] & { isBot?: boolean } | null>(null);
+  const [selectedChat, setSelectedChat] = useState<Omit<typeof MOCK_CHATS[0], 'id'> & { id: number | string, isBot?: boolean } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsWireframeMode(false), 400);

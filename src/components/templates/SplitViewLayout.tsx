@@ -157,7 +157,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
           heightMode={bottomSheetHeightMode}
           fullHeight={bottomSheetFullHeight}
         >
-          {isOpen && sideContent}
+          {sideContent}
         </BottomSheet>
       </div>
     </div>

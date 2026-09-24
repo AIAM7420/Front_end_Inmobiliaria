@@ -10,6 +10,7 @@ import { SlidersHorizontal } from 'lucide-react';
 import { IconButton } from '../atoms/IconButton';
 import { Select } from '../atoms/Select';
 import { Button } from '../atoms/Button';
+import { AsesorChat } from '../organisms/AsesorChat';
 
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
 
@@ -28,6 +29,8 @@ export const FavoritesTemplate: React.FC<FavoritesTemplateProps> = () => {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [isViewingProfile, setIsViewingProfile] = useState(false);
+  const [isChatting, setIsChatting] = useState(false);
 
   const filtersContent = (
     <>
@@ -103,24 +106,55 @@ export const FavoritesTemplate: React.FC<FavoritesTemplateProps> = () => {
   return (
     <SplitViewLayout
       isOpen={!!selectedPropertyId}
-      onClose={() => setSelectedPropertyId(null)}
-      sideTitle="Detalle de Propiedad"
-      sidePosition="right"
-      sidePanelWidthClass="w-full md:w-[65%] xl:w-[70%]"
-      mainPanelWidthClass="md:w-[35%] xl:w-[30%]"
+      onClose={(isViewingProfile || isChatting) ? undefined : () => {
+        setSelectedPropertyId(null);
+        setIsViewingProfile(false);
+        setIsChatting(false);
+      }}
+      onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
+      sideTitle={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : "Detalle de Propiedad"}
+      sidePanelWidthClass={(isViewingProfile || isChatting) ? "w-[30%] lg:w-[30%] xl:w-[30%]" : "w-[50%] lg:w-[50%] xl:w-[50%]"}
+      mainPanelWidthClass={(isViewingProfile || isChatting) ? "w-[70%] lg:w-[70%] xl:w-[70%]" : "md:w-[50%] lg:w-[50%] xl:w-[50%]"}
       mainContent={mainContent}
-      sideContent={
-        selectedPropertyId && (
-          <PropertyDetailView 
-            property={MOCK_PROPERTIES.find(p => p.id === selectedPropertyId)!} 
-            layout="horizontal"
-          />
-        )
-      }
+      bottomSheetHeightMode={(isViewingProfile || isChatting) ? 'content' : 'fixed-75'}
+      bottomSheetIsHero={!(isViewingProfile || isChatting)}
       bottomSheetNoPadding={true}
-      bottomSheetIsHero={true}
+      bottomSheetFullHeight={true}
       wrapperClassName="bg-transparent"
       mainPanelNoScroll={true}
+      sideContent={
+        selectedPropertyId && (
+          isChatting ? (
+            <div className="w-full h-full bg-white dark:bg-inmo-darkcard overflow-hidden">
+              <AsesorChat hideHeader={true} asesorName="Daniel Ayomide" initialMessage="¡Hola! Veo que te interesa la propiedad, ¿en qué te puedo ayudar?" />
+            </div>
+          ) : (
+            <>
+              {/* Desktop version (Horizontal) */}
+              <div className="hidden md:block w-full h-full">
+                <PropertyDetailView 
+                  property={MOCK_PROPERTIES.find(p => p.id === selectedPropertyId)!} 
+                  layout="horizontal"
+                  showAsesorProfile={isViewingProfile}
+                  onShowAsesorProfileChange={setIsViewingProfile}
+                  onContactClick={() => setIsChatting(true)}
+                />
+              </div>
+
+              {/* Mobile version (Vertical in BottomSheet) */}
+              <div className="flex md:hidden w-full flex-1 flex-col min-h-0 overflow-hidden">
+                <PropertyDetailView 
+                  property={MOCK_PROPERTIES.find(p => p.id === selectedPropertyId)!} 
+                  layout="vertical"
+                  showAsesorProfile={isViewingProfile}
+                  onShowAsesorProfileChange={setIsViewingProfile}
+                  onContactClick={() => setIsChatting(true)}
+                />
+              </div>
+            </>
+          )
+        )
+      }
     />
   );
 };
