@@ -1,0 +1,8 @@
+:{$PORT:8080} {
+  root * /srv
+  encode gzip zstd
+  header Referrer-Policy "strict-origin-when-cross-origin"
+  header X-Content-Type-Options "nosniff"
+  try_files {path} /index.html
+  file_server
+}

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es" class="transition-colors duration-700 ease-in-out">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INMO - UI Kit Interactivo (Toasts Semánticos)</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        inmo: {
+                            accent: '#FA003F',
+                            primary: '#FFFFFF',
+                            secondary: '#333333',
+                            tertiary: '#E6E6E6',
+                            darkbg: '#1f1f1f',
+                            darkcard: '#333333',
+                            darktertiary: '#474747',
+                            success: '#10B981',
+                            warning: '#F59E0B',
+                            info: '#3B82F6',
+                            danger: '#EF4444'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.15)',
+                        'glow': '0 10px 40px -10px rgba(250, 0, 63, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-[#A9A9A9] dark:bg-inmo-darkbg min-h-screen w-full p-6 md:p-8 flex flex-col overflow-x-hidden transition-colors duration-500">
+
+    <!-- Header / Toggle -->
+    <div class="flex-none flex justify-between items-center mb-6 max-w-[1500px] w-full mx-auto">
+        <h1 class="text-2xl font-inter font-black text-white dark:text-gray-300 drop-shadow-md">INMO UI Kit</h1>
+        <button onclick="document.documentElement.classList.toggle('dark')" class="group flex items-center gap-3 bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white px-6 py-2 rounded-full shadow-soft hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
+            <i data-lucide="moon" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+            <i data-lucide="sun" class="w-5 h-5 block dark:hidden text-orange-500"></i>
+            <span class="font-montserrat font-bold text-sm">Alternar Tema</span>
+        </button>
+    </div>
+
+    <!-- SECCIÓN 1: Contenedor Base -->
+    <div class="flex-none flex gap-8 items-stretch w-full max-w-[1500px] mx-auto h-[80vh] min-h-[600px] mb-20">
+
+        <!-- COLUMNA 1: Paleta de Colores -->
+        <div class="flex flex-col gap-6 w-[280px] shrink-0 h-full">
+            <div class="flex-1 bg-inmo-accent rounded-[35px] shadow-soft p-8 flex items-center hover:scale-[1.02] transition-transform">
+                <span class="text-white font-inter font-bold text-xl">Accent</span>
+            </div>
+            <div class="flex-1 bg-inmo-primary dark:bg-inmo-darkcard rounded-[35px] shadow-soft p-8 flex items-center hover:scale-[1.02] transition-transform">
+                <span class="text-inmo-secondary dark:text-white font-inter font-bold text-xl">Primary</span>
+            </div>
+            <div class="flex-1 bg-inmo-secondary dark:bg-white rounded-[35px] shadow-soft p-8 flex items-center hover:scale-[1.02] transition-transform">
+                <span class="text-white dark:text-inmo-secondary font-inter font-bold text-xl">Secondary</span>
+            </div>
+            <div class="flex-1 bg-inmo-tertiary dark:bg-inmo-darktertiary rounded-[35px] shadow-soft p-8 flex items-center hover:scale-[1.02] transition-transform">
+                <span class="text-inmo-secondary dark:text-white font-inter font-bold text-xl">Tertiary</span>
+            </div>
+        </div>
+
+        <!-- COLUMNA 2: Tipografía -->
+        <div class="flex flex-col gap-6 w-[240px] shrink-0 h-full">
+            <div class="flex-1 bg-white dark:bg-inmo-darkcard rounded-[35px] shadow-soft p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform">
+                <div class="flex justify-between text-gray-400 dark:text-gray-300 font-inter font-bold text-[9px] uppercase tracking-wider">
+                    <span>Headline</span><span>Inter</span>
+                </div>
+                <div class="text-[90px] text-inmo-secondary dark:text-white font-inter font-black leading-none self-end tracking-tighter -mr-2">Aa</div>
+            </div>
+            <div class="flex-1 bg-white dark:bg-inmo-darkcard rounded-[35px] shadow-soft p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform">
+                <div class="flex justify-between text-gray-400 dark:text-gray-300 font-inter font-bold text-[9px] uppercase tracking-wider">
+                    <span>Body</span><span>Inter</span>
+                </div>
+                <div class="text-[90px] text-inmo-secondary dark:text-white font-inter font-normal leading-none self-end tracking-tighter -mr-2">Aa</div>
+            </div>
+            <div class="flex-1 bg-white dark:bg-inmo-darkcard rounded-[35px] shadow-soft p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform">
+                <div class="flex justify-between text-gray-400 dark:text-gray-300 font-inter font-bold text-[9px] uppercase tracking-wider">
+                    <span>Label</span><span>Montserrat</span>
+                </div>
+                <div class="text-[90px] text-inmo-secondary dark:text-white font-montserrat font-medium leading-none self-end tracking-tighter -mr-2">Aa</div>
+            </div>
+        </div>
+
+        <!-- COLUMNA 3: Componentes UI -->
+        <div class="flex flex-col justify-between flex-1 h-full py-2 max-w-[700px]">
+            
+            <div class="flex gap-6 items-center w-full">
+                <div class="bg-white dark:bg-inmo-darkcard rounded-full h-[80px] flex-1 shadow-soft flex items-center justify-around px-8 transition-colors">
+                    <button class="hover:scale-110 hover:text-inmo-accent transition-all text-inmo-secondary dark:text-white"><i data-lucide="home" class="w-10 h-10"></i></button>
+                    <button class="hover:scale-110 hover:text-inmo-accent transition-all text-inmo-secondary dark:text-white"><i data-lucide="map" class="w-10 h-10"></i></button>
+                    <button class="hover:scale-110 hover:text-inmo-accent transition-all text-inmo-secondary dark:text-white"><i data-lucide="heart" class="w-10 h-10"></i></button>
+                </div>
+                <button class="bg-white dark:bg-inmo-darkcard rounded-full h-[80px] w-[80px] shadow-soft flex items-center justify-center hover:scale-110 active:scale-95 transition-all text-inmo-secondary dark:text-white shrink-0">
+                    <i data-lucide="bot" class="w-10 h-10"></i>
+                </button>
+            </div>
+
+            <label class="group relative bg-white dark:bg-inmo-darkcard focus-within:ring-4 focus-within:ring-inmo-tertiary dark:focus-within:ring-inmo-darktertiary rounded-full h-[80px] w-full shadow-soft flex items-center overflow-hidden transition-all cursor-text block">
+                <div class="absolute flex items-center gap-4 left-1/2 -translate-x-1/2 group-focus-within:left-8 group-focus-within:translate-x-0 w-[300px] group-focus-within:w-[calc(100%-4rem)] transition-all duration-500 ease-out">
+                    <i data-lucide="search" class="w-8 h-8 shrink-0 text-gray-400 group-focus-within:text-inmo-secondary dark:group-focus-within:text-white transition-colors duration-300"></i>
+                    <input type="text" placeholder="Empieza tu búsqueda" class="bg-transparent border-none outline-none w-full text-left text-xl font-montserrat font-bold text-inmo-secondary dark:text-white placeholder-gray-400">
+                </div>
+            </label>
+
+            <div class="flex gap-4">
+                <button class="bg-inmo-accent rounded-[28px] w-[80px] h-[80px] shadow-glow flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                    <i data-lucide="globe" class="w-10 h-10 text-white"></i>
+                </button>
+                <button class="bg-inmo-tertiary dark:bg-inmo-darktertiary rounded-[28px] w-[80px] h-[80px] shadow-soft flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110 active:scale-95 transition-all text-inmo-secondary dark:text-white">
+                    <i data-lucide="home" class="w-10 h-10"></i>
+                </button>
+                <button class="bg-inmo-tertiary dark:bg-inmo-darktertiary rounded-[28px] w-[80px] h-[80px] shadow-soft flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110 active:scale-95 transition-all text-inmo-secondary dark:text-white">
+                    <i data-lucide="building-2" class="w-10 h-10"></i>
+                </button>
+                <button class="bg-inmo-tertiary dark:bg-inmo-darktertiary rounded-[28px] w-[80px] h-[80px] shadow-soft flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110 active:scale-95 transition-all text-inmo-secondary dark:text-white">
+                    <i data-lucide="map" class="w-10 h-10"></i>
+                </button>
+            </div>
+
+            <div class="flex gap-4">
+                <button class="bg-inmo-accent rounded-full h-[90px] px-8 shadow-glow flex items-center justify-center gap-3 hover:bg-red-600 hover:-translate-y-1 active:scale-95 transition-all flex-1">
+                    <i data-lucide="send" class="w-10 h-10 text-white"></i>
+                    <span class="text-white font-inter font-bold text-3xl tracking-tight">Press</span>
+                </button>
+                <button class="bg-white dark:bg-inmo-darkcard rounded-full h-[90px] px-10 shadow-soft flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:-translate-y-1 active:scale-95 transition-all flex-1">
+                    <span class="text-gray-600 dark:text-white font-inter font-bold text-3xl tracking-tight">Press</span>
+                </button>
+                <button class="bg-inmo-accent rounded-full h-[90px] w-[140px] shadow-glow flex items-center justify-center hover:bg-red-600 hover:-translate-y-1 active:scale-95 transition-all shrink-0">
+                    <i data-lucide="globe" class="w-12 h-12 text-white"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 2: Nuevos Componentes (Feedback & States) -->
+    <div class="w-full max-w-[1500px] mx-auto border-t-2 border-white/30 dark:border-white/10 pt-12 pb-12">
+        <h2 class="text-3xl font-inter font-black text-inmo-secondary dark:text-white mb-10">UX Feedback & Component States</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            
+            <!-- 1. Semantic Tokens (Toasts) -->
+            <div class="flex flex-col gap-4">
+                <h3 class="font-montserrat font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest text-sm mb-1">1. Semantic Tokens (Toasts)</h3>
+                
+                <!-- Success -->
+                <div class="bg-inmo-secondary dark:bg-white text-white dark:text-inmo-secondary px-5 py-4 rounded-2xl flex items-center gap-4 shadow-soft">
+                    <div class="bg-inmo-success rounded-full p-1.5 shrink-0">
+                        <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-inter font-bold text-sm leading-tight">Operación exitosa</span>
+                        <span class="font-inter text-xs text-gray-400 dark:text-gray-500 mt-0.5">La propiedad ha sido publicada.</span>
+                    </div>
+                </div>
+
+                <!-- Danger / Error -->
+                <div class="bg-inmo-secondary dark:bg-white text-white dark:text-inmo-secondary px-5 py-4 rounded-2xl flex items-center gap-4 shadow-soft">
+                    <div class="bg-inmo-danger rounded-full p-1.5 shrink-0">
+                        <i data-lucide="x" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-inter font-bold text-sm leading-tight">Error de validación</span>
+                        <span class="font-inter text-xs text-gray-400 dark:text-gray-500 mt-0.5">Revisa los campos obligatorios.</span>
+                    </div>
+                </div>
+
+                <!-- Warning -->
+                <div class="bg-inmo-secondary dark:bg-white text-white dark:text-inmo-secondary px-5 py-4 rounded-2xl flex items-center gap-4 shadow-soft">
+                    <div class="bg-inmo-warning rounded-full p-1.5 shrink-0">
+                        <i data-lucide="triangle-alert" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-inter font-bold text-sm leading-tight">Conexión inestable</span>
+                        <span class="font-inter text-xs text-gray-400 dark:text-gray-500 mt-0.5">Intentando reconectar al servidor...</span>
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="bg-inmo-secondary dark:bg-white text-white dark:text-inmo-secondary px-5 py-4 rounded-2xl flex items-center gap-4 shadow-soft">
+                    <div class="bg-inmo-info rounded-full p-1.5 shrink-0">
+                        <i data-lucide="info" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-inter font-bold text-sm leading-tight">Cuenta en revisión</span>
+                        <span class="font-inter text-xs text-gray-400 dark:text-gray-500 mt-0.5">Tus documentos están siendo validados.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Estados de Interacción -->
+            <div class="flex flex-col gap-6">
+                <h3 class="font-montserrat font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest text-sm">2. Interaction States</h3>
+                
+                <button class="bg-inmo-accent opacity-90 rounded-full h-[70px] w-full shadow-glow flex items-center justify-center gap-3 cursor-wait">
+                    <i data-lucide="loader-2" class="w-7 h-7 text-white animate-spin"></i>
+                    <span class="text-white font-inter font-bold text-xl">Procesando...</span>
+                </button>
+                
+                <button disabled class="bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full h-[70px] w-full flex items-center justify-center gap-3 cursor-not-allowed">
+                    <i data-lucide="lock" class="w-6 h-6"></i>
+                    <span class="font-inter font-bold text-xl">Deshabilitado</span>
+                </button>
+
+                <div class="flex flex-col gap-2 mt-2">
+                    <div class="bg-white dark:bg-inmo-darkcard border-2 border-inmo-danger rounded-full h-[70px] w-full shadow-soft flex items-center px-6 gap-3">
+                        <i data-lucide="mail" class="w-6 h-6 text-inmo-danger"></i>
+                        <input type="text" value="correo@invalido" class="bg-transparent border-none outline-none w-full text-lg font-montserrat font-bold text-inmo-danger">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-inmo-danger"></i>
+                    </div>
+                    <span class="text-inmo-danger font-inter font-bold text-sm pl-6">El formato del correo es inválido</span>
+                </div>
+            </div>
+
+            <!-- 3. UI de Retroalimentación -->
+            <div class="flex flex-col gap-6">
+                <h3 class="font-montserrat font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest text-sm">3. Feedback Elements</h3>
+                
+                <div class="bg-white dark:bg-inmo-darkcard p-5 rounded-[30px] shadow-soft w-full">
+                    <div class="w-full h-[140px] bg-gray-200 dark:bg-gray-700 rounded-[20px] animate-pulse mb-4"></div>
+                    <div class="w-3/4 h-5 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse mb-3"></div>
+                    <div class="w-1/2 h-5 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                </div>
+
+                <!-- Badges -->
+                <div class="flex gap-4 mt-2 items-center">
+                    <span class="bg-inmo-accent text-white px-6 py-2.5 rounded-full text-sm font-inter font-bold shadow-sm tracking-wide">Venta</span>
+                    <span class="bg-[#EBF0F5] dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white px-6 py-2.5 rounded-full text-sm font-inter font-bold shadow-sm tracking-wide">Nuevo</span>
+                    <button class="bg-[#EBF0F5] dark:bg-inmo-darktertiary w-11 h-11 rounded-full flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-transform shrink-0">
+                        <i data-lucide="heart" class="w-5 h-5 text-inmo-accent"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
