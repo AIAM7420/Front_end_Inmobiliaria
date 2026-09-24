@@ -10,6 +10,7 @@
         "--stdio"
       ],
       "env": {
+        "FIGMA_API_KEY": "hola12"
       }
     }
   }
