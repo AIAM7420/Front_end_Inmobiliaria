@@ -53,7 +53,7 @@ export const PropertyCard = React.memo(({
 
   return (
     <div 
-      className="bg-white dark:bg-inmo-darkcard rounded-card p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-inmo-darktertiary/40 cursor-pointer transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.02] flex flex-col w-full"
+      className="@container bg-white dark:bg-inmo-darkcard rounded-card p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-inmo-darktertiary/40 cursor-pointer transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.02] flex flex-col w-full"
       onClick={onClick}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px]">
@@ -99,29 +99,39 @@ export const PropertyCard = React.memo(({
         {/* ROW 3: FEATURES PILLS */}
         {variant === 'standard' ? (
           <div className="flex flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Bed className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
-              <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">{beds} Beds</span>
+              <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
+                {beds} <span className="hidden @[250px]:inline">Beds</span>
+              </span>
             </div>
-            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Bath className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
-              <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">{baths} Baths</span>
+              <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
+                {baths} <span className="hidden @[250px]:inline">Baths</span>
+              </span>
             </div>
-            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Maximize className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
-              <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">{sqft}m²</span>
+              <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
+                {sqft} <span className="hidden @[250px]:inline">m²</span>
+              </span>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex space-x-2 text-gray-500 dark:text-gray-400">
-              <div className="flex items-center space-x-1.5 bg-gray-50 dark:bg-inmo-darkbg px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
-                <Eye className="w-4 h-4 text-blue-500" strokeWidth={2} />
-                <span className="text-[13px] font-bold">{views}</span>
+              <div className="flex items-center space-x-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+                <Eye className="w-4 h-4 text-inmo-accent" strokeWidth={2} />
+                <span className="text-[13px] font-bold">
+                  {views} <span className="hidden @[250px]:inline">Vistas</span>
+                </span>
               </div>
-              <div className="flex items-center space-x-1.5 bg-gray-50 dark:bg-inmo-darkbg px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
+              <div className="flex items-center space-x-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
                 <MessageCircle className="w-4 h-4 text-inmo-accent" strokeWidth={2} />
-                <span className="text-[13px] font-bold">{messages}</span>
+                <span className="text-[13px] font-bold">
+                  {messages} <span className="hidden @[250px]:inline">Mensajes</span>
+                </span>
               </div>
             </div>
           </div>

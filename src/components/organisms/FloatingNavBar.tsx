@@ -8,6 +8,7 @@ interface FloatingNavBarProps {
   activeRoute?: string;
   onNavigate?: (route: string) => void;
   onOpenChatbot?: () => void;
+  hideChatbot?: boolean;
 }
 
 const NavButton = ({ route, Icon, activeRoute, onNavigate, badge }: { route: string, Icon: React.ElementType, activeRoute: string, onNavigate?: (r: string) => void, badge?: number | boolean }) => {
@@ -46,7 +47,8 @@ export const FloatingNavBar: React.FC<FloatingNavBarProps> = ({
   role = 'public',
   activeRoute = 'home',
   onNavigate,
-  onOpenChatbot
+  onOpenChatbot,
+  hideChatbot = false
 }) => {
   const renderNavItems = () => {
     switch (role) {
@@ -92,12 +94,14 @@ export const FloatingNavBar: React.FC<FloatingNavBarProps> = ({
       </div>
 
       {/* Botón Flotante del Chatbot */}
-      <IconButton 
-        onClick={onOpenChatbot}
-        icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
-        variant="secondary"
-        className={`!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 !shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full shrink-0`}
-      />
+      {!hideChatbot && (
+        <IconButton 
+          onClick={onOpenChatbot}
+          icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
+          variant="secondary"
+          className={`!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 !shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full shrink-0`}
+        />
+      )}
 
     </div>
   );

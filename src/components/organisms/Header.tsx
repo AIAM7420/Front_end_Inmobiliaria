@@ -44,12 +44,12 @@ export const Header: React.FC<HeaderProps> = ({
         <img
           src="/inmo.png"
           alt="INMO"
-          className="h-15 md:h-12 absolute left-1/2 -translate-x-1/2 object-contain transition-all dark:hidden"
+          className="h-[60px] md:h-[76px] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-contain transition-all dark:hidden"
         />
         <img
           src="/inmo white.png"
           alt="INMO"
-          className="h-15 md:h-12 absolute left-1/2 -translate-x-1/2 object-contain transition-all hidden dark:block"
+          className="h-[60px] md:h-[76px] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-contain transition-all hidden dark:block"
         />
 
         {/* User Menu Dropdown */}

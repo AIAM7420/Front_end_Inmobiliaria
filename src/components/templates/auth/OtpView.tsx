@@ -30,7 +30,7 @@ export const OtpView: React.FC<OtpViewProps> = ({ onNavigate }) => {
         <Button type="submit" variant="accent" className="w-full h-14 mt-2">
           Verificar
         </Button>
-        <p className="text-body text-center text-[10px] px-4 mt-2">
+        <p className="text-body text-center text-caption px-4 mt-2">
           Antes de reenviar el código, no olvides revisar tu bandeja de spam o correo no deseado.
         </p>
       </form>

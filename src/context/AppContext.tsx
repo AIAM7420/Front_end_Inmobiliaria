@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 
 export type UserRole = 'public' | 'asesor' | 'admin' | null;
@@ -54,8 +54,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   
   const logout = () => setRole(null);
 
+  const contextValue = React.useMemo(() => ({ isDarkMode, toggleTheme, isAuthenticated, role, login, logout }), [isDarkMode, isAuthenticated, role]);
+
   return (
-    <AppContext.Provider value={{ isDarkMode, toggleTheme, isAuthenticated, role, login, logout }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

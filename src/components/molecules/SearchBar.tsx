@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
-import { Input } from '../atoms/Input';
+
 
 export interface SearchBarProps {
   placeholder?: string;
@@ -89,7 +89,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             onChange={handleChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`absolute inset-0 w-full h-full bg-transparent border-none outline-none text-left font-inter font-normal ${textSize} text-inmo-secondary dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 text-ellipsis overflow-hidden whitespace-nowrap p-0 m-0 focus:ring-0`}
+            className={`absolute inset-0 w-full h-full bg-transparent border-none outline-none text-inmo-secondary dark:text-white placeholder-gray-400 p-0 m-0 text-left text-ellipsis overflow-hidden whitespace-nowrap ${textSize}`}
           />
         </div>
       </div>

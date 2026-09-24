@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '../atoms/Button';
 
 export type PeriodOption = string;
 
@@ -20,7 +21,7 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
   return (
     <div className={`flex w-full shrink-0 ${className}`}>
       {/* Contenedor 3D "Carved" (Sumido) */}
-      <div className="relative w-full bg-gray-200 dark:bg-[#121315] rounded-full p-1.5 flex items-center shadow-[inset_0_4px_8px_rgba(0,0,0,0.15),inset_0_-2px_6px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_6px_12px_rgba(0,0,0,0.4),inset_0_-2px_4px_rgba(255,255,255,0.05)] border border-transparent dark:border-black/50">
+      <div className="relative w-full bg-gray-200 dark:bg-inmo-darkbg rounded-full p-1.5 flex items-center shadow-[inset_0_4px_8px_rgba(0,0,0,0.15),inset_0_-2px_6px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_6px_12px_rgba(0,0,0,0.4),inset_0_-2px_4px_rgba(255,255,255,0.05)] border border-transparent dark:border-black/50">
         
         {/* Pastilla 3D "Extruded" (Sobresaliente) */}
         <div 
@@ -31,19 +32,19 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
           }}
         />
 
-        {/* Buttons */}
         {options.map(period => (
-          <button
+          <Button
             key={period}
             onClick={() => onChange(period)}
-            className={`relative z-10 flex-1 py-2 rounded-full text-[9px] sm:text-[10px] md:text-xs font-bold font-inter transition-colors duration-300 ${
+            variant="ghost"
+            className={`relative z-10 flex-1 py-2 !rounded-full !h-auto !text-[9px] sm:!text-[10px] md:!text-xs transition-colors duration-300 ${
               selectedPeriod === period
-                ? 'text-inmo-secondary dark:text-white'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-300/20 dark:hover:bg-white/5'
+                ? '!text-inmo-secondary dark:!text-white hover:bg-transparent'
+                : '!text-gray-500 hover:!text-gray-700 dark:!text-gray-400 dark:hover:!text-gray-200 hover:bg-gray-300/20 dark:hover:bg-white/5'
             }`}
           >
             {period}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

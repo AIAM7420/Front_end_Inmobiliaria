@@ -7,20 +7,23 @@ export interface GlobalChatbotProps {
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
+  hideButton?: boolean;
 }
 
-export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, onClose }) => {
+export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, onClose, hideButton = false }) => {
   return (
     <>
       {/* DESKTOP CHATBOT BUTTON (PC ONLY) */}
-      <div className="hidden md:flex fixed bottom-6 right-6 z-40">
-        <IconButton 
-          onClick={onOpen}
-          icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
-          variant="secondary"
-          className="!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 !shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full shrink-0"
-        />
-      </div>
+      {!hideButton && (
+        <div className="hidden md:flex fixed bottom-6 right-6 z-40">
+          <IconButton 
+            onClick={onOpen}
+            icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
+            variant="secondary"
+            className="!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 !shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full shrink-0"
+          />
+        </div>
+      )}
 
       {/* CHATBOT (MOBILE) */}
       <div

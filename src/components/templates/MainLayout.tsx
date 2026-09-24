@@ -12,6 +12,12 @@ export const MainLayout: React.FC = () => {
   
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  React.useEffect(() => {
+    const handleOpenChatbot = () => setIsChatOpen(true);
+    window.addEventListener('open-chatbot', handleOpenChatbot);
+    return () => window.removeEventListener('open-chatbot', handleOpenChatbot);
+  }, []);
+
   // Derivar la ruta activa a partir de la URL
   let activeRoute = location.pathname === '/' ? 'home' : location.pathname.substring(1);
   // Limpiar trailing slashes si existieran
@@ -20,7 +26,7 @@ export const MainLayout: React.FC = () => {
   }
 
   // Configuración especial por vista (Full screen layouts sin scroll global)
-  const isFullScreenLayout = location.pathname === '/map' || location.pathname === '/' || location.pathname === '/asesor' || location.pathname === '/admin';
+  const isFullScreenLayout = location.pathname === '/map' || location.pathname === '/' || location.pathname === '/asesor' || location.pathname === '/asesor/propiedades' || location.pathname === '/admin' || location.pathname === '/messages' || location.pathname === '/asesor/mensajes' || location.pathname === '/favorites';
 
   return (
     <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden">
@@ -61,6 +67,7 @@ export const MainLayout: React.FC = () => {
         isOpen={isChatOpen} 
         onOpen={() => setIsChatOpen(true)} 
         onClose={() => setIsChatOpen(false)} 
+        hideButton={location.pathname.includes('/messages') || location.pathname.includes('/mensajes')}
       />
 
     </div>

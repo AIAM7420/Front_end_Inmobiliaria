@@ -49,7 +49,7 @@ const formatMarkerPrice = (price: number) => {
   return `$${price}`;
 };
 
-const InnerMap = ({ properties, onMarkerClick, isDarkMode, isWireframeMode }: { properties: typeof MOCK_PROPERTIES, onMarkerClick: (id: number) => void, isDarkMode?: boolean, isWireframeMode?: boolean }) => {
+const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWireframeMode }: { properties: typeof MOCK_PROPERTIES, onMarkerClick: (id: number) => void, isDarkMode?: boolean, isWireframeMode?: boolean }) => {
   const status = useApiLoadingStatus();
 
   if (status === APILoadingStatus.AUTH_FAILURE || status === APILoadingStatus.FAILED) {
@@ -138,7 +138,9 @@ const InnerMap = ({ properties, onMarkerClick, isDarkMode, isWireframeMode }: { 
       </div>
     </div>
   );
-};
+});
+
+InnerMap.displayName = 'InnerMap';
 
 export const MapTemplate: React.FC<MapTemplateProps> = () => {
   const { isDarkMode } = useAppContext();

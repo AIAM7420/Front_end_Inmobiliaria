@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sun, Moon, User, LogOut } from 'lucide-react';
+import { Sun, Moon, MoreVertical, LogOut } from 'lucide-react';
 import { Button } from '../atoms/Button';
 import { IconButton } from '../atoms/IconButton';
 
@@ -105,7 +105,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
         <div className="relative z-20 flex gap-2 items-center">
           <IconButton 
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
-            icon={<User className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={2.5} />}
+            icon={<MoreVertical className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={2.5} />}
             variant="ghost"
             className="hover:!bg-white/50 dark:hover:!bg-white/10 !rounded-full shrink-0"
           />
@@ -145,7 +145,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 <>
                   <Button 
                     onClick={() => {
-                      onNavigate?.('profile');
+                      onNavigate?.(role === 'asesor' ? 'asesor/profile' : role === 'admin' ? 'admin/profile' : 'profile');
                       setIsUserMenuOpen(false);
                     }}
                     variant="text"
