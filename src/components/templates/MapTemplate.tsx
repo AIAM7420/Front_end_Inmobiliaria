@@ -73,6 +73,25 @@ function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || status !== 'ready') return;
+    const areas = {
+      type: 'FeatureCollection' as const,
+      features: properties.flatMap((property) => property.zona_geojson?.type === 'Polygon'
+        ? [{ type: 'Feature' as const, properties: { id: property.id }, geometry: property.zona_geojson }]
+        : []),
+    } as Parameters<mapboxgl.GeoJSONSource['setData']>[0];
+    const source = map.getSource('approximate-property-areas') as mapboxgl.GeoJSONSource | undefined;
+    if (source) source.setData(areas);
+    else {
+      map.addSource('approximate-property-areas', { type: 'geojson', data: areas });
+      map.addLayer({
+        id: 'approximate-property-areas-fill', type: 'fill', source: 'approximate-property-areas',
+        paint: { 'fill-color': '#fe0a52', 'fill-opacity': 0.14 },
+      });
+      map.addLayer({
+        id: 'approximate-property-areas-outline', type: 'line', source: 'approximate-property-areas',
+        paint: { 'line-color': '#fe0a52', 'line-width': 1.5 },
+      });
+    }
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = markerProperties.map(({ property, position }) => {
       const element = document.createElement('button');
@@ -90,7 +109,7 @@ function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
     };
-  }, [markerProperties, onMarkerClick, status]);
+  }, [markerProperties, onMarkerClick, properties, status]);
 
   return <div className="relative w-full h-full bg-gray-100 dark:bg-inmo-darkbg">
     <div ref={containerRef} className="w-full h-full" />

@@ -9,8 +9,10 @@ import {
 } from '../../../integrations/backend/hooks/useProperties';
 import type { PropiedadCrear } from '../../../integrations/backend/types';
 import { problemFromError } from '../../../integrations/backend/axios.config';
+import { lookupPropertyLocation } from '../../../integrations/backend/properties.service';
 import { Button } from '../../atoms/Button';
 import { Skeleton } from '../../atoms/Skeleton';
+import { PropertyLocationMap } from './PropertyLocationMap';
 
 const field = 'w-full rounded-xl border border-inmo-tertiary dark:border-inmo-darktertiary bg-white dark:bg-inmo-darkcard p-3 font-inter text-sm text-inmo-secondary dark:text-white';
 const card = 'rounded-card bg-white dark:bg-inmo-darkcard p-5 md:p-6 shadow-soft';
@@ -25,8 +27,12 @@ export function AdvisorPropertiesView() {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [showMatches, setShowMatches] = useState(false);
+  const [locationPending, setLocationPending] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [locationDescription, setLocationDescription] = useState('');
+  const [catalogConfirmed, setCatalogConfirmed] = useState(false);
   const [form, setForm] = useState({
-    tipo_id: '', zona_id: '', titulo: '', descripcion: '', direccion: '', codigo_postal: '',
+    tipo_id: '', zona_id: '', colonia: '', titulo: '', descripcion: '', direccion: '', codigo_postal: '',
     latitud: '', longitud: '', precio: '', habitaciones: '0', banos: '0',
     superficie_terreno: '', superficie_construccion: '',
   });
@@ -49,15 +55,17 @@ export function AdvisorPropertiesView() {
   const property = detail.data?.value;
   const canManage = application.data?.value.estado === 'APROBADA' && subscription.data?.value.estado === 'ACTIVA';
   const sale = operations.data?.find((item) => item.codigo === 'VENTA');
+  const selectedZoneId = form.zona_id || zones.data?.find((item) => item.codigo === 'LEON_GENERAL')?.id || '';
   const mutationError = create.error ?? update.error ?? publish.error ?? availability.error ?? sharing.error ?? upload.error;
 
   async function createProperty(event: FormEvent) {
     event.preventDefault();
-    if (!sale || !canManage) return;
+    if (!sale || !canManage || !selectedZoneId) return;
     setNotice('');
     const payload: PropiedadCrear = {
-      tipo_id: form.tipo_id, operacion_id: sale.id, zona_id: form.zona_id,
-      titulo: form.titulo.trim(), descripcion: form.descripcion.trim(), direccion: form.direccion.trim(),
+      tipo_id: form.tipo_id, operacion_id: sale.id, zona_id: selectedZoneId,
+      titulo: form.titulo.trim(), descripcion: form.descripcion.trim(),
+      direccion: `${form.direccion.trim()}, Col. ${form.colonia.trim()}`,
       codigo_postal: form.codigo_postal.trim() || null,
       latitud: form.latitud.trim() || null, longitud: form.longitud.trim() || null,
       precio: form.precio, moneda: 'MXN', habitaciones: Number(form.habitaciones), banos: form.banos,
@@ -70,6 +78,26 @@ export function AdvisorPropertiesView() {
       setShowCreate(false);
       setNotice('Propiedad registrada. Carga una fotografía antes de publicarla.');
     } catch { /* RFC 9457 is shown below. */ }
+  }
+
+  async function locateColony() {
+    setLocationError('');
+    setLocationDescription('');
+    setCatalogConfirmed(false);
+    setLocationPending(true);
+    try {
+      const result = await lookupPropertyLocation(form.colonia.trim(), form.codigo_postal.trim());
+      if (result.latitud !== null && result.longitud !== null) {
+        setForm((current) => ({ ...current, latitud: String(result.latitud), longitud: String(result.longitud) }));
+      }
+      setLocationDescription(result.descripcion);
+      setCatalogConfirmed(result.catalogo_confirmado);
+    } catch (error) {
+      const problem = problemFromError(error);
+      setLocationError(problem?.detail ?? problem?.title ?? (error instanceof Error ? error.message : 'No encontramos la ubicación. Coloca el punto manualmente.'));
+    } finally {
+      setLocationPending(false);
+    }
   }
 
   async function editProperty() {
@@ -110,20 +138,46 @@ export function AdvisorPropertiesView() {
       <label className="font-inter text-sm">Tipo<select required className={field} value={form.tipo_id} onChange={(event) => setForm({ ...form, tipo_id: event.target.value })}>
         <option value="">Seleccionar</option>{types.data?.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
       </select></label>
-      <label className="font-inter text-sm">Zona<select required className={field} value={form.zona_id} onChange={(event) => setForm({ ...form, zona_id: event.target.value })}>
+      <label className="font-inter text-sm">Zona de catálogo<select required className={field} value={selectedZoneId} onChange={(event) => setForm({ ...form, zona_id: event.target.value })}>
         <option value="">Seleccionar</option>{zones.data?.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
       </select></label>
-      {(['titulo', 'direccion', 'codigo_postal', 'precio', 'latitud', 'longitud', 'habitaciones', 'banos', 'superficie_terreno', 'superficie_construccion'] as const).map((name) =>
+      {(!types.isLoading && !types.data?.length || !zones.isLoading && !zones.data?.length) &&
+        <p role="alert" className="md:col-span-2 text-sm text-inmo-danger">Faltan catálogos en la base de datos. Ejecuta la migración 0018 antes de registrar propiedades.</p>}
+      {(['titulo', 'direccion', 'colonia', 'codigo_postal', 'precio'] as const).map((name) =>
         <label key={name} className="font-inter text-sm capitalize">{name.replaceAll('_', ' ')}
-          <input className={field} value={form[name]} required={['titulo', 'direccion', 'precio', 'codigo_postal', 'latitud', 'longitud'].includes(name)}
-            type={['precio', 'latitud', 'longitud', 'habitaciones', 'banos', 'superficie_terreno', 'superficie_construccion'].includes(name) ? 'number' : 'text'}
-            min={name === 'precio' ? '0.01' : undefined} step={name === 'habitaciones' ? '1' : 'any'}
+          <input className={field} value={form[name]} required
+            type={name === 'precio' ? 'number' : 'text'}
+            pattern={name === 'codigo_postal' ? '[0-9]{5}' : undefined}
+            min={name === 'precio' ? '0.01' : undefined} step={name === 'precio' ? '0.01' : undefined}
+            onChange={(event) => {
+              if (name === 'colonia' || name === 'codigo_postal') {
+                setLocationDescription(''); setLocationError(''); setCatalogConfirmed(false);
+                setForm((current) => ({ ...current, [name]: event.target.value, latitud: '', longitud: '' }));
+              } else setForm((current) => ({ ...current, [name]: event.target.value }));
+            }} />
+        </label>)}
+      <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+        <Button type="button" variant="secondary" className="px-5 py-3" disabled={locationPending || !form.colonia.trim() || !/^[0-9]{5}$/.test(form.codigo_postal.trim())}
+          onClick={() => { void locateColony(); }}>{locationPending ? 'Buscando…' : 'Ubicar colonia y CP'}</Button>
+        <span className="text-xs text-gray-500">Una consulta al pulsar el botón; no busca mientras escribes.</span>
+      </div>
+      {locationDescription && <p role="status" className="md:col-span-2 text-sm">Sugerencia aproximada: {locationDescription}. Confirma el punto en el mapa. © OpenStreetMap contributors.</p>}
+      {catalogConfirmed && <p role="status" className="md:col-span-2 text-sm text-inmo-success">Colonia y CP confirmados en el catálogo local.</p>}
+      {locationError && <p role="alert" className="md:col-span-2 text-sm text-inmo-danger">{locationError}</p>}
+      <PropertyLocationMap position={form.latitud && form.longitud ? { lat: Number(form.latitud), lng: Number(form.longitud) } : null}
+        onChange={(position) => setForm((current) => ({ ...current, latitud: position.lat.toFixed(6), longitud: position.lng.toFixed(6) }))} />
+      {(['latitud', 'longitud', 'habitaciones', 'banos', 'superficie_terreno', 'superficie_construccion'] as const).map((name) =>
+        <label key={name} className="font-inter text-sm capitalize">{name.replaceAll('_', ' ')}
+          <input className={field} value={form[name]} required={name === 'latitud' || name === 'longitud'}
+            type="number" step={name === 'habitaciones' ? '1' : 'any'}
+            min={name === 'latitud' ? '-90' : name === 'longitud' ? '-180' : undefined}
+            max={name === 'latitud' ? '90' : name === 'longitud' ? '180' : undefined}
             onChange={(event) => setForm({ ...form, [name]: event.target.value })} />
         </label>)}
       <label className="font-inter text-sm md:col-span-2">Descripción (mínimo 50 caracteres para publicar)
         <textarea required className={`${field} min-h-28`} value={form.descripcion} onChange={(event) => setForm({ ...form, descripcion: event.target.value })} />
       </label>
-      <Button type="submit" className="px-5 py-3" disabled={!sale || types.isLoading || zones.isLoading} isLoading={create.isPending}>Registrar</Button>
+      <Button type="submit" className="px-5 py-3" disabled={!sale || !selectedZoneId || !types.data?.length || types.isLoading || zones.isLoading} isLoading={create.isPending}>Registrar</Button>
     </form>}
     <div className="grid lg:grid-cols-[minmax(250px,1fr)_minmax(0,2fr)] gap-5">
       <section className={card}>

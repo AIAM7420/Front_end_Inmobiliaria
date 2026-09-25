@@ -34,6 +34,21 @@ export async function getCatalog(catalog: string): Promise<CatalogoItem[]> {
   return data;
 }
 
+export interface LocationSuggestion {
+  latitud: number | null;
+  longitud: number | null;
+  descripcion: string;
+  fuente: string;
+  catalogo_confirmado: boolean;
+  colonia_catalogo: string | null;
+}
+
+/** Deliberately invoked only by the Ubicar button, never on input changes. */
+export async function lookupPropertyLocation(colonia: string, codigo_postal: string): Promise<LocationSuggestion> {
+  const { data } = await api.post<LocationSuggestion>('/me/propiedades/ubicacion', { colonia, codigo_postal });
+  return data;
+}
+
 export async function getOwnProperties(params: ListPropertiesParams = {}): Promise<Pagina<PropiedadPrivada>> {
   const { data } = await api.get<Pagina<PropiedadPrivada>>('/me/propiedades', { params });
   return data;
