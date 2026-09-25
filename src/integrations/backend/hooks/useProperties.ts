@@ -10,6 +10,7 @@ import {
   getInverseMatches,
   getOwnProperties,
   getOwnProperty,
+  getOwnPhotos,
   getPhotoUrl,
   getPhotos,
   getProperties,
@@ -126,6 +127,7 @@ export function useConfirmPhoto() {
       confirmPhoto(propertyId, comprobante),
     onSuccess: (_photo, input) => {
       queryClient.invalidateQueries({ queryKey: ['properties', 'photos', input.propertyId] });
+      queryClient.invalidateQueries({ queryKey: ['properties', 'own-photos', input.propertyId] });
       queryClient.invalidateQueries({ queryKey: ['properties', 'own', input.propertyId] });
     },
   });
@@ -149,9 +151,12 @@ export function useUploadPropertyPhoto() {
       await uploadPhotoDirect(authorization, file);
       return confirmPhoto(propertyId, authorization.comprobante);
     },
-    onSuccess: (_photo, { propertyId }) => {
-      queryClient.invalidateQueries({ queryKey: ['properties', 'photos', propertyId] });
-      queryClient.invalidateQueries({ queryKey: ['properties', 'own'] });
+    onSuccess: async (_photo, { propertyId }) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['properties', 'photos', propertyId] }),
+        queryClient.invalidateQueries({ queryKey: ['properties', 'own-photos', propertyId] }),
+        queryClient.invalidateQueries({ queryKey: ['properties', 'own'] }),
+      ]);
     },
   });
 }
@@ -160,6 +165,15 @@ export function useGetPhotos(propertyId: Id, enabled = true) {
   return useQuery({
     queryKey: ['properties', 'photos', propertyId],
     queryFn: () => getPhotos(propertyId),
+    enabled: enabled && Boolean(propertyId),
+    staleTime: 30_000,
+  });
+}
+
+export function useGetOwnPhotos(propertyId: Id, enabled = true) {
+  return useQuery({
+    queryKey: ['properties', 'own-photos', propertyId],
+    queryFn: () => getOwnPhotos(propertyId),
     enabled: enabled && Boolean(propertyId),
     staleTime: 30_000,
   });

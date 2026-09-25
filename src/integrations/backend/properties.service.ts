@@ -144,6 +144,11 @@ export async function getPhotos(propertyId: Id): Promise<Fotografia[]> {
   return data;
 }
 
+export async function getOwnPhotos(propertyId: Id): Promise<Fotografia[]> {
+  const { data } = await api.get<Fotografia[]>(`/me/propiedades/${encodeURIComponent(propertyId)}/fotografias`);
+  return data;
+}
+
 export async function getPhotoUrl(propertyId: Id, photoId: Id): Promise<{ url: string; expira_at: string }> {
   const { data } = await api.get<{ url: string; expira_at: string }>(
     `/propiedades/${encodeURIComponent(propertyId)}/fotografias/${encodeURIComponent(photoId)}/url`,

@@ -5,11 +5,11 @@ import { useGetSubscription } from '../../../integrations/backend/hooks/useSubsc
 import {
   useChangeAvailability, useChangeCommission, useChangePublication, useCreateProperty,
   useGetCatalog, useGetInverseMatches, useGetOwnProperties, useGetOwnProperty,
-  useGetPhotos, useUpdateProperty, useUploadPropertyPhoto,
+  useGetOwnPhotos, useUpdateProperty, useUploadPropertyPhoto,
 } from '../../../integrations/backend/hooks/useProperties';
 import type { PropiedadCrear } from '../../../integrations/backend/types';
 import { problemFromError } from '../../../integrations/backend/axios.config';
-import { lookupPropertyLocation } from '../../../integrations/backend/properties.service';
+import { getOwnProperty, lookupPropertyLocation } from '../../../integrations/backend/properties.service';
 import { Button } from '../../atoms/Button';
 import { Skeleton } from '../../atoms/Skeleton';
 import { PropertyLocationMap } from './PropertyLocationMap';
@@ -22,6 +22,7 @@ export function AdvisorPropertiesView() {
   const [selectedId, setSelectedId] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [notice, setNotice] = useState('');
+  const [actionError, setActionError] = useState('');
   const [reason, setReason] = useState('');
   const [commission, setCommission] = useState('');
   const [editTitle, setEditTitle] = useState('');
@@ -50,13 +51,13 @@ export function AdvisorPropertiesView() {
   const upload = useUploadPropertyPhoto();
   const activeId = selectedId || properties.data?.items[0]?.id || '';
   const detail = useGetOwnProperty(activeId);
-  const photos = useGetPhotos(activeId, Boolean(activeId));
+  const photos = useGetOwnPhotos(activeId, Boolean(activeId));
   const matches = useGetInverseMatches(activeId, showMatches);
   const property = detail.data?.value;
   const canManage = application.data?.value.estado === 'APROBADA' && subscription.data?.value.estado === 'ACTIVA';
   const sale = operations.data?.find((item) => item.codigo === 'VENTA');
   const selectedZoneId = form.zona_id || zones.data?.find((item) => item.codigo === 'LEON_GENERAL')?.id || '';
-  const mutationError = create.error ?? update.error ?? publish.error ?? availability.error ?? sharing.error ?? upload.error;
+  const mutationError = create.error ?? update.error ?? availability.error ?? sharing.error ?? upload.error;
 
   async function createProperty(event: FormEvent) {
     event.preventDefault();
@@ -114,13 +115,20 @@ export function AdvisorPropertiesView() {
 
   async function changeState(accion: 'PUBLICAR' | 'PAUSAR' | 'ARCHIVAR') {
     if (!detail.data || !window.confirm(`¿Confirmas ${accion.toLowerCase()} esta propiedad?`)) return;
+    setActionError('');
+    setNotice('');
     try {
+      const latest = await getOwnProperty(activeId);
       await publish.mutateAsync({
-        id: activeId, accion, etag: detail.data.etag,
+        id: activeId, accion, etag: latest.etag,
         ...(accion === 'PUBLICAR' ? { visible: true } : {}),
       });
       setNotice(`Propiedad ${accion.toLowerCase()} correctamente.`);
-    } catch { /* shown below */ }
+    } catch (error) {
+      const problem = problemFromError(error);
+      setActionError(problem?.detail ?? problem?.title ?? (error instanceof Error ? error.message : 'No fue posible cambiar el estado.'));
+      void detail.refetch();
+    }
   }
 
   return <main className="mx-auto w-full max-w-7xl px-4 md:px-6 pt-28 pb-32 text-inmo-secondary dark:text-white">
@@ -197,9 +205,11 @@ export function AdvisorPropertiesView() {
               <div><h2 className="font-montserrat font-bold text-xl">{property.titulo}</h2>
                 <p className="text-gray-500">#{property.id} · {property.estado_publicacion} · ${Number(property.precio).toLocaleString('es-MX')} MXN</p></div>
               <p>Disponible: {property.disponible ? 'Sí' : 'No'} · Visible: {property.visible ? 'Sí' : 'No'} · Fotografías: {photos.data?.length ?? 0}</p>
+              {photos.isError && <p role="alert" className="text-inmo-danger">No se pudo consultar las fotografías de esta propiedad.</p>}
+              {!photos.isLoading && !photos.isError && !photos.data?.length && <p>Carga una fotografía confirmada antes de publicar.</p>}
               {canManage && <>
                 <div className="flex flex-wrap gap-2">
-                  {property.estado_publicacion !== 'PUBLICADA' && property.estado_publicacion !== 'ARCHIVADA' && <Button className="px-4 py-2" onClick={() => { void changeState('PUBLICAR'); }}>Publicar</Button>}
+                  {property.estado_publicacion !== 'PUBLICADA' && property.estado_publicacion !== 'ARCHIVADA' && <Button className="px-4 py-2" disabled={photos.isLoading || !photos.data?.length || publish.isPending} onClick={() => { void changeState('PUBLICAR'); }}>Publicar</Button>}
                   {property.estado_publicacion === 'PUBLICADA' && <Button variant="secondary" className="px-4 py-2" onClick={() => { void changeState('PAUSAR'); }}>Pausar</Button>}
                   {property.estado_publicacion !== 'ARCHIVADA' && <Button variant="secondary" className="px-4 py-2" onClick={() => { void changeState('ARCHIVAR'); }}>Archivar</Button>}
                 </div>
@@ -237,6 +247,10 @@ export function AdvisorPropertiesView() {
       </section>
     </div>
     {notice && <p role="status" className="font-inter text-sm text-inmo-success mt-5">{notice}</p>}
-    {mutationError && <p role="alert" className="font-inter text-sm text-inmo-danger mt-5">{problemFromError(mutationError)?.detail ?? (mutationError instanceof Error ? mutationError.message : 'No fue posible completar la operación.')}</p>}
+    {actionError && <p role="alert" className="font-inter text-sm text-inmo-danger mt-5">{actionError}</p>}
+    {mutationError && <p role="alert" className="font-inter text-sm text-inmo-danger mt-5">{(() => {
+      const problem = problemFromError(mutationError);
+      return problem?.detail ?? problem?.title ?? (mutationError instanceof Error ? mutationError.message : 'No fue posible completar la operación.');
+    })()}</p>}
   </main>;
 }
