@@ -8,7 +8,7 @@ import {
   setAccessToken,
   setUnauthorizedHandler,
 } from './axios.config';
-import { getProperties, uploadPhotoDirect } from './properties.service';
+import { changePublication, getOwnProperty, getProperties, uploadPhotoDirect } from './properties.service';
 import { getMessages, mergeMessages } from './chat.service';
 import { decideAdvisorApplication, getAdminApplication } from './advisors.service';
 
@@ -31,6 +31,22 @@ afterEach(() => {
 });
 
 describe('API transport', () => {
+  it('sends the property body version as a quoted If-Match value', async () => {
+    let observed: InternalAxiosRequestConfig | undefined;
+    api.defaults.adapter = async (config) => {
+      if (config.method === 'get') {
+        return { ...response(config, { version: 7 }), headers: { etag: 'opaque-edge-tag' } };
+      }
+      observed = config;
+      return response(config, { version: 8 });
+    };
+
+    const latest = await getOwnProperty('1');
+    expect(latest.etag).toBe('"v7"');
+    await changePublication('1', 'PUBLICAR', latest.etag, true);
+    expect(observed?.headers.get('If-Match')).toBe('"v7"');
+  });
+
   it('injects the in-memory Bearer token and preserves the cursor', async () => {
     setAccessToken('test.jwt.value');
     let observed: InternalAxiosRequestConfig | undefined;

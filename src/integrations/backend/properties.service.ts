@@ -19,6 +19,14 @@ export interface ListPropertiesParams {
   cursor?: string;
 }
 
+/** The property API's If-Match contract is the quoted body version, "vN". */
+export function propertyVersion(value: PropiedadPrivada): Versioned<PropiedadPrivada> {
+  if (!Number.isSafeInteger(value.version) || value.version < 1) {
+    throw new Error('La ficha no tiene una versión válida. Actualiza la página.');
+  }
+  return { value, etag: `"v${value.version}"` };
+}
+
 export async function getProperties(params: ListPropertiesParams = {}): Promise<PaginaPropiedadPublica> {
   const { data } = await api.get<PaginaPropiedadPublica>('/propiedades', { params });
   return data;
@@ -56,12 +64,12 @@ export async function getOwnProperties(params: ListPropertiesParams = {}): Promi
 
 export async function getOwnProperty(id: Id): Promise<Versioned<PropiedadPrivada>> {
   const response = await api.get<PropiedadPrivada>(`/me/propiedades/${encodeURIComponent(id)}`);
-  return { value: response.data, etag: response.headers.etag as string };
+  return propertyVersion(response.data);
 }
 
 export async function createProperty(payload: PropiedadCrear): Promise<Versioned<PropiedadPrivada>> {
   const response = await api.post<PropiedadPrivada>('/propiedades', payload);
-  return { value: response.data, etag: response.headers.etag as string };
+  return propertyVersion(response.data);
 }
 
 export async function updateProperty(
@@ -72,7 +80,7 @@ export async function updateProperty(
   const response = await api.patch<PropiedadPrivada>(`/me/propiedades/${encodeURIComponent(id)}`, payload, {
     headers: { 'If-Match': etag },
   });
-  return { value: response.data, etag: response.headers.etag as string };
+  return propertyVersion(response.data);
 }
 
 export async function changePublication(
@@ -86,7 +94,7 @@ export async function changePublication(
     { accion, ...(visible === undefined ? {} : { visible }) },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return propertyVersion(response.data);
 }
 
 export async function changeAvailability(
@@ -96,7 +104,7 @@ export async function changeAvailability(
     `/me/propiedades/${encodeURIComponent(id)}/disponibilidad`,
     { disponible, motivo }, { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return propertyVersion(response.data);
 }
 
 export async function changeCommission(
@@ -107,7 +115,7 @@ export async function changeCommission(
     { comparte_comision: comparteComision, porcentaje_comision: porcentaje },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return propertyVersion(response.data);
 }
 
 export async function authorizePhoto(
