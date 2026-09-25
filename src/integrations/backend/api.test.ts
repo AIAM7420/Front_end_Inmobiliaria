@@ -10,6 +10,7 @@ import {
 } from './axios.config';
 import { getProperties, uploadPhotoDirect } from './properties.service';
 import { getMessages, mergeMessages } from './chat.service';
+import { decideAdvisorApplication, getAdminApplication } from './advisors.service';
 
 const originalAdapter = api.defaults.adapter;
 
@@ -75,6 +76,21 @@ describe('API transport', () => {
       status: 422, code: 'SOLICITUD_INVALIDA', trace_id: 'trace-test', instance: '/me',
     }, 422);
     expect(problemFromError(error)?.code).toBe('SOLICITUD_INVALIDA');
+  });
+
+  it('uses the application version for the admin decision precondition', async () => {
+    let sentIfMatch: string | undefined;
+    api.defaults.adapter = async (config) => {
+      if (config.method === 'post') sentIfMatch = config.headers.get('If-Match') as string;
+      return response(config, {
+        id: '1', asesor_id: '1', estado: 'PENDIENTE', documentos: [], version: 3,
+      });
+    };
+
+    const application = await getAdminApplication('1');
+    expect(application.etag).toBe('"v3"');
+    await decideAdvisorApplication('1', 'APROBAR', null, application.etag);
+    expect(sentIfMatch).toBe('"v3"');
   });
 
   it('rejects cursor plus after_sequence before requesting chat history', async () => {

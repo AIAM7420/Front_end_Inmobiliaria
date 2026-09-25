@@ -98,7 +98,7 @@ export async function getAdminApplications(params: { limit?: number; cursor?: st
 
 export async function getAdminApplication(id: Id): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.get<SolicitudAsesor>(`/admin/solicitudes/${encodeURIComponent(id)}`);
-  return { value: response.data, etag: response.headers.etag as string };
+  return { value: response.data, etag: `"v${response.data.version}"` };
 }
 
 export async function getAdminDocumentUrl(id: Id): Promise<{ url: string; expires_at: string }> {
@@ -114,5 +114,5 @@ export async function decideAdvisorApplication(
     { decision, motivo },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return { value: response.data, etag: `"v${response.data.version}"` };
 }
