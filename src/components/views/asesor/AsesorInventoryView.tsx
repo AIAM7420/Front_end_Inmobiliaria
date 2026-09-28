@@ -19,7 +19,8 @@ import {
   Sun,
   X,
   Save,
-  CheckCircle2
+  CheckCircle2,
+  Bot
 } from 'lucide-react';
 import { Button } from '../../atoms/Button';
 import { IconButton } from '../../atoms/IconButton';
@@ -316,43 +317,118 @@ export const AsesorInventoryView = () => {
     );
   };
 
+  // Agregar KPIs al estado inicial (renderKpiContent)
+  const renderKpiContent = () => {
+    // Simular nivel de cuenta
+    const propertyLimit = 15;
+    const currentCount = filteredProperties.length;
+    const limitText = statusFilter === 'Todos' ? `de ${propertyLimit} disp.` : statusFilter;
+
+    return (
+      <>
+        <div className="bg-white dark:bg-inmo-darkcard p-3 lg:p-4 rounded-[20px] border border-gray-100 dark:border-inmo-darktertiary shadow-sm flex flex-col items-center justify-center text-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 25 Q 30 35 60 20 T 100 5 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 25 Q 30 35 60 20 T 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </div>
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <span className="font-montserrat font-black text-2xl lg:text-3xl text-inmo-secondary dark:text-white mb-1">
+              {currentCount} <span className="text-base lg:text-lg text-gray-400 font-medium">{statusFilter === 'Todos' ? `/ ${propertyLimit}` : ''}</span>
+            </span>
+            <span className="text-[9px] lg:text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">Publicaciones<br/>{limitText}</span>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-inmo-darkcard p-3 lg:p-4 rounded-[20px] border border-gray-100 dark:border-inmo-darktertiary shadow-sm flex flex-col items-center justify-center text-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.04] dark:opacity-[0.03]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-accent" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 35 Q 20 20 40 25 T 80 15 L 100 5 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 35 Q 20 20 40 25 T 80 15 L 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </div>
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <span className="font-montserrat font-black text-2xl lg:text-3xl text-inmo-accent mb-1">
+              {filteredProperties.reduce((acc, p) => acc + p.views, 0)}
+            </span>
+            <span className="text-[9px] lg:text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">Visitas Totales</span>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-inmo-darkcard p-3 lg:p-4 rounded-[20px] border border-gray-100 dark:border-inmo-darktertiary shadow-sm flex flex-col items-center justify-center text-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.04] dark:opacity-[0.03]">
+            <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-success" preserveAspectRatio="none">
+              <path d="M 0 40 L 0 5 Q 30 20 60 10 T 100 25 L 100 40 Z" fill="currentColor" />
+              <path d="M 0 5 Q 30 20 60 10 T 100 25" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </div>
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <span className="font-montserrat font-black text-2xl lg:text-3xl text-inmo-success mb-1">
+              {filteredProperties.reduce((acc, p) => acc + p.messages, 0)}
+            </span>
+            <span className="text-[9px] lg:text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-tight">Leads (Contactos)</span>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   const mainContent = (
     <ModuleLayout
       title="Mis Propiedades"
       subtitle={`Tienes ${properties.length} propiedades en tu inventario.`}
       isFullScreen={true}
-      searchPlaceholder="Buscar por título o ubicación..."
-      searchValue={searchTerm}
-      onSearchChange={setSearchTerm}
-      showFilters={false}
-      searchWidthClass="flex-1 md:flex-none md:w-[30%] min-w-0"
-      actions={
-        <>
-          <PeriodDropdown 
-            selectedPeriod={statusFilter} 
-            onChange={setStatusFilter}
-            options={['Todos', 'Activas', 'Pausadas', 'Borradores']}
-            className="!w-[44px] !h-[44px] shrink-0"
-            iconOnly={true}
-          />
-          <div className="hidden md:block flex-1" />
-          <IconButton 
-            variant="accent" 
-            icon={<Plus className="w-5 h-5 shrink-0" strokeWidth={2} />} 
-            className="w-[44px] h-[44px] !rounded-[14px] shadow-glow shrink-0" 
-            title="Añadir Propiedad"
-          />
-        </>
-      }
+      showSearch={false}
     >
-      {/* Container List/Table */}
-      <div className="bg-white dark:bg-inmo-darkcard rounded-card border border-gray-100 dark:border-inmo-darktertiary shadow-soft overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+      <div className="flex flex-col md:flex-row w-full h-full gap-6 font-inter pb-6">
+        
+        {/* KPI Panel on the Left (Desktop Only) */}
+        {!selectedProperty && (
+          <div className="hidden md:flex flex-col w-[15%] lg:w-[12%] gap-4 h-full shrink-0">
+             {renderKpiContent()}
+          </div>
+        )}
+
+        {/* Right Panel: Search, Actions and Table */}
+        <div className="flex flex-col h-full flex-1 min-w-0 gap-6">
+           <div className="flex gap-3 w-full items-center">
+             <SearchBar
+                placeholder="Buscar por título o ubicación..."
+                size="slim"
+                className="flex-1 md:flex-none md:w-[30%] min-w-0"
+                value={searchTerm}
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
+              <PeriodDropdown 
+                selectedPeriod={statusFilter} 
+                onChange={setStatusFilter}
+                options={['Todos', 'Activas', 'Pausadas', 'Borradores']}
+                className="!w-[44px] !h-[44px] shrink-0"
+                iconOnly={true}
+              />
+              <div className="hidden md:block flex-1" />
+              <IconButton 
+                variant="secondary" 
+                icon={<Bot className="w-5 h-5 shrink-0 text-inmo-secondary dark:text-white" />} 
+                className="w-[44px] h-[44px] !rounded-[14px] shrink-0 !bg-white/90 dark:!bg-inmo-darkcard/90 border border-gray-100 dark:border-white/10 shadow-sm" 
+                title="Abrir Chatbot"
+                onClick={() => window.dispatchEvent(new Event('open-chatbot'))}
+              />
+              <IconButton 
+                variant="accent" 
+                icon={<Plus className="w-5 h-5 shrink-0" strokeWidth={2} />} 
+                className="w-[44px] h-[44px] !rounded-[14px] shadow-glow shrink-0" 
+                title="Añadir Propiedad"
+              />
+           </div>
+
+           {/* Container List/Table */}
+           <div className="bg-white dark:bg-inmo-darkcard rounded-card border border-gray-100 dark:border-inmo-darktertiary shadow-soft flex flex-col flex-1 min-h-0 animate-in fade-in slide-in-from-bottom-2">
         
         {/* Desktop Table */}
-        <div className="hidden md:block w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[900px]">
-            <thead>
-              <tr className="border-b border-gray-100 dark:border-inmo-darktertiary bg-gray-50 dark:bg-inmo-darkbg text-inmo-secondary dark:text-gray-300 font-montserrat text-sm">
+        <div className="hidden md:block w-full flex-1 overflow-y-auto overflow-x-auto custom-scrollbar relative">
+          <table className="w-full text-left border-collapse min-w-[900px] h-fit">
+            <thead className="sticky top-0 z-10 shadow-sm">
+              <tr className="border-b border-gray-100 dark:border-inmo-darktertiary bg-gray-50/95 dark:bg-inmo-darkbg/95 backdrop-blur-md text-inmo-secondary dark:text-gray-300 font-montserrat text-sm">
                 <th className="p-4 font-bold">Propiedad</th>
                 <th className="p-4 font-bold">Tipo / Precio</th>
                 <th className="p-4 font-bold">Estado</th>
@@ -405,7 +481,7 @@ export const AsesorInventoryView = () => {
                           onMouseLeave={() => setOpenMenuId(null)}
                         >
                           <button 
-                            className="p-2 text-gray-400 hover:text-inmo-secondary transition-colors"
+                            className="p-2 text-gray-400 hover:text-inmo-secondary dark:hover:text-white transition-colors"
                             onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === prop.id ? null : prop.id); }}
                           >
                             <MoreVertical className="w-5 h-5" />
@@ -444,7 +520,7 @@ export const AsesorInventoryView = () => {
         </div>
 
         {/* Mobile List Minimal */}
-        <div className="flex flex-col md:hidden font-inter">
+        <div className="flex flex-col md:hidden font-inter flex-1 overflow-y-auto custom-scrollbar">
           {filteredProperties.map((prop, index) => (
             <div 
               key={prop.id} 
@@ -478,7 +554,7 @@ export const AsesorInventoryView = () => {
                   onMouseLeave={() => setOpenMenuId(null)}
                 >
                   <button 
-                    className="p-1 text-gray-400 hover:text-inmo-secondary transition-colors"
+                    className="p-1 text-gray-400 hover:text-inmo-secondary dark:hover:text-white transition-colors"
                     onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === prop.id ? null : prop.id); }}
                   >
                     <MoreVertical className="w-5 h-5" />
@@ -502,7 +578,8 @@ export const AsesorInventoryView = () => {
             <div className="p-8 text-center text-gray-500 text-sm font-inter">No se encontraron propiedades.</div>
           )}
         </div>
-
+        </div>
+      </div>
       </div>
     </ModuleLayout>
   );

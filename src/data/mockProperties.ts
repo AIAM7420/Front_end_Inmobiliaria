@@ -171,5 +171,143 @@ export const MOCK_PROPERTIES = [
       { text: 'Venta', variant: 'venta' as const },
       { text: 'Nuevo', variant: 'nuevo' as const }
     ]
+  },
+  {
+    id: 11,
+    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Casa Inteligente en Privada',
+    location: 'Gran Jardín Norte, León',
+    price: 9500000,
+    beds: 3,
+    baths: 3.5,
+    sqft: 300,
+    type: 'casa',
+    lat: 21.165,
+    lng: -101.690,
+    isFavorite: false,
+    tags: [
+      { text: 'Venta', variant: 'venta' as const },
+      { text: 'Oportunidad', variant: 'success' as const }
+    ]
+  },
+  {
+    id: 12,
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Oficina Corporativa Premium',
+    location: 'Plaza Mayor, León',
+    price: 35000,
+    beds: 0,
+    baths: 1,
+    sqft: 150,
+    type: 'oficina',
+    lat: 21.155,
+    lng: -101.700,
+    isFavorite: true,
+    tags: [
+      { text: 'Renta', variant: 'renta' as const }
+    ]
+  },
+  {
+    id: 13,
+    image: 'https://images.unsplash.com/photo-1628611225249-6c3c7c689552?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Departamento de Lujo en Torre',
+    location: 'Puerta Bajío, León',
+    price: 15200000,
+    beds: 2,
+    baths: 2.5,
+    sqft: 200,
+    type: 'departamento',
+    lat: 21.170,
+    lng: -101.710,
+    isFavorite: false,
+    tags: [
+      { text: 'Venta', variant: 'venta' as const },
+      { text: 'Nuevo', variant: 'nuevo' as const }
+    ]
+  },
+  {
+    id: 14,
+    image: 'https://images.unsplash.com/photo-1524813686514-a57563d77965?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Terreno Residencial Listo para Construir',
+    location: 'Cañada del Refugio, León',
+    price: 4500000,
+    beds: 0,
+    baths: 0,
+    sqft: 800,
+    type: 'terreno',
+    lat: 21.168,
+    lng: -101.698,
+    isFavorite: false,
+    tags: [
+      { text: 'Venta', variant: 'venta' as const }
+    ]
+  },
+  {
+    id: 15,
+    image: 'https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Residencia con Acabados de Mármol',
+    location: 'Balcones del Campestre, León',
+    price: 12800000,
+    beds: 4,
+    baths: 4.5,
+    sqft: 450,
+    type: 'casa',
+    lat: 21.172,
+    lng: -101.695,
+    isFavorite: true,
+    tags: [
+      { text: 'Venta', variant: 'venta' as const }
+    ]
+  },
+  {
+    id: 16,
+    image: 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Local Comercial Alto Flujo',
+    location: 'Zona Piel, León',
+    price: 45000,
+    beds: 0,
+    baths: 2,
+    sqft: 120,
+    type: 'local',
+    lat: 21.115,
+    lng: -101.668,
+    isFavorite: false,
+    tags: [
+      { text: 'Renta', variant: 'renta' as const }
+    ]
+  },
+  {
+    id: 17,
+    image: 'https://images.unsplash.com/photo-1502672260266-1c1c2c31e67e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Departamento en Planta Baja',
+    location: 'Arbide, León',
+    price: 3900000,
+    beds: 2,
+    baths: 2,
+    sqft: 110,
+    type: 'departamento',
+    lat: 21.130,
+    lng: -101.685,
+    isFavorite: false,
+    tags: [
+      { text: 'Venta', variant: 'venta' as const }
+    ]
+  },
+  {
+    id: 18,
+    image: 'https://images.unsplash.com/photo-1600573472591-ee6981cf35b6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    title: 'Casa Amplia para Familia Numerosa',
+    location: 'Punta del Este, León',
+    price: 7300000,
+    beds: 5,
+    baths: 4,
+    sqft: 320,
+    type: 'casa',
+    lat: 21.100,
+    lng: -101.620,
+    isFavorite: false,
+    tags: [
+      { text: 'Venta', variant: 'venta' as const }
+    ]
   }
 ];

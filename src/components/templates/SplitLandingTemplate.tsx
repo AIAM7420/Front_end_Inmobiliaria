@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { IconButton } from '../atoms/IconButton';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, MapPin, ChevronLeft, ChevronRight, Ghost } from 'lucide-react';
 import { SearchBar } from '../molecules/SearchBar';
 import { PropertyCard } from '../molecules/PropertyCard';
 import { BottomSheet } from '../organisms/BottomSheet';
@@ -13,9 +13,11 @@ import { PropertyModal } from '../organisms/PropertyModal';
 import { SplitViewLayout } from './SplitViewLayout';
 import { HeroCarousel } from '../organisms/HeroCarousel';
 import { PromoBanner } from '../molecules/PromoBanner';
-import { FilterDropdown } from '../molecules/FilterDropdown';
+import { TagDropdown } from '../molecules/TagDropdown';
+import { FilterDropdown, type FilterState } from '../molecules/FilterDropdown';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
 import { AsesorChat } from '../organisms/AsesorChat';
+import { Footer } from '../organisms/Footer';
 
 const CAROUSEL_IMAGES = [
   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
@@ -91,6 +93,34 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
   const [gridMode, setGridMode] = useState<'full' | 'split'>('full');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // Quick Filters State
+  const [selectedOperation, setSelectedOperation] = useState<string | null>(null);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
+  const toggleType = (type: string) => {
+    setSelectedTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+  };
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const searchRowRef = useRef<HTMLDivElement>(null);
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -400 : 400;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const handleToggleFilters = () => {
+    const willOpen = !isFiltersOpen;
+    setIsFiltersOpen(willOpen);
+    if (willOpen && searchRowRef.current && window.innerWidth < 768) {
+      setTimeout(() => {
+        searchRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
+
   /** Simulate async data fetch when selecting a property */
       const handleSelectProperty = useCallback((id: number) => {
     if (selectedPropertyId === id) {
@@ -128,70 +158,346 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const { globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters } = useAppContext();
+
+  const filteredProperties = MOCK_PROPERTIES.filter(p => {
+    // 1. Tipo de propiedad (Catalog tabs)
+    if (selectedOperation && selectedOperation !== 'Todos' && (p as any).operation !== selectedOperation) {
+      // Mock operation filter (assume missing operation matches for demo)
+    }
+    if (selectedTypes.length > 0 && !selectedTypes.includes(p.type)) return false;
+
+    // 2. Búsqueda por texto (título, ubicación)
+    if (globalSearchQuery) {
+      const q = globalSearchQuery.toLowerCase();
+      if (!p.title.toLowerCase().includes(q) && !p.location.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
+
+    // 3. Filtros avanzados
+    if (globalFilters) {
+      if (globalFilters.location && !p.location.toLowerCase().includes(globalFilters.location.toLowerCase())) {
+        return false;
+      }
+      
+      if (globalFilters.priceRange) {
+        const priceNum = parseInt(p.price.replace(/\D/g, '')) || 0;
+        if (globalFilters.priceRange === '0-1M' && priceNum > 1000000) return false;
+        if (globalFilters.priceRange === '1M-3M' && (priceNum < 1000000 || priceNum > 3000000)) return false;
+        if (globalFilters.priceRange === '3M+' && priceNum < 3000000) return false;
+      }
+    }
+
+    return true;
+  });
+
+  if (globalFilters?.sortBy) {
+    filteredProperties.sort((a, b) => {
+      const pA = parseInt(a.price.replace(/\D/g, '')) || 0;
+      const pB = parseInt(b.price.replace(/\D/g, '')) || 0;
+      if (globalFilters.sortBy === 'price-asc') return pA - pB;
+      if (globalFilters.sortBy === 'price-desc') return pB - pA;
+      return 0;
+    });
+  }
+
+  // Determine if the user is actively filtering
+  const isFiltering = Boolean(
+    globalSearchQuery || 
+    globalFilters || 
+    selectedTypes.length > 0 || 
+    (selectedOperation && selectedOperation !== 'Todos')
+  );
+
+  // Recommendations remain static, Catalog shows all matches if filtering, else skips the first 8
+  const catalogProperties = isFiltering ? filteredProperties : filteredProperties.slice(8);
+
   const landingGrid = (
-    <main className={`px-6 flex flex-col gap-8 pt-[100px] pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all ${isTransitioning ? 'blur-[2px] opacity-80 pointer-events-none' : ''}`}>
+    <>
+      <main className={`px-6 flex flex-col gap-8 pt-[100px] pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all ${isTransitioning ? 'blur-[2px] opacity-80 pointer-events-none' : ''}`}>
       {isWireframeMode ? (
         <div className="w-full h-[220px] rounded-[32px] bg-gray-200 dark:bg-inmo-darkcard animate-pulse mt-2 shadow-sm" />
       ) : (
         <HeroCarousel images={CAROUSEL_IMAGES} />
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-150">
-          <div className="flex items-center gap-2 w-full">
-            <SearchBar 
-              placeholder="Buscar propiedades..." 
-              size="slim" 
-              glass 
-              className="flex-1 shadow-lg" 
-            />
-            <IconButton 
-              onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-              icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
-              variant="secondary"
-              className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
-            />
+          {/* Bloque Central: SearchBar + Active Tags */}
+          <div className="flex flex-col items-center w-full">
+            <div className="w-full md:w-[70%] flex flex-col">
+              
+              {/* Fila del SearchBar */}
+              <div ref={searchRowRef} className="flex items-center gap-2 w-full scroll-mt-28">
+                <SearchBar 
+                  value={globalSearchQuery}
+                  onSubmit={(val) => { setGlobalSearchQuery(val); simulateCatalogLoad(); }}
+                  placeholder="Buscar propiedades..." 
+                  size="slim" 
+                  glass 
+                  className="flex-1 shadow-lg" 
+                />
+                <div className="relative">
+                  <IconButton 
+                    onClick={handleToggleFilters}
+                    icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
+                    variant="secondary"
+                    className="w-[44px] h-[44px] !bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
+                  />
+                  <FilterDropdown 
+                    isOpen={isFiltersOpen} 
+                    onApply={(filters) => { 
+                      if (filters) setGlobalFilters(filters); 
+                      simulateCatalogLoad();
+                      setIsFiltersOpen(false); 
+                    }} 
+                    onClose={() => setIsFiltersOpen(false)}
+                  />
+                </div>
+              </div>
+
+              {/* Active (Used) Tags - Aparecen debajo del buscador */}
+              {selectedTypes.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar -mx-6 px-6 md:mx-0 md:px-0 mt-3 mb-1 w-full">
+                  {selectedTypes.map(tag => (
+                    <button 
+                      key={`active-${tag}`}
+                      onClick={() => toggleType(tag)}
+                      className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-inmo-darkcard rounded-full text-[13px] font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-inmo-darktertiary transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            </div>
           </div>
 
-          <FilterDropdown isOpen={isFiltersOpen} onApply={() => setIsFiltersOpen(false)} />
+          {/* Contenedor Muted (Catálogo de Filtros) */}
+          <div className="bg-gray-100/80 dark:bg-white/5 rounded-2xl p-4 -mx-6 px-6 md:mx-0 md:px-5 mt-2 flex flex-col md:flex-row md:items-end justify-between gap-5">
+            
+            {/* Lado Izquierdo: Categorías */}
+            <div className={`flex flex-row ${gridMode === 'split' ? 'gap-3' : 'gap-3 md:gap-6'} flex-1 min-w-0 w-full`}>
+              
+              {/* Opciones de Operación */}
+              <div className={`flex flex-col gap-2 flex-1 min-w-0 ${gridMode === 'split' ? 'md:flex-none md:w-[160px]' : 'md:flex-none'}`}>
+                <span className={`text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider pl-1 ${gridMode === 'split' ? 'hidden' : 'hidden md:block'}`}>Operación</span>
+                
+                {/* Dropdown (Mobile OR Split Mode) */}
+                <div className={gridMode === 'split' ? 'block' : 'block md:hidden'}>
+                  <TagDropdown 
+                    label="Operación" 
+                    options={['Todos', 'Comprar', 'Rentar']} 
+                    selected={selectedOperation || 'Todos'} 
+                    onChange={(val) => setSelectedOperation(val === 'Todos' ? null : val)} 
+                  />
+                </div>
+
+                {/* Desktop Pills (Full Mode Only) */}
+                <div className={gridMode === 'split' ? 'hidden' : 'hidden md:flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1'}>
+                  {['Todos', 'Comprar', 'Rentar'].map(tag => {
+                    const isSelected = tag === 'Todos' ? (!selectedOperation || selectedOperation === 'Todos') : selectedOperation === tag;
+                    return (
+                      <button 
+                        key={`op-${tag}`} 
+                        onClick={() => setSelectedOperation(tag === 'Todos' ? null : tag)}
+                        className={`shrink-0 px-4 py-1.5 border rounded-full text-[13px] font-medium transition-all active:scale-95 ${
+                          isSelected 
+                            ? 'bg-inmo-accent text-white border-transparent shadow-md'
+                            : 'bg-white dark:bg-inmo-darkcard text-gray-600 dark:text-gray-300 border-transparent dark:border-white/10 shadow-sm hover:shadow-md'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Separador Desktop (Full Mode Only) */}
+              <div className={gridMode === 'split' ? 'hidden' : 'hidden md:block w-px bg-gray-200 dark:bg-white/10 my-2'} />
+              
+              {/* Opciones de Tipo */}
+              <div className={`flex flex-col gap-2 flex-1 min-w-0 ${gridMode === 'split' ? 'md:flex-none md:w-[160px]' : 'md:flex-none'}`}>
+                <span className={`text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider pl-1 ${gridMode === 'split' ? 'hidden' : 'hidden md:block'}`}>Inmueble</span>
+                
+                {/* Dropdown (Mobile OR Split Mode) */}
+                <div className={gridMode === 'split' ? 'block' : 'block md:hidden'}>
+                  <TagDropdown 
+                    label="Inmueble" 
+                    options={['Residencia', 'Departamento', 'Terreno', 'Oficina', 'Local']} 
+                    selected={selectedTypes} 
+                    onChange={setSelectedTypes} 
+                    multiple 
+                  />
+                </div>
+
+                {/* Desktop Pills (Full Mode Only) */}
+                <div className={gridMode === 'split' ? 'hidden' : 'hidden md:flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1'}>
+                  {['Residencia', 'Departamento', 'Terreno', 'Oficina', 'Local'].map(tag => {
+                    const isSelected = selectedTypes.includes(tag);
+                    return (
+                      <button 
+                        key={tag} 
+                        onClick={() => !isSelected && toggleType(tag)}
+                        className={`shrink-0 px-4 py-1.5 border rounded-full text-[13px] font-medium transition-all active:scale-95 ${
+                          isSelected 
+                            ? 'opacity-50 bg-gray-200 dark:bg-white/5 text-gray-400 dark:text-gray-500 border-transparent cursor-default pointer-events-none'
+                            : 'bg-white dark:bg-inmo-darkcard text-gray-600 dark:text-gray-300 border-transparent dark:border-white/10 shadow-sm hover:shadow-md'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Lado Derecho: Ubicación */}
+            <div className="hidden md:flex flex-col justify-end w-[280px] shrink-0">
+              <div className="flex flex-1 w-full items-center justify-between gap-2 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 px-4 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-white/60 dark:hover:bg-black/40 transition-colors">
+                <div className="flex flex-col text-left overflow-hidden">
+                  <span className="text-sm font-bold text-inmo-secondary dark:text-white leading-tight truncate">León</span>
+                  <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-none mt-0.5 truncate">Guanajuato, México</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-inmo-darkcard shadow-sm flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-inmo-accent" strokeWidth={2.5} />
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <div
-          className={`grid gap-6 transition-all duration-500 ${
-            gridMode === 'split' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4'
-          }`}
-        >
-          {(isWireframeMode || isLoading)
-            ? Array.from({ length: 4 }).map((_, idx) => <PropertyCardSkeleton key={idx} />)
-            : MOCK_PROPERTIES.map((property) => (
-            <PropertyCard
-              key={property.id}
-              image={property.image}
-              title={property.title}
-              location={property.location}
-              price={property.price}
-              beds={property.beds}
-              baths={property.baths}
-              sqft={property.sqft}
-              tags={(property as any).tags}
-              isFavorite={property.isFavorite}
-              onClick={() => handleSelectProperty(property.id)}
-            />
-          ))}
+        {/* Recomendaciones Section */}
+        {!isFiltering && (
+          <div className="flex flex-col gap-4 mt-8">
+            <div className="flex items-center justify-between ml-4 md:ml-6 pr-4 md:pr-0">
+              <h2 className="text-xl font-bold text-inmo-secondary dark:text-white border-l-4 border-inmo-accent pl-3">
+                Recomendaciones para ti
+              </h2>
+              <button className="text-[13px] font-bold text-inmo-accent hover:underline hidden md:block">
+                Ver más
+              </button>
+            </div>
+            <div className="relative group">
+              {/* Botón Izquierda (Desktop) */}
+              <button 
+                onClick={() => scrollCarousel('left')}
+                className="hidden md:flex absolute -left-5 top-[40%] -translate-y-1/2 z-10 bg-white/90 dark:bg-inmo-darkcard/90 backdrop-blur-sm shadow-md rounded-full w-10 h-10 items-center justify-center text-inmo-secondary dark:text-white border border-gray-100 dark:border-white/10 hover:scale-110 hover:bg-white dark:hover:bg-inmo-darktertiary transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+
+              {/* Carrusel */}
+              <div ref={carouselRef} className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 -mx-6 px-6 md:mx-0 md:px-0">
+                {(isWireframeMode || isLoading)
+                ? Array.from({ length: 8 }).map((_, idx) => (
+                    <div key={`rec-skel-${idx}`} className="shrink-0 w-[280px] md:w-[340px] snap-start">
+                      <PropertyCardSkeleton />
+                    </div>
+                  ))
+                : MOCK_PROPERTIES.slice(0, 8).map((property) => (
+                    <div key={`rec-${property.id}`} className="shrink-0 w-[280px] md:w-[340px] snap-start">
+                      <PropertyCard
+                        image={property.image}
+                        title={property.title}
+                        location={property.location}
+                        price={property.price}
+                        beds={property.beds}
+                        baths={property.baths}
+                        sqft={property.sqft}
+                        tags={(property as any).tags}
+                        isFavorite={property.isFavorite}
+                        onClick={() => handleSelectProperty(property.id)}
+                      />
+                    </div>
+                  ))}
+              </div>
+
+              {/* Botón Derecha (Desktop) */}
+              <button 
+                onClick={() => scrollCarousel('right')}
+                className="hidden md:flex absolute -right-5 top-[40%] -translate-y-1/2 z-10 bg-white/90 dark:bg-inmo-darkcard/90 backdrop-blur-sm shadow-md rounded-full w-10 h-10 items-center justify-center text-inmo-secondary dark:text-white border border-gray-100 dark:border-white/10 hover:scale-110 hover:bg-white dark:hover:bg-inmo-darktertiary transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Siguiente"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* PromoBanner (CTA) entre secciones */}
+        {!isFiltering && (
+          <div className="my-8 md:my-10">
+            {isWireframeMode ? (
+              <div className="w-full h-[180px] rounded-card bg-gray-200 dark:bg-inmo-darkcard animate-pulse shadow-sm" />
+            ) : (
+              <PromoBanner 
+                title="¿Necesitas remodelar antes de vender?"
+                description="Aumenta el valor de tu propiedad con nuestro equipo de expertos en remodelación. Cotiza sin compromiso."
+                buttonText="Más información"
+              />
+            )}
+          </div>
+        )}
+
+        {/* Catálogo General Section */}
+        <div className="flex flex-col gap-4 mb-12 mt-8">
+          {catalogProperties.length > 0 && (
+            <div className="flex items-center justify-between ml-4 md:ml-6">
+              <h2 className="text-xl font-bold text-inmo-secondary dark:text-white border-l-4 border-inmo-accent pl-3">
+                Catálogo general
+              </h2>
+            </div>
+          )}
+          <div
+            className={`transition-all duration-500 ${
+              catalogProperties.length === 0 && !isWireframeMode && !isLoading
+                ? 'flex flex-col items-center justify-center py-20 w-full'
+                : `grid gap-6 ${gridMode === 'split' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4'}`
+            }`}
+          >
+            {(isWireframeMode || isLoading)
+              ? Array.from({ length: 10 }).map((_, idx) => <PropertyCardSkeleton key={`cat-skel-${idx}`} />)
+              : catalogProperties.length > 0 ? (
+                  catalogProperties.map((property) => (
+                    <PropertyCard
+                      key={`cat-${property.id}`}
+                      image={property.image}
+                      title={property.title}
+                      location={property.location}
+                      price={property.price}
+                      beds={property.beds}
+                      baths={property.baths}
+                      sqft={property.sqft}
+                      tags={(property as any).tags}
+                      isFavorite={property.isFavorite}
+                      onClick={() => handleSelectProperty(property.id)}
+                    />
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500 max-w-md mx-auto">
+                    <div className="w-24 h-24 mb-6 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center shadow-sm">
+                      <Ghost className="w-10 h-10 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-xl font-bold text-inmo-secondary dark:text-white mb-2">No se encontraron inmuebles</h3>
+                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed">No hay propiedades que coincidan con tu búsqueda actual. Intenta ajustar los filtros, probar otros términos de búsqueda o ampliar el rango de precio.</p>
+                  </div>
+                )
+            }
+          </div>
         </div>
+
       </div>
-
-      {isWireframeMode ? (
-        <div className="w-full h-[180px] rounded-card bg-gray-200 dark:bg-inmo-darkcard animate-pulse shadow-sm" />
-      ) : (
-        <PromoBanner 
-          title="¿Necesitas remodelar antes de vender?"
-          description="Aumenta el valor de tu propiedad con nuestro equipo de expertos en remodelación. Cotiza sin compromiso."
-          buttonText="Más información"
-        />
-      )}
     </main>
-  );
+    <Footer />
+  </>);
 
   return (
     <>

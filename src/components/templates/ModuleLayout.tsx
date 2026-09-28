@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { IconButton } from '../atoms/IconButton';
 import { SearchBar } from '../molecules/SearchBar';
@@ -57,7 +58,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
   children
 }) => {
   return (
-    <div className={`px-4 md:px-6 flex flex-col w-full h-full ${
+    <div className={`px-4 md:px-6 flex flex-col w-full h-full overflow-hidden ${
       isFullScreen ? 'pt-[104px]' : 'pt-0 pb-24'
     }`}>
       {/* Title Area */}
@@ -94,41 +95,59 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
             {actions}
 
             {showFilters && onToggleFilters && (
-              <IconButton 
-                onClick={onToggleFilters}
-                icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
-                variant="secondary"
-                className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
-              />
+              <div className="relative">
+                <IconButton 
+                  onClick={onToggleFilters}
+                  icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
+                  variant="secondary"
+                  className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
+                />
+
+                {/* Popover Filters */}
+                {filtersContent && (
+                  <>
+                    {isFiltersOpen && typeof document !== 'undefined' && createPortal(
+                      <div className="fixed inset-0 z-40" onClick={(e) => {
+                        e.stopPropagation();
+                        onCloseFilters && onCloseFilters();
+                      }}></div>,
+                      document.body
+                    )}
+                    <div 
+                      className={`absolute right-0 top-full mt-3 w-72 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-xl border border-gray-100 dark:border-inmo-darktertiary z-50 overflow-hidden transition-all duration-200 origin-top-right ${
+                        isFiltersOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                      }`}
+                    >
+                      <div className="p-5 flex flex-col gap-3">
+                        <div className="flex items-center justify-between px-1 mb-2">
+                          <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Filtros Avanzados</span>
+                          <button 
+                            onClick={onCloseFilters}
+                            className="text-[11px] font-semibold text-inmo-accent hover:text-inmo-secondary dark:hover:text-white transition-colors flex items-center gap-1"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        {filtersContent}
+                        
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </div>
-
-          {/* Expandable Dropdown Filters */}
-          {showFilters && filtersContent && (
-            <div className={`w-full pointer-events-auto transition-all duration-300 ease-in-out origin-top ${isFiltersOpen ? 'opacity-100 scale-y-100 max-h-[1000px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'}`}>
-              <div className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl p-5 rounded-card shadow-xl border border-gray-100 dark:border-inmo-darktertiary/50 mb-1">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between px-1 mb-2">
-                    <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Filtros Avanzados</span>
-                    <button 
-                      onClick={onCloseFilters}
-                      className="text-[11px] font-semibold text-inmo-accent hover:text-inmo-secondary dark:hover:text-white transition-colors flex items-center gap-1"
-                    >
-                      Cerrar <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                  
-                  {filtersContent}
-                  
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 min-h-0 h-full relative overflow-x-hidden ${noScroll ? 'flex flex-col overflow-hidden' : 'overflow-y-auto max-md:hide-scrollbar pb-32 md:pb-6'} p-2 -m-2`}>
+      <div 
+        onScroll={(e) => {
+          window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
+        }}
+        className={`flex-1 min-h-0 h-full relative overflow-x-hidden ${noScroll ? 'flex flex-col overflow-hidden' : 'overflow-y-auto max-md:hide-scrollbar pb-32 md:pb-6'} p-2 -m-2`}
+      >
         {children}
       </div>
     </div>

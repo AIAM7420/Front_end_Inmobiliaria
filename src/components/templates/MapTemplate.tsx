@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Globe } from 'lucide-react';
+import { Globe, Ghost, SlidersHorizontal } from 'lucide-react';
 import { APIProvider, Map, Marker, useApiLoadingStatus, APILoadingStatus } from '@vis.gl/react-google-maps';
 import { SearchBar } from '../molecules/SearchBar';
 import { FloatingFilterButton } from '../atoms/FloatingFilterButton';
+import { IconButton } from '../atoms/IconButton';
 import { Button } from '../atoms/Button';
 import { PropertyCard } from '../molecules/PropertyCard';
 import { CategoryPills } from '../molecules/CategoryPills';
 import type { PropertyCategory } from '../molecules/CategoryPills';
-import { FilterDropdown } from '../molecules/FilterDropdown';
+import { FilterDropdown, type FilterState } from '../molecules/FilterDropdown';
 import { BottomSheet } from '../organisms/BottomSheet';
 import { SidePanel } from '../organisms/SidePanel';
 import { PropertyDetailView } from '../organisms/PropertyDetailView';
@@ -157,18 +158,80 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<PropertyCategory>('all');
+  const [activeFilter, setActiveFilter] = useState<PropertyCategory | null>(null);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  
+  const searchContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
+        setIsMobileSearchOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick, { passive: true });
+    
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, []);
   
   const [isViewingProfile, setIsViewingProfile] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  
+  const { globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters } = useAppContext();
 
-  const filteredProperties = MOCK_PROPERTIES.filter(p => activeFilter === 'all' || p.type === activeFilter);
+  const filteredProperties = MOCK_PROPERTIES.filter(p => {
+    // 1. Tipo de propiedad
+    if (activeFilter !== null && p.type !== activeFilter) return false;
+    
+    // 2. Búsqueda por texto (título, ubicación)
+    if (globalSearchQuery) {
+      const q = globalSearchQuery.toLowerCase();
+      if (!p.title.toLowerCase().includes(q) && !p.location.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
+
+    // 3. Filtros avanzados
+    if (globalFilters) {
+      if (globalFilters.location && !p.location.toLowerCase().includes(globalFilters.location.toLowerCase())) {
+        return false;
+      }
+      
+      if (globalFilters.priceRange) {
+        // Lógica súper básica para mock (convertir price string a num)
+        const priceNum = parseInt(p.price.replace(/\D/g, '')) || 0;
+        if (globalFilters.priceRange === '0-1M' && priceNum > 1000000) return false;
+        if (globalFilters.priceRange === '1M-3M' && (priceNum < 1000000 || priceNum > 3000000)) return false;
+        if (globalFilters.priceRange === '3M+' && priceNum < 3000000) return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Ordenamiento
+  if (globalFilters?.sortBy) {
+    filteredProperties.sort((a, b) => {
+      const pA = parseInt(a.price.replace(/\D/g, '')) || 0;
+      const pB = parseInt(b.price.replace(/\D/g, '')) || 0;
+      if (globalFilters.sortBy === 'price-asc') return pA - pB;
+      if (globalFilters.sortBy === 'price-desc') return pB - pA;
+      return 0; // recent/relevance mock
+    });
+  }
+
   const displayedProperties = selectedPropertyId ? filteredProperties.filter(p => p.id === selectedPropertyId) : filteredProperties;
 
-  const handleFilterChange = (newFilter: PropertyCategory) => {
+  const handleFilterChange = (newFilter: PropertyCategory | null) => {
     setActiveFilter(newFilter);
     if (selectedPropertyId) {
       setSelectedPropertyId(null);
@@ -210,12 +273,16 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
       )
     ) : (
       <>
-        <div className="grid gap-4 grid-cols-1">
+        <div className={`transition-all duration-500 ${
+          displayedProperties.length === 0 && !isWireframeMode
+            ? 'flex flex-col items-center justify-center py-20 w-full h-full'
+            : 'grid gap-4 grid-cols-1'
+        }`}>
           {isWireframeMode ? (
             Array.from({ length: 4 }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))
-          ) : (
+          ) : displayedProperties.length > 0 ? (
             displayedProperties.map((p, i) => (
               <div key={p.id} className="animate-in fade-in zoom-in-95" style={{ animationDelay: `${i * 50}ms` }}>
                 <PropertyCard
@@ -231,6 +298,14 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
                 />
               </div>
             ))
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500 max-w-sm mx-auto px-4 mt-10">
+              <div className="w-20 h-20 mb-5 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center shadow-sm">
+                <Ghost className="w-8 h-8 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-lg font-bold text-inmo-secondary dark:text-white mb-2">Sin resultados</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Prueba explorando otra área del mapa o modificando tus filtros actuales.</p>
+            </div>
           )}
         </div>
       </>
@@ -254,28 +329,91 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
       </div>
 
       {/* TOP OVERLAYS (ALL SCREENS) */}
-      <div className="absolute top-4 left-4 right-4 md:top-28 md:left-6 md:right-auto md:w-[350px] z-50 flex flex-col items-center md:items-start gap-3 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="fixed top-4 left-4 right-4 md:top-28 md:left-6 md:right-auto md:w-[350px] z-50 flex flex-col items-center md:items-start gap-3 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="w-full flex flex-col items-center md:items-start gap-3 pointer-events-auto">
-          <div className={`flex items-stretch gap-2 w-full max-w-md transition-all duration-300 ${isSheetOpen ? '-translate-y-24 opacity-0 md:translate-y-0 md:opacity-100' : 'translate-y-0 opacity-100'}`}>
-            <CategoryPills 
-              activeFilter={activeFilter} 
-              onSelectFilter={handleFilterChange} 
-              className="flex-1 m-0"
-            />
-            <FloatingFilterButton 
-              onClick={() => setIsFiltersOpen(!isFiltersOpen)} 
-              size="small"
-            />
-          </div>
+          
+          {/* Fila principal (Filtros / Buscador) */}
+          <div ref={searchContainerRef} className="relative flex items-stretch gap-2 w-full max-w-md transition-all duration-300">
+            
+            {/* Contenido en Móvil cuando NO hay búsqueda, y SIEMPRE en Desktop */}
+            <div className={`flex items-stretch gap-2 w-full transition-all duration-300 ${isMobileSearchOpen ? 'opacity-0 scale-95 pointer-events-none absolute inset-0' : 'opacity-100 scale-100 relative'}`}>
+              <CategoryPills 
+                activeFilter={activeFilter} 
+                onSelectFilter={handleFilterChange} 
+                className="flex-1 m-0"
+              />
 
-          <FilterDropdown isOpen={isFiltersOpen && !isSheetOpen} onApply={() => setIsFiltersOpen(false)} className="max-w-md md:origin-top-left" />
+              {/* Botón de Filtro (Solo Desktop) */}
+              <div className="relative hidden md:block">
+                <FloatingFilterButton 
+                  onClick={() => setIsFiltersOpen(!isFiltersOpen)} 
+                  size="small"
+                />
+                <FilterDropdown 
+                  isOpen={isFiltersOpen && !isSheetOpen && !isMobileSearchOpen} 
+                  onApply={(filters) => {
+                    if (filters) setGlobalFilters(filters);
+                    setIsFiltersOpen(false);
+                  }}
+                  onClose={() => setIsFiltersOpen(false)}
+                />
+              </div>
+
+              {/* Botón de Búsqueda (Solo Móvil) */}
+              <div className="relative md:hidden flex items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-full w-[52px] shrink-0">
+                <IconButton 
+                  onClick={() => setIsMobileSearchOpen(true)}
+                  icon={<Search className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={2.5} />}
+                  variant="ghost"
+                  className="w-full h-full hover:!bg-transparent !rounded-full"
+                />
+              </div>
+            </div>
+
+            {/* Barra de Búsqueda (Solo Móvil) */}
+            <div className={`md:hidden flex items-stretch gap-2 w-full transition-all duration-300 ${isMobileSearchOpen ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-95 pointer-events-none absolute inset-0'}`}>
+               <div className="flex-1 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-[32px] p-1.5 transition-all duration-300 h-[52px]">
+                 <SearchBar 
+                   value={globalSearchQuery}
+                   onSubmit={setGlobalSearchQuery}
+                   autoFocus={isMobileSearchOpen} 
+                   placeholder="Buscar..." 
+                   size="slim" 
+                   glass={false} 
+                   className="w-full !h-[40px] !shadow-none !border-none !bg-transparent dark:!bg-transparent" 
+                 />
+               </div>
+               
+               <div className="relative shrink-0">
+                 <IconButton 
+                   onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                   icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
+                   variant="secondary"
+                   className={`w-[52px] h-[52px] !bg-white/60 dark:!bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full ${isFiltersOpen ? 'text-inmo-accent' : 'text-gray-500 dark:text-gray-400'}`}
+                 />
+                 <div className="absolute right-0 top-full mt-2 z-50">
+                   <FilterDropdown 
+                     isOpen={isFiltersOpen && isMobileSearchOpen && !isSheetOpen} 
+                     onApply={(filters) => {
+                       if (filters) setGlobalFilters(filters);
+                       setIsFiltersOpen(false);
+                     }}
+                     onClose={() => setIsFiltersOpen(false)} 
+                   />
+                 </div>
+               </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
       {/* DESKTOP SEARCH BAR (HUGE) - EN LA PARTE INFERIOR */}
-      <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 px-6 pointer-events-none">
+      <div className="hidden md:flex fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 px-6 pointer-events-none">
          <div className="w-full pointer-events-auto">
            <SearchBar 
+              value={globalSearchQuery}
+              onSubmit={setGlobalSearchQuery}
               placeholder="Encuentra propiedades en cualquier ubicacion..." 
               size="xl" 
               glass 
@@ -285,12 +423,12 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
       </div>
 
       {/* BOTTOM OVERLAYS */}
-      <div className="absolute bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 transition-all pointer-events-none">
+      <div className="fixed bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
         {/* Results Pill */}
         <div className="flex justify-center w-full pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300">
           <Button 
             onClick={handleCoincidenciasClick}
-            className={`px-6 py-2.5 !text-xs !shadow-lg ${isSheetOpen ? 'opacity-0 translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+            className={`px-6 py-2.5 !text-xs !shadow-lg transition-all duration-300`}
           >
             Ver {filteredProperties.length} coincidencia{filteredProperties.length !== 1 ? 's' : ''}
           </Button>

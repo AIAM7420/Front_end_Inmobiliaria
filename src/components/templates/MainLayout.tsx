@@ -26,7 +26,7 @@ export const MainLayout: React.FC = () => {
   }
 
   // Configuración especial por vista (Full screen layouts sin scroll global)
-  const isFullScreenLayout = location.pathname === '/map' || location.pathname === '/' || location.pathname === '/asesor' || location.pathname === '/asesor/propiedades' || location.pathname === '/admin' || location.pathname === '/messages' || location.pathname === '/asesor/mensajes' || location.pathname === '/favorites';
+  const isFullScreenLayout = ['map', 'home', 'asesor', 'asesor/propiedades', 'admin', 'messages', 'asesor/mensajes', 'favorites'].includes(activeRoute);
 
   return (
     <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden">
@@ -35,7 +35,7 @@ export const MainLayout: React.FC = () => {
         HEADER COMÚN
         En layouts full screen, ocultamos el header en móvil para tener pantalla completa.
       */}
-      <div className={isFullScreenLayout ? "w-full absolute top-0 pt-6 z-30 pointer-events-none" : "pt-6"}>
+      <div className={`${activeRoute === 'map' ? 'hidden md:block' : ''} ${isFullScreenLayout ? "w-full absolute top-0 pt-3 md:pt-6 z-30 pointer-events-none" : "pt-3 md:pt-6"}`}>
         <NavHeader 
           isDarkMode={isDarkMode} 
           onToggleTheme={toggleTheme} 
@@ -44,11 +44,12 @@ export const MainLayout: React.FC = () => {
           role={role || 'public'}
           isAuthenticated={isAuthenticated}
           activeRoute={activeRoute}
+          subscriptionPlan={role === 'asesor' ? 'basic' : null}
         />
       </div>
 
       {/* AQUÍ SE INYECTAN LAS VISTAS (Landing, Map, Favorites, etc.) */}
-      <div className={isFullScreenLayout ? "h-screen overflow-hidden" : "pb-32"}>
+      <div className={isFullScreenLayout ? "h-[100dvh] overflow-hidden" : "pt-24 md:pt-0 pb-32"}>
         <Outlet />
       </div>
 
@@ -59,16 +60,19 @@ export const MainLayout: React.FC = () => {
           activeRoute={activeRoute}
           onOpenChatbot={() => setIsChatOpen(true)}
           onNavigate={(r) => navigate(r === 'home' ? '/' : `/${r}`)}
+          hideChatbot={role === 'asesor' || role === 'admin'}
         />
       </div>
 
-      {/* CHATBOT GLOBAL */}
-      <GlobalChatbot 
-        isOpen={isChatOpen} 
-        onOpen={() => setIsChatOpen(true)} 
-        onClose={() => setIsChatOpen(false)} 
-        hideButton={location.pathname.includes('/messages') || location.pathname.includes('/mensajes')}
-      />
+      {/* CHATBOT GLOBAL (Solo para usuarios públicos) */}
+      {role !== 'asesor' && role !== 'admin' && (
+        <GlobalChatbot 
+          isOpen={isChatOpen} 
+          onOpen={() => setIsChatOpen(true)} 
+          onClose={() => setIsChatOpen(false)} 
+          hideButton={location.pathname.includes('/messages') || location.pathname.includes('/mensajes') || location.pathname.includes('/asesor/propiedades')}
+        />
+      )}
 
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import type { FilterState } from '../components/molecules/FilterDropdown';
 
 export type UserRole = 'public' | 'asesor' | 'admin' | null;
 
@@ -12,6 +13,11 @@ interface AppContextType {
   role: UserRole;
   login: (role: UserRole) => void;
   logout: () => void;
+  // Global Search State
+  globalSearchQuery: string;
+  setGlobalSearchQuery: (query: string) => void;
+  globalFilters: FilterState | null;
+  setGlobalFilters: (filters: FilterState | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -27,6 +33,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const saved = localStorage.getItem('inmo_role');
     return (saved as UserRole) || null;
   });
+
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [globalFilters, setGlobalFilters] = useState<FilterState | null>(null);
 
   const isAuthenticated = role !== null;
 
@@ -54,7 +63,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   
   const logout = () => setRole(null);
 
-  const contextValue = React.useMemo(() => ({ isDarkMode, toggleTheme, isAuthenticated, role, login, logout }), [isDarkMode, isAuthenticated, role]);
+  const contextValue = React.useMemo(() => ({ 
+    isDarkMode, toggleTheme, isAuthenticated, role, login, logout,
+    globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters
+  }), [isDarkMode, isAuthenticated, role, globalSearchQuery, globalFilters]);
 
   return (
     <AppContext.Provider value={contextValue}>

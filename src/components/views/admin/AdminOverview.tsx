@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import { Bell, Users, Building2, TrendingUp, TrendingDown, CreditCard, ShieldAlert, Activity } from 'lucide-react';
+import { ComposedChart, Area, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { SplitViewLayout } from '../../templates/SplitViewLayout';
 import { PeriodSelector, type PeriodOption } from '../../molecules/PeriodSelector';
 import { PeriodDropdown } from '../../molecules/PeriodDropdown';
 import { IconButton } from '../../atoms/IconButton';
 import { Button } from '../../atoms/Button';
+import { generateChartData, type ChartViewMode } from '../../../utils/chartData';
 
 export const AdminOverview: React.FC = () => {
   const [isUsersSheetOpen, setIsUsersSheetOpen] = useState(false);
   const [isReportsSheetOpen, setIsReportsSheetOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>('Mes');
   const [activeMobileChart, setActiveMobileChart] = useState<'trafico' | 'conversion'>('trafico');
+  const [traficoViewMode, setTraficoViewMode] = useState<ChartViewMode>('dias');
+  const [conversionViewMode, setConversionViewMode] = useState<ChartViewMode>('dias');
+
+  const traficoData = generateChartData(selectedPeriod, traficoViewMode);
+  const conversionData = generateChartData(selectedPeriod, conversionViewMode);
 
   const isSplitOpen = isUsersSheetOpen || isReportsSheetOpen;
 
@@ -312,7 +319,6 @@ export const AdminOverview: React.FC = () => {
           </div>
 
           {/* 3. Panel Visual: Actividad del Sistema */}
-          {/* 3. Panel Visual: Actividad del Sistema */}
           <div className="flex-auto min-h-[160px] md:min-h-[220px] flex flex-col relative shrink gap-2 md:gap-3">
             <div className="relative z-10 shrink-0 hidden md:flex justify-between items-center px-2 mt-2">
               <h3 className="font-montserrat font-bold text-base md:text-lg text-inmo-secondary dark:text-white">
@@ -323,17 +329,35 @@ export const AdminOverview: React.FC = () => {
             <div className="flex-1 w-full flex flex-col md:flex-row gap-4 overflow-hidden">
               
               {/* Gráfica 1: Tráfico Semanal */}
-              <div className={`flex-1 w-full md:w-1/2 bg-white dark:bg-inmo-darkcard rounded-card border border-gray-100 dark:border-inmo-darktertiary p-5 relative shadow-sm flex flex-col justify-between gap-4 transition-all duration-300 ${activeMobileChart === 'trafico' ? 'flex' : 'hidden md:flex'}`}>
+              <div className={`flex-1 w-full md:w-1/2 bg-white dark:bg-inmo-darkcard rounded-card border-4 border-white dark:border-inmo-darkcard shadow-soft p-5 relative flex flex-col justify-between gap-4 transition-all duration-300 ${activeMobileChart === 'trafico' ? 'flex' : 'hidden md:flex'}`}>
                 
-                <div className="flex flex-col relative z-20">
-                  <div className="flex items-center gap-1.5">
-                    <Activity className="w-4 h-4 text-gray-400" />
-                    <h4 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Tráfico Semanal</h4>
+                <div className="flex justify-between items-start relative z-20 w-full">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <Activity className="w-4 h-4 text-gray-400" />
+                      <h4 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Tráfico</h4>
+                    </div>
+                    <p className="font-inter text-caption text-gray-400 mt-0.5">Visitas en el rango seleccionado</p>
                   </div>
-                  <p className="font-inter text-caption text-gray-400 mt-0.5">Visitas en el rango seleccionado</p>
+                  {['6 Meses', 'Año'].includes(selectedPeriod) && (
+                    <div className="hidden md:flex bg-gray-100 dark:bg-inmo-darkbg rounded-lg p-0.5 ml-auto">
+                      <button
+                        onClick={() => setTraficoViewMode('dias')}
+                        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${traficoViewMode === 'dias' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                      >Días</button>
+                      <button
+                        onClick={() => setTraficoViewMode('semanas')}
+                        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${traficoViewMode === 'semanas' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                      >Semanas</button>
+                      <button
+                        onClick={() => setTraficoViewMode('meses')}
+                        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${traficoViewMode === 'meses' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                      >Meses</button>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="md:hidden absolute top-4 right-4 z-20">
+                <div className="md:hidden absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
                   <Button 
                     onClick={() => setActiveMobileChart('conversion')}
                     variant="accent"
@@ -344,50 +368,97 @@ export const AdminOverview: React.FC = () => {
                       Conversión
                     </span>
                   </Button>
+                  {['6 Meses', 'Año'].includes(selectedPeriod) && (
+                    <div className="flex bg-gray-100 dark:bg-inmo-darkbg rounded-lg p-0.5">
+                      <button
+                        onClick={() => setTraficoViewMode('dias')}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${traficoViewMode === 'dias' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500'}`}
+                      >Días</button>
+                      <button
+                        onClick={() => setTraficoViewMode('semanas')}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${traficoViewMode === 'semanas' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500'}`}
+                      >Sem.</button>
+                      <button
+                        onClick={() => setTraficoViewMode('meses')}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${traficoViewMode === 'meses' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500'}`}
+                      >Meses</button>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="flex-1 w-full h-full relative pt-2 flex items-end">
-                  <div className="w-full h-full flex justify-between items-end pb-6 relative z-10">
-                    {/* Barras de tráfico (Clean style) */}
-                    {[40, 65, 45, 80, 55, 90, 75].map((height, idx) => (
-                      <div key={idx} className="flex flex-col justify-end items-center h-full group relative cursor-pointer" style={{ width: '12%' }}>
-                        <div 
-                          className="w-full bg-inmo-secondary/20 dark:bg-white/20 rounded-sm relative transition-all duration-300 group-hover:bg-inmo-secondary dark:group-hover:bg-white"
-                          style={{ height: `${height}%` }}
-                        ></div>
-                        {/* Tooltip on hover (desktop only) */}
-                        <div className="hidden md:group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-inmo-secondary dark:bg-white text-white dark:text-inmo-secondary text-caption font-bold px-2 py-1 rounded shadow-lg z-30">
-                          {height}k
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Grid Lines Overlay */}
-                  <div className="absolute inset-0 pb-6 pointer-events-none flex flex-col justify-between">
-                    {[100, 80, 60, 40, 20, 0].map((line, idx) => (
-                      <div key={idx} className="w-full border-b border-gray-100 dark:border-gray-800"></div>
-                    ))}
-                  </div>
-
-                  <div className="absolute bottom-0 w-full flex justify-between text-caption md:text-caption text-gray-400 font-inter font-medium px-1">
-                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
-                  </div>
+                <div className="flex-1 w-full h-[200px] md:h-full relative pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={traficoData}
+                      margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="currentColor" className="text-gray-200 dark:text-white/5" />
+                      <XAxis 
+                        dataKey="label" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'currentColor', className: 'text-gray-400 font-inter text-[11px]' }}
+                        dy={10}
+                        minTickGap={30}
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'currentColor', className: 'text-gray-400 font-inter text-[11px]' }}
+                        tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : `${value}`}
+                      />
+                      <RechartsTooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-white/10 rounded-xl p-3 shadow-soft font-inter">
+                                <p className="font-montserrat font-bold text-inmo-secondary dark:text-gray-200 mb-1">{label}</p>
+                                <p className="text-inmo-accent font-bold text-xs">
+                                  Visitas: {Number(payload[0].value).toLocaleString('es-MX')}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        cursor={{ fill: 'rgba(156, 163, 175, 0.1)' }}
+                      />
+                      <Bar dataKey="traffic" fill="currentColor" className="text-inmo-accent" radius={[6, 6, 0, 0]} fillOpacity={0.8} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Gráfica 2: Conversión */}
-              <div className={`flex-1 w-full md:w-1/2 bg-white dark:bg-inmo-darkcard rounded-card border border-gray-100 dark:border-inmo-darktertiary p-5 relative shadow-sm flex flex-col justify-between gap-4 transition-all duration-300 ${activeMobileChart === 'conversion' ? 'flex' : 'hidden md:flex'}`}>
+              <div className={`flex-1 w-full md:w-1/2 bg-white dark:bg-inmo-darkcard rounded-card border-4 border-white dark:border-inmo-darkcard shadow-soft p-5 relative flex flex-col justify-between gap-4 transition-all duration-300 ${activeMobileChart === 'conversion' ? 'flex' : 'hidden md:flex'}`}>
                 
-                <div className="flex flex-col relative z-20">
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-4 h-4 text-gray-400" />
-                    <h4 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Conversión de Usuarios</h4>
+                <div className="flex justify-between items-start relative z-20 w-full">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <TrendingUp className="w-4 h-4 text-gray-400" />
+                      <h4 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Conversión de Usuarios</h4>
+                    </div>
+                    <p className="font-inter text-caption text-gray-400 mt-0.5">Evolución en el rango seleccionado</p>
                   </div>
-                  <p className="font-inter text-caption text-gray-400 mt-0.5">Evolución en el rango seleccionado</p>
+                  {['6 Meses', 'Año'].includes(selectedPeriod) && (
+                    <div className="hidden md:flex bg-gray-100 dark:bg-inmo-darkbg rounded-lg p-0.5 ml-auto">
+                      <button
+                        onClick={() => setConversionViewMode('dias')}
+                        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${conversionViewMode === 'dias' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                      >Días</button>
+                      <button
+                        onClick={() => setConversionViewMode('semanas')}
+                        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${conversionViewMode === 'semanas' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                      >Semanas</button>
+                      <button
+                        onClick={() => setConversionViewMode('meses')}
+                        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${conversionViewMode === 'meses' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                      >Meses</button>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="md:hidden absolute top-4 right-4 z-20">
+                <div className="md:hidden absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
                   <Button 
                     onClick={() => setActiveMobileChart('trafico')}
                     variant="accent"
@@ -398,36 +469,86 @@ export const AdminOverview: React.FC = () => {
                       Tráfico
                     </span>
                   </Button>
+                  {['6 Meses', 'Año'].includes(selectedPeriod) && (
+                    <div className="flex bg-gray-100 dark:bg-inmo-darkbg rounded-lg p-0.5">
+                      <button
+                        onClick={() => setConversionViewMode('dias')}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${conversionViewMode === 'dias' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500'}`}
+                      >Días</button>
+                      <button
+                        onClick={() => setConversionViewMode('semanas')}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${conversionViewMode === 'semanas' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500'}`}
+                      >Sem.</button>
+                      <button
+                        onClick={() => setConversionViewMode('meses')}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${conversionViewMode === 'meses' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500'}`}
+                      >Meses</button>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="flex-1 w-full h-full relative pt-2 flex items-end">
-                  <div className="absolute inset-0 pb-6 pointer-events-none flex flex-col justify-between">
-                    {[100, 80, 60, 40, 20, 0].map((line, idx) => (
-                      <div key={idx} className="w-full border-b border-gray-100 dark:border-gray-800 flex items-center justify-start relative">
-                        {/* Optionally add y-axis labels on the left here if desired */}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="w-full h-full pb-6 relative z-10 text-inmo-secondary dark:text-white">
-                    <svg viewBox="0 0 100 40" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                      {/* Sharp solid line without gradient, inspired by screenshot */}
-                      <path d="M 0 35 L 15 20 L 30 25 L 45 10 L 60 15 L 80 5 L 100 30" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      
-                      {/* Data points */}
-                      <circle cx="0" cy="35" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                      <circle cx="15" cy="20" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                      <circle cx="30" cy="25" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                      <circle cx="45" cy="10" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                      <circle cx="60" cy="15" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                      <circle cx="80" cy="5" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                      <circle cx="100" cy="30" r="1.5" fill="currentColor" stroke="var(--inmo-bg-card, white)" strokeWidth="0.5" />
-                    </svg>
-                  </div>
-
-                  <div className="absolute bottom-0 w-full flex justify-between text-caption md:text-caption text-gray-400 font-inter font-medium px-1">
-                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
-                  </div>
+                <div className="flex-1 w-full h-[200px] md:h-full relative pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart
+                      data={conversionData}
+                      margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="adminConversionGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="currentColor" className="text-inmo-accent" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="currentColor" className="text-inmo-accent" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="currentColor" className="text-gray-200 dark:text-white/5" />
+                      <XAxis 
+                        dataKey="label" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'currentColor', className: 'text-gray-400 font-inter text-[11px]' }}
+                        dy={10}
+                        minTickGap={30}
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'currentColor', className: 'text-gray-400 font-inter text-[11px]' }}
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <RechartsTooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-white/10 rounded-xl p-3 shadow-soft font-inter">
+                                <p className="font-montserrat font-bold text-inmo-secondary dark:text-gray-200 mb-1">{label}</p>
+                                <p className="text-inmo-accent font-bold text-xs">
+                                  Conversión: {payload[0].value}%
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        cursor={{ stroke: 'currentColor', className: 'text-gray-100 dark:text-white/5' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="conversion" 
+                        stroke="none" 
+                        fillOpacity={1} 
+                        fill="url(#adminConversionGradient)" 
+                        activeDot={false}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="conversion" 
+                        stroke="currentColor" 
+                        strokeWidth={3} 
+                        dot={false}
+                        className="text-inmo-accent [filter:drop-shadow(0px_8px_8px_theme(colors.inmo.accent))]"
+                        activeDot={{ r: 6, strokeWidth: 0, fill: "currentColor", className: "text-inmo-accent" }}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 

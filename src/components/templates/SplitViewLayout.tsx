@@ -38,12 +38,15 @@ export interface SplitViewLayoutProps {
   hideDesktopCloseButton?: boolean;
   /** Whether to prevent the main panel from scrolling */
   mainPanelNoScroll?: boolean;
+  /** Override for mobile bottom sheet open state. Defaults to isOpen */
+  mobileIsOpen?: boolean;
 }
 
 export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   mainContent,
   sideContent,
   isOpen,
+  mobileIsOpen,
   onClose,
   onBack,
   sideTitle = 'Detalle',
@@ -71,7 +74,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   };
 
   return (
-    <div className={`flex w-full h-screen overflow-hidden relative ${wrapperClassName} ${sidePosition === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex w-full h-[100dvh] overflow-hidden relative ${wrapperClassName} ${sidePosition === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
       
       {/* CONTENIDO LATERAL (Desktop) */}
       <div 
@@ -135,6 +138,10 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
 
       {/* CONTENIDO PRINCIPAL */}
       <div 
+        id="main-scroll-container"
+        onScroll={(e) => {
+          window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
+        }}
         className={`h-full relative transform-gpu will-change-[width] transition-[width,border-radius] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
           mainPanelNoScroll ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
         } ${
@@ -147,7 +154,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
       {/* MOBILE BOTTOM SHEET */}
       <div className="md:hidden">
         <BottomSheet 
-          isOpen={isOpen} 
+          isOpen={mobileIsOpen !== undefined ? mobileIsOpen : isOpen} 
           onClose={onClose}
           onBack={onBack}
           title={sideTitle}

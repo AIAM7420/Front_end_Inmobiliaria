@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { IconButton } from '../atoms/IconButton';
 
 interface BottomSheetProps {
@@ -28,8 +28,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   fullHeight = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [isDragging, setIsDragging] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentY = useRef(0);
+  const startTime = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -59,24 +62,50 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY;
+    currentY.current = e.touches[0].clientY;
+    startTime.current = Date.now();
+    setIsDragging(true);
+
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = 'none';
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    currentY.current = e.touches[0].clientY;
+    const y = e.touches[0].clientY;
+    currentY.current = y;
+    const deltaY = y - startY.current;
+
+    if (sheetRef.current) {
+      let translateY = deltaY;
+      if (isExpanded && translateY < 0) {
+        translateY = translateY * 0.15;
+      } else if (!isExpanded && heightMode === 'content' && translateY < 0) {
+         translateY = translateY * 0.15;
+      }
+      sheetRef.current.style.transform = `translateY(${translateY}px)`;
+    }
   };
 
   const handleTouchEnd = () => {
-    const diff = currentY.current - startY.current;
-    
-    if (diff > 50) {
+    setIsDragging(false);
+    const deltaY = currentY.current - startY.current;
+    const deltaTime = Date.now() - startTime.current;
+    const velocity = deltaY / deltaTime;
+
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+      sheetRef.current.style.transform = '';
+    }
+
+    if (deltaY > 50 || velocity > 0.5) {
       if (isExpanded) {
         setIsExpanded(false);
       } else {
         onClose?.();
       }
-    } else if (diff < -50) {
-      // Swipe up: expandir si no está expandido
-      if (!isExpanded) {
+    } else if (deltaY < -50 || velocity < -0.5) {
+      if (!isExpanded && heightMode !== 'content') {
         setIsExpanded(true);
       }
     }
@@ -87,36 +116,39 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   return (
     <>
-      {/* Backdrop */}
       <div 
         className={`fixed inset-0 bg-black/60 backdrop-blur-[2px] z-40 transition-opacity duration-300 cursor-pointer ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
       
-      {/* Contenedor del Bottom Sheet */}
       <div 
-        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-inmo-darkbg z-50 flex flex-col transition-transform duration-300 ease-out shadow-[0_-10px_40px_rgba(0,0,0,0.15)] overflow-hidden ${
+        ref={sheetRef}
+        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-inmo-darkbg z-50 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.15)] overflow-hidden ${
+          !isDragging ? 'transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]' : ''
+        } ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         } ${getHeightClasses()}`}
       >
         <div className="w-full relative shrink-0">
-          {/* Header / Drag Handle Area Overlay */}
           <div 
-            className={`flex flex-col items-center justify-center cursor-grab active:cursor-grabbing w-full z-50 ${
+            className={`flex flex-col items-center justify-center cursor-grab active:cursor-grabbing w-full z-50 transition-all duration-300 ${
               isHero 
                 ? 'absolute top-0 left-0 right-0 pt-4 pb-4 bg-gradient-to-b from-black/40 to-transparent pointer-events-none' 
-                : 'pt-4 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent'
+                : isExpanded ? 'pt-2 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent' : 'pt-4 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent'
             }`}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              if (heightMode !== 'content') setIsExpanded(!isExpanded);
+            }}
           >
-            <div className={`w-12 h-1.5 rounded-full pointer-events-auto ${title && !isHero ? 'mb-3' : ''} ${
+            <div className={`w-12 h-1.5 rounded-full pointer-events-auto transition-all duration-300 ${title && !isHero ? 'mb-3' : ''} ${
               isHero 
                 ? 'bg-white/90 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.5)]' 
                 : 'bg-gray-300 dark:bg-gray-600'
-            }`} />
+            } ${isExpanded ? 'opacity-0 h-0 mb-0 scale-y-0' : 'opacity-100 h-1.5'}`} />
+            
             {title && !isHero && (
               <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white px-6 text-center w-full truncate pb-2 pointer-events-auto">
                 {title}
@@ -124,7 +156,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             )}
           </div>
           
-          {/* Botón de Atrás */}
           {onBack && (
             <div className={`absolute left-4 z-50 ${isHero ? 'top-4' : 'top-3'}`}>
               <IconButton
@@ -142,9 +173,26 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               />
             </div>
           )}
+
+          {isExpanded && (
+            <div className={`absolute right-4 z-50 ${isHero ? 'top-4' : 'top-3'} animate-in fade-in zoom-in duration-300`}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose?.();
+                }}
+                variant="ghost"
+                className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+                  isHero
+                    ? 'bg-black/20 backdrop-blur-md text-white hover:bg-black/30'
+                    : 'bg-gray-100 dark:bg-inmo-darkcard text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+                icon={<X className="w-5 h-5" strokeWidth={2.5} />}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Content */}
         <div className={`flex-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${fullHeight ? 'flex flex-col min-h-0' : 'overflow-y-auto ' + (isHero ? 'pt-0' : 'pt-2')}`}>
           {fullHeight ? (
             children

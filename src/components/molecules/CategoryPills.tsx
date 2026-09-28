@@ -1,45 +1,51 @@
 import React from 'react';
 import { Globe, Home, Building2, Trees } from 'lucide-react';
-import { Button } from '../atoms/Button';
 
-export type PropertyCategory = 'all' | 'casa' | 'departamento' | 'terreno';
+export type PropertyCategory = 'casa' | 'departamento' | 'terreno';
 
 export interface CategoryPillsProps {
-  activeFilter: PropertyCategory;
-  onSelectFilter: (filter: PropertyCategory) => void;
+  activeFilter: PropertyCategory | null;
+  onSelectFilter: (filter: PropertyCategory | null) => void;
   className?: string;
   orientation?: 'horizontal' | 'vertical';
 }
 
-export const CategoryPills: React.FC<CategoryPillsProps> = ({ activeFilter, onSelectFilter, className = '', orientation = 'horizontal' }) => {
+interface FilterButtonProps {
+  id: PropertyCategory;
+  label: string;
+  Icon: React.ElementType;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+const FilterButton: React.FC<FilterButtonProps> = ({ id, label, Icon, isActive, onClick }) => {
   return (
-    <div className={`${orientation === 'vertical' ? 'w-[72px] rounded-[32px]' : 'w-full max-w-md rounded-[28px]'} bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] p-2 transition-all duration-300 select-none ${className}`}>
-      <div className={`flex ${orientation === 'vertical' ? 'flex-col' : 'justify-between items-stretch'} gap-1.5 h-full`}>
-        <Button 
-          onClick={() => onSelectFilter('all')}
-          variant={activeFilter === 'all' ? 'accent' : 'secondary'}
-          icon={<Globe className="w-5 h-5 md:w-6 md:h-6" strokeWidth={activeFilter === 'all' ? 2.5 : 2} />}
-          className={`flex-1 !p-0 !h-[52px] md:!h-[56px] !rounded-[20px] transition-all flex items-center justify-center ${activeFilter === 'all' ? '!shadow-md' : 'hover:!bg-white/50 dark:hover:!bg-white/10 !text-inmo-secondary dark:!text-gray-200'}`}
-        />
-        <Button 
-          onClick={() => onSelectFilter('casa')}
-          variant={activeFilter === 'casa' ? 'accent' : 'ghost'}
-          icon={<Home className="w-5 h-5 md:w-6 md:h-6" strokeWidth={activeFilter === 'casa' ? 2.5 : 2} />}
-          className={`flex-1 !p-0 !h-[52px] md:!h-[56px] !rounded-[20px] transition-all flex items-center justify-center ${activeFilter === 'casa' ? '!shadow-md' : 'hover:!bg-white/50 dark:hover:!bg-white/10 !text-inmo-secondary dark:!text-gray-200'}`}
-        />
-        <Button 
-          onClick={() => onSelectFilter('departamento')}
-          variant={activeFilter === 'departamento' ? 'accent' : 'ghost'}
-          icon={<Building2 className="w-5 h-5 md:w-6 md:h-6" strokeWidth={activeFilter === 'departamento' ? 2.5 : 2} />}
-          className={`flex-1 !p-0 !h-[52px] md:!h-[56px] !rounded-[20px] transition-all flex items-center justify-center ${activeFilter === 'departamento' ? '!shadow-md' : 'hover:!bg-white/50 dark:hover:!bg-white/10 !text-inmo-secondary dark:!text-gray-200'}`}
-        />
-        <Button 
-          onClick={() => onSelectFilter('terreno')}
-          variant={activeFilter === 'terreno' ? 'accent' : 'ghost'}
-          icon={<Trees className="w-5 h-5 md:w-6 md:h-6" strokeWidth={activeFilter === 'terreno' ? 2.5 : 2} />}
-          className={`flex-1 !p-0 !h-[52px] md:!h-[56px] !rounded-[20px] transition-all flex items-center justify-center ${activeFilter === 'terreno' ? '!shadow-md' : 'hover:!bg-white/50 dark:hover:!bg-white/10 !text-inmo-secondary dark:!text-gray-200'}`}
-        />
+    <button 
+      onClick={onClick}
+      className={`relative flex flex-col items-center justify-center flex-1 h-full px-1 bg-transparent border-none outline-none cursor-pointer group transition-transform ${isActive ? 'scale-105' : 'hover:scale-105'}`}
+    >
+      <div className={`relative flex flex-col items-center justify-center transition-all duration-300 ${isActive ? 'text-inmo-accent' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200'}`}>
+        <div className={`relative transition-transform duration-300 ${isActive ? '-translate-y-0.5' : 'translate-y-0'}`}>
+          <Icon 
+            className="w-5 h-5 md:w-6 md:h-6" 
+            strokeWidth={isActive ? 2.5 : 2} 
+          />
+        </div>
       </div>
+    </button>
+  );
+};
+
+export const CategoryPills: React.FC<CategoryPillsProps> = ({ activeFilter, onSelectFilter, className = '', orientation = 'horizontal' }) => {
+  const toggleFilter = (id: PropertyCategory) => {
+    onSelectFilter(activeFilter === id ? null : id);
+  };
+
+  return (
+    <div className={`${orientation === 'vertical' ? 'w-[52px] rounded-full flex-col py-1' : 'h-[52px] w-full max-w-sm rounded-full flex-row px-2'} bg-white/60 dark:bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-all duration-300 select-none flex items-center justify-around gap-1 ${className}`}>
+      <FilterButton id="casa" label="Casas" Icon={Home} isActive={activeFilter === 'casa'} onClick={() => toggleFilter('casa')} />
+      <FilterButton id="departamento" label="Deptos" Icon={Building2} isActive={activeFilter === 'departamento'} onClick={() => toggleFilter('departamento')} />
+      <FilterButton id="terreno" label="Lotes" Icon={Trees} isActive={activeFilter === 'terreno'} onClick={() => toggleFilter('terreno')} />
     </div>
   );
 };

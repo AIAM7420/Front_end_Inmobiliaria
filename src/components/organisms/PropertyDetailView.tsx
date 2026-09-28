@@ -208,7 +208,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
     <div className="flex flex-col relative bg-white dark:bg-inmo-darkcard h-full w-full overflow-hidden">
       
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pb-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pb-[100px]">
         {/* Hero Image */}
         <div className="w-full relative rounded-b-[32px] overflow-hidden bg-gray-100 dark:bg-inmo-darkbg shrink-0">
           <img src={property.image} alt={property.title} className="w-full h-[300px] object-cover" />
@@ -310,14 +310,14 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
         </div>
       </div>
 
-      {/* FIXED Bottom Action Bar */}
-      <div className="w-full px-4 pb-4 pt-4 z-20 flex justify-center bg-gradient-to-t from-white via-white to-transparent dark:from-inmo-darkcard dark:via-inmo-darkcard dark:to-transparent shrink-0">
+      {/* OVERLAY Bottom Action Bar */}
+      <div className="absolute bottom-0 left-0 right-0 w-full px-4 pb-4 pt-8 z-20 flex justify-center bg-gradient-to-t from-white/0 to-transparent pointer-events-none">
         {customBottomBar ? (
-          <div className="w-full max-w-[400px]">
+          <div className="w-full max-w-[400px] pointer-events-auto">
             {customBottomBar}
           </div>
         ) : (
-          <div className="bg-white/60 dark:bg-black/60 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] h-[64px] rounded-full flex items-center justify-between px-2 w-full max-w-[400px]">
+          <div className="bg-white/60 dark:bg-black/60 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] h-[64px] rounded-full flex items-center justify-between px-2 w-full max-w-[400px] pointer-events-auto">
              {/* Asesor info */}
              <div 
                className="flex items-center gap-2 pl-2 cursor-pointer hover:opacity-80 transition-opacity"

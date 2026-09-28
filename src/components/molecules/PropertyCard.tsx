@@ -90,7 +90,7 @@ export const PropertyCard = React.memo(({
         {/* ROW 1 & 2: TITLE, PRICE & LOCATION */}
         <div className="flex justify-between items-start gap-3">
           <div className="flex flex-col gap-1 flex-1">
-            <h3 className="text-lg font-bold font-montserrat text-inmo-secondary dark:text-white leading-tight line-clamp-2" title={title}>
+            <h3 className="text-lg font-bold font-montserrat text-inmo-secondary dark:text-white leading-tight line-clamp-2 min-h-[2lh]" title={title}>
               {title}
             </h3>
             <div className="flex items-center text-gray-500 dark:text-gray-400">
