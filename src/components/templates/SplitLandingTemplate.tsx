@@ -13,6 +13,7 @@ import { PropertyModal } from '../organisms/PropertyModal';
 import { SplitViewLayout } from './SplitViewLayout';
 import { HeroCarousel } from '../organisms/HeroCarousel';
 import { PromoBanner } from '../molecules/PromoBanner';
+import { LocationTag } from '../molecules/LocationTag';
 import { TagDropdown } from '../molecules/TagDropdown';
 import { FilterDropdown, type FilterState } from '../molecules/FilterDropdown';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
@@ -243,7 +244,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
                     onClick={handleToggleFilters}
                     icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
                     variant="secondary"
-                    className="w-[44px] h-[44px] !bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0"
+                    className="w-[44px] h-[44px] !bg-white/40 dark:!bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-white/20 shrink-0"
                   />
                   <FilterDropdown 
                     isOpen={isFiltersOpen} 
@@ -257,21 +258,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
                 </div>
               </div>
 
-              {/* Active (Used) Tags - Aparecen debajo del buscador */}
-              {selectedTypes.length > 0 && (
-                <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar -mx-6 px-6 md:mx-0 md:px-0 mt-3 mb-1 w-full">
-                  {selectedTypes.map(tag => (
-                    <button 
-                      key={`active-${tag}`}
-                      onClick={() => toggleType(tag)}
-                      className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-inmo-darkcard rounded-full text-[13px] font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-inmo-darktertiary transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              )}
+
 
             </div>
           </div>
@@ -283,8 +270,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
             <div className={`flex flex-row ${gridMode === 'split' ? 'gap-3' : 'gap-3 md:gap-6'} flex-1 min-w-0 w-full`}>
               
               {/* Opciones de Operación */}
-              <div className={`flex flex-col gap-2 flex-1 min-w-0 ${gridMode === 'split' ? 'md:flex-none md:w-[160px]' : 'md:flex-none'}`}>
-                <span className={`text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider pl-1 ${gridMode === 'split' ? 'hidden' : 'hidden md:block'}`}>Operación</span>
+              <div className={`flex flex-col gap-1 flex-1 min-w-0 ${gridMode === 'split' ? 'md:flex-none md:w-[160px]' : 'md:flex-none'}`}>
                 
                 {/* Dropdown (Mobile OR Split Mode) */}
                 <div className={gridMode === 'split' ? 'block' : 'block md:hidden'}>
@@ -307,7 +293,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
                         className={`shrink-0 px-4 py-1.5 border rounded-full text-[13px] font-medium transition-all active:scale-95 ${
                           isSelected 
                             ? 'bg-inmo-accent text-white border-transparent shadow-md'
-                            : 'bg-white dark:bg-inmo-darkcard text-gray-600 dark:text-gray-300 border-transparent dark:border-white/10 shadow-sm hover:shadow-md'
+                            : 'bg-transparent text-gray-600 dark:text-gray-400 border-transparent hover:bg-black/5 dark:hover:bg-white/5'
                         }`}
                       >
                         {tag}
@@ -321,8 +307,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
               <div className={gridMode === 'split' ? 'hidden' : 'hidden md:block w-px bg-gray-200 dark:bg-white/10 my-2'} />
               
               {/* Opciones de Tipo */}
-              <div className={`flex flex-col gap-2 flex-1 min-w-0 ${gridMode === 'split' ? 'md:flex-none md:w-[160px]' : 'md:flex-none'}`}>
-                <span className={`text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider pl-1 ${gridMode === 'split' ? 'hidden' : 'hidden md:block'}`}>Inmueble</span>
+              <div className={`flex flex-col gap-1 flex-1 min-w-0 ${gridMode === 'split' ? 'md:flex-none md:w-[160px]' : 'md:flex-none'}`}>
                 
                 {/* Dropdown (Mobile OR Split Mode) */}
                 <div className={gridMode === 'split' ? 'block' : 'block md:hidden'}>
@@ -342,11 +327,11 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
                     return (
                       <button 
                         key={tag} 
-                        onClick={() => !isSelected && toggleType(tag)}
+                        onClick={() => toggleType(tag)}
                         className={`shrink-0 px-4 py-1.5 border rounded-full text-[13px] font-medium transition-all active:scale-95 ${
                           isSelected 
-                            ? 'opacity-50 bg-gray-200 dark:bg-white/5 text-gray-400 dark:text-gray-500 border-transparent cursor-default pointer-events-none'
-                            : 'bg-white dark:bg-inmo-darkcard text-gray-600 dark:text-gray-300 border-transparent dark:border-white/10 shadow-sm hover:shadow-md'
+                            ? 'bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white border-transparent shadow-md dark:border-white/10'
+                            : 'bg-transparent text-gray-600 dark:text-gray-400 border-transparent hover:bg-black/5 dark:hover:bg-white/5'
                         }`}
                       >
                         {tag}
@@ -358,16 +343,8 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
             </div>
 
             {/* Lado Derecho: Ubicación */}
-            <div className="hidden md:flex flex-col justify-end w-[280px] shrink-0">
-              <div className="flex flex-1 w-full items-center justify-between gap-2 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 px-4 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-white/60 dark:hover:bg-black/40 transition-colors">
-                <div className="flex flex-col text-left overflow-hidden">
-                  <span className="text-sm font-bold text-inmo-secondary dark:text-white leading-tight truncate">León</span>
-                  <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-none mt-0.5 truncate">Guanajuato, México</span>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-white dark:bg-inmo-darkcard shadow-sm flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4 text-inmo-accent" strokeWidth={2.5} />
-                </div>
-              </div>
+            <div className="hidden md:flex flex-col justify-center md:self-center w-[250px] shrink-0">
+              <LocationTag city="León" state="Guanajuato, México" />
             </div>
 
           </div>
@@ -375,14 +352,12 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
 
         {/* Recomendaciones Section */}
         {!isFiltering && (
-          <div className="flex flex-col gap-4 mt-8">
+          <div className="flex flex-col mt-8">
             <div className="flex items-center justify-between ml-4 md:ml-6 pr-4 md:pr-0">
               <h2 className="text-xl font-bold text-inmo-secondary dark:text-white border-l-4 border-inmo-accent pl-3">
                 Recomendaciones para ti
               </h2>
-              <button className="text-[13px] font-bold text-inmo-accent hover:underline hidden md:block">
-                Ver más
-              </button>
+
             </div>
             <div className="relative group">
               {/* Botón Izquierda (Desktop) */}
@@ -395,7 +370,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
               </button>
 
               {/* Carrusel */}
-              <div ref={carouselRef} className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 -mx-6 px-6 md:mx-0 md:px-0">
+              <div ref={carouselRef} className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pt-4 pb-4 -mx-6 px-6 md:mx-0 md:px-0">
                 {(isWireframeMode || isLoading)
                 ? Array.from({ length: 8 }).map((_, idx) => (
                     <div key={`rec-skel-${idx}`} className="shrink-0 w-[280px] md:w-[340px] snap-start">

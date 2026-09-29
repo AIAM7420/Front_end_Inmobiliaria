@@ -278,7 +278,7 @@ export const MOCK_PROPERTIES = [
   },
   {
     id: 17,
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1c2c31e67e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     title: 'Departamento en Planta Baja',
     location: 'Arbide, León',
     price: 3900000,
@@ -295,7 +295,7 @@ export const MOCK_PROPERTIES = [
   },
   {
     id: 18,
-    image: 'https://images.unsplash.com/photo-1600573472591-ee6981cf35b6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     title: 'Casa Amplia para Familia Numerosa',
     location: 'Punta del Este, León',
     price: 7300000,

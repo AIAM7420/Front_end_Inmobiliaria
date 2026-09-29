@@ -12,7 +12,7 @@ interface AsesorInlineProfileProps {
 
 export const AsesorInlineProfile: React.FC<AsesorInlineProfileProps> = ({ onBack, asesorId = '1', isVerified = true, onContactClick }) => {
   return (
-    <div className="w-full h-full bg-white dark:bg-inmo-darkbg flex flex-col justify-center overflow-y-auto">
+    <div className="w-full h-full bg-white dark:bg-inmo-darkcard flex flex-col justify-center overflow-y-auto">
       {/* Contenido del Perfil */}
       <div className="flex-1 flex flex-col p-4 sm:p-5 space-y-5 justify-center max-w-[420px] mx-auto w-full">
         

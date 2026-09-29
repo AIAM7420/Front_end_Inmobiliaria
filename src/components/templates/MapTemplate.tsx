@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Globe, Ghost, SlidersHorizontal } from 'lucide-react';
+import { Globe, Ghost, SlidersHorizontal, Search, MapPin } from 'lucide-react';
 import { APIProvider, Map, Marker, useApiLoadingStatus, APILoadingStatus } from '@vis.gl/react-google-maps';
 import { SearchBar } from '../molecules/SearchBar';
 import { FloatingFilterButton } from '../atoms/FloatingFilterButton';
@@ -16,10 +16,65 @@ import { PropertyCardSkeleton } from '../molecules/PropertyCardSkeleton';
 import { AsesorChat } from '../organisms/AsesorChat';
 import { useAppContext } from '../../context/AppContext';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
+import { LocationTag } from '../molecules/LocationTag';
+
+import { createPortal } from 'react-dom';
+import { useMap } from '@vis.gl/react-google-maps';
 
 export interface MapTemplateProps {}
 
-const createSvgIcon = (priceText: string, propertyType: string) => {
+const CustomOverlay = ({ position, children, zIndex = 0 }: { position: google.maps.LatLngLiteral, children: React.ReactNode, zIndex?: number }) => {
+  const map = useMap();
+  const [container] = useState(() => {
+    const div = document.createElement('div');
+    div.style.position = 'absolute';
+    return div;
+  });
+
+  useEffect(() => {
+    if (!map || !window.google) return;
+    let overlay: any;
+    
+    class HTMLOverlay extends window.google.maps.OverlayView {
+      onAdd() {
+        const panes = this.getPanes();
+        if (panes) {
+          panes.overlayMouseTarget.appendChild(container);
+          container.style.zIndex = String(zIndex);
+        }
+      }
+      draw() {
+        const projection = this.getProjection();
+        if (projection) {
+          const pos = projection.fromLatLngToDivPixel(new window.google.maps.LatLng(position));
+          if (pos) {
+            container.style.left = pos.x + 'px';
+            container.style.top = pos.y + 'px';
+            container.style.transform = 'translate(-50%, -100%)';
+          }
+        }
+      }
+      onRemove() {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+      }
+    }
+    
+    overlay = new HTMLOverlay();
+    overlay.setMap(map);
+    return () => overlay.setMap(null);
+  }, [map, position.lat, position.lng, zIndex, container]);
+
+  return createPortal(
+    <div onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+      {children}
+    </div>, 
+    container
+  );
+};
+
+const createSvgIcon = (propertyType: string, zoom: number = 13) => {
   const bgColor = '%23FA003F';
   const textColor = '%23FFFFFF';
   const borderColor = '%23FA003F';
@@ -35,24 +90,26 @@ const createSvgIcon = (priceText: string, propertyType: string) => {
     iconPaths = '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
   }
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="35"><rect x="0" y="0" width="100" height="35" rx="17.5" fill="${bgColor}" stroke="${borderColor}" stroke-width="1.25"/><g transform="translate(12, 9.5) scale(0.666)" fill="none" stroke="${textColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconPaths}</g><text x="32" y="23.5" font-family="sans-serif" font-size="15" font-weight="bold" fill="${textColor}" text-anchor="start">${priceText}</text></svg>`;
+  if (zoom < 12) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="${bgColor}" stroke="${textColor}" stroke-width="2"/></svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${svg}`;
+  }
+  
+  // zoom >= 12 (Icons only)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35"><rect x="0" y="0" width="35" height="35" rx="17.5" fill="${bgColor}" stroke="${borderColor}" stroke-width="1.25"/><g transform="translate(6, 6) scale(0.9)" fill="none" stroke="${textColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconPaths}</g></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${svg}`;
-};
-
-const formatMarkerPrice = (price: number) => {
-  if (price >= 1000000) {
-    const formatted = (price / 1000000).toFixed(1);
-    return `$${formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted}M`;
-  }
-  if (price >= 1000) {
-    const formatted = (price / 1000).toFixed(1);
-    return `$${formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted}k`;
-  }
-  return `$${price}`;
 };
 
 const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWireframeMode }: { properties: typeof MOCK_PROPERTIES, onMarkerClick: (id: number) => void, isDarkMode?: boolean, isWireframeMode?: boolean }) => {
   const status = useApiLoadingStatus();
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [zoom, setZoom] = useState(() => window.innerWidth < 768 ? 14 : 13);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (status === APILoadingStatus.AUTH_FAILURE || status === APILoadingStatus.FAILED) {
     return (
@@ -60,7 +117,7 @@ const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWirefram
         <Globe className="w-16 h-16 text-inmo-accent mb-4 opacity-50" />
         <h2 className="text-subtitle mb-2">Falta API Key</h2>
         <p className="text-gray-500 dark:text-gray-400 max-w-md">
-          AÃ±ade tu <b>Maps Demo Key</b> en el archivo <code>.env</code> como <code>VITE_GOOGLE_MAPS_API_KEY</code> para visualizar el mapa interactivo.
+          Añade tu <b>Maps Demo Key</b> en el archivo <code>.env</code> como <code>VITE_GOOGLE_MAPS_API_KEY</code> para visualizar el mapa interactivo.
         </p>
       </div>
     );
@@ -69,8 +126,21 @@ const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWirefram
   const showOverlay = status !== APILoadingStatus.LOADED || isWireframeMode;
 
   const lightStyles = [
+    { featureType: "all", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] }
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+    // Silver / Grayscale aesthetic
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#e9e9e9" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] }
   ];
 
   const darkStyles = [
@@ -98,21 +168,50 @@ const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWirefram
       {status === APILoadingStatus.LOADED && (
         <Map
           defaultCenter={{ lat: 21.135, lng: -101.680 }}
-          defaultZoom={13}
+          defaultZoom={isMobile ? 14 : 13}
+          onCameraChanged={(ev: any) => setZoom(ev.detail.zoom)}
           disableDefaultUI={true}
           gestureHandling="greedy"
           styles={isDarkMode ? darkStyles : lightStyles}
           padding={{ bottom: 100 }}
           className="w-full h-full"
         >
-          {properties.map(p => (
-            <Marker 
-              key={p.id} 
-              position={{ lat: p.lat, lng: p.lng }} 
-              onClick={() => onMarkerClick(p.id)}
-              icon={{ url: createSvgIcon(formatMarkerPrice(p.price), p.type) }}
-            />
-          ))}
+          {properties.map(p => {
+            const minicardThreshold = isMobile ? 14 : 13;
+            if (zoom >= minicardThreshold) {
+              return (
+                <CustomOverlay 
+                  key={`custom-${p.id}`} 
+                  position={{ lat: p.lat, lng: p.lng }} 
+                  zIndex={10}
+                >
+                  <div 
+                    onClick={() => onMarkerClick(p.id)}
+                    className="bg-white dark:bg-inmo-darkcard p-1.5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 flex flex-row w-[170px] items-center gap-2 hover:scale-105 transition-transform cursor-pointer relative"
+                  >
+                    <img src={p.image} alt={p.title} className="w-14 h-14 object-cover rounded-[10px] shrink-0" />
+                    <div className="flex-1 flex flex-col gap-0.5 justify-center pr-1 min-w-0">
+                      <p className="text-[10px] font-bold text-inmo-secondary dark:text-white line-clamp-2 leading-tight text-left font-inter">
+                        {p.title}
+                      </p>
+                      <div className="flex justify-start items-baseline gap-0.5 mt-0.5">
+                        <span className="text-[9px] font-bold text-inmo-accent">$</span>
+                        <span className="text-xs font-black text-inmo-secondary dark:text-white tracking-tight truncate">{p.price.toLocaleString('es-MX')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CustomOverlay>
+              );
+            }
+            return (
+              <Marker 
+                key={p.id} 
+                position={{ lat: p.lat, lng: p.lng }} 
+                onClick={() => onMarkerClick(p.id)}
+                icon={{ url: createSvgIcon(p.type, zoom) }}
+              />
+            );
+          })}
         </Map>
       )}
 
@@ -231,6 +330,14 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
 
   const displayedProperties = selectedPropertyId ? filteredProperties.filter(p => p.id === selectedPropertyId) : filteredProperties;
 
+  // Mostrar estado vacío automáticamente si no hay propiedades tras el filtrado
+  useEffect(() => {
+    if (!isWireframeMode && filteredProperties.length === 0) {
+      setIsSheetOpen(true);
+      setSelectedPropertyId(null);
+    }
+  }, [filteredProperties.length, isWireframeMode]);
+
   const handleFilterChange = (newFilter: PropertyCategory | null) => {
     setActiveFilter(newFilter);
     if (selectedPropertyId) {
@@ -275,7 +382,7 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
       <>
         <div className={`transition-all duration-500 ${
           displayedProperties.length === 0 && !isWireframeMode
-            ? 'flex flex-col items-center justify-center py-20 w-full h-full'
+            ? 'flex flex-col items-center justify-center py-10 pb-12 w-full'
             : 'grid gap-4 grid-cols-1'
         }`}>
           {isWireframeMode ? (
@@ -343,21 +450,7 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
                 className="flex-1 m-0"
               />
 
-              {/* Botón de Filtro (Solo Desktop) */}
-              <div className="relative hidden md:block">
-                <FloatingFilterButton 
-                  onClick={() => setIsFiltersOpen(!isFiltersOpen)} 
-                  size="small"
-                />
-                <FilterDropdown 
-                  isOpen={isFiltersOpen && !isSheetOpen && !isMobileSearchOpen} 
-                  onApply={(filters) => {
-                    if (filters) setGlobalFilters(filters);
-                    setIsFiltersOpen(false);
-                  }}
-                  onClose={() => setIsFiltersOpen(false)}
-                />
-              </div>
+
 
               {/* Botón de Búsqueda (Solo Móvil) */}
               <div className="relative md:hidden flex items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-full w-[52px] shrink-0">
@@ -408,17 +501,39 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
         </div>
       </div>
 
+      {/* LOCATION TAG (TOP RIGHT DESKTOP) */}
+      <div className="hidden md:flex fixed top-28 right-6 z-40 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+        <div className="pointer-events-auto flex flex-col justify-center w-[250px] shrink-0">
+          <LocationTag city="León" state="Guanajuato, México" />
+        </div>
+      </div>
+
       {/* DESKTOP SEARCH BAR (HUGE) - EN LA PARTE INFERIOR */}
       <div className="hidden md:flex fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 px-6 pointer-events-none">
-         <div className="w-full pointer-events-auto">
+         <div className="w-full pointer-events-auto flex gap-4 items-center">
            <SearchBar 
               value={globalSearchQuery}
               onSubmit={setGlobalSearchQuery}
               placeholder="Encuentra propiedades en cualquier ubicacion..." 
               size="xl" 
               glass 
-              className="w-full shadow-2xl" 
+              className="flex-1 shadow-2xl" 
             />
+            <div className="relative shrink-0">
+               <FloatingFilterButton 
+                  onClick={() => setIsFiltersOpen(!isFiltersOpen)} 
+                  size="large"
+                />
+               <FilterDropdown 
+                  isOpen={isFiltersOpen && !isSheetOpen && !isMobileSearchOpen} 
+                  onApply={(filters) => {
+                    if (filters) setGlobalFilters(filters);
+                    setIsFiltersOpen(false);
+                  }}
+                  onClose={() => setIsFiltersOpen(false)}
+                  className="!top-auto !bottom-full !mb-4 !mt-0 !origin-bottom-right"
+                />
+            </div>
          </div>
       </div>
 
@@ -427,10 +542,11 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
         {/* Results Pill */}
         <div className="flex justify-center w-full pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300">
           <Button 
-            onClick={handleCoincidenciasClick}
-            className={`px-6 py-2.5 !text-xs !shadow-lg transition-all duration-300`}
+            onClick={filteredProperties.length === 0 ? undefined : handleCoincidenciasClick}
+            disabled={filteredProperties.length === 0}
+            className={`px-6 py-2.5 !text-xs !shadow-lg transition-all duration-300 ${filteredProperties.length === 0 ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 border-none' : ''}`}
           >
-            Ver {filteredProperties.length} coincidencia{filteredProperties.length !== 1 ? 's' : ''}
+            {filteredProperties.length === 0 ? 'Sin resultados' : `Ver ${filteredProperties.length} coincidencia${filteredProperties.length !== 1 ? 's' : ''}`}
           </Button>
         </div>
       </div>
@@ -443,7 +559,7 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
           onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
           title={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : selectedPropertyId 
             ? undefined 
-            : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
+            : filteredProperties.length === 0 ? undefined : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
           }
           noPadding={!!selectedPropertyId || isChatting}
           isHero={!!selectedPropertyId && !isViewingProfile && !isChatting}
@@ -460,9 +576,10 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
         onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
         title={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : selectedPropertyId 
           ? undefined 
-          : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
+          : filteredProperties.length === 0 ? undefined : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
         }
         noPadding={!!selectedPropertyId || isChatting}
+        compact={filteredProperties.length === 0 && !selectedPropertyId}
       >
         {renderSheetContent()}
       </SidePanel>

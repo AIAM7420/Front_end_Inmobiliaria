@@ -253,8 +253,8 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
         <div className="relative z-20 flex gap-2 md:gap-3 items-center">
           
           {/* Desktop Floating Search Wrapper */}
-          <div className={`hidden md:flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] origin-right ${(isScrolled || activeRoute !== 'home') ? 'opacity-100 scale-100 mr-2 pointer-events-auto' : 'opacity-0 scale-95 mr-0 pointer-events-none'}`}>
-            <div className={`transition-all duration-500 overflow-hidden ${(isScrolled || activeRoute !== 'home') ? 'w-80' : 'w-0'}`}>
+          <div className={`hidden md:flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] origin-right ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'opacity-100 scale-100 mr-2 pointer-events-auto' : 'opacity-0 scale-95 mr-0 pointer-events-none'}`}>
+            <div className={`transition-all duration-500 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-80' : 'w-0'}`}>
               <SearchBar 
                 value={globalSearchQuery}
                 onSubmit={handleSearchSubmit}
@@ -264,7 +264,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 className="w-full !shadow-none border border-gray-200 dark:border-white/10" 
               />
             </div>
-            <div className={`relative shrink-0 transition-all duration-500 ${(isScrolled || activeRoute !== 'home') ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
+            <div className={`relative shrink-0 transition-all duration-500 ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
               <IconButton 
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                 icon={<SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />}
@@ -281,7 +281,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
 
           {/* Mobile Search Button */}
           <div className="relative md:hidden flex items-center">
-            <div className={`transition-all duration-300 overflow-hidden ${((isScrolled || activeRoute !== 'home') && !isMobileSearchOpen) ? 'opacity-100 scale-100 w-10' : 'opacity-0 scale-50 w-0 pointer-events-none'}`}>
+            <div className={`transition-all duration-300 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home') && !isMobileSearchOpen) ? 'opacity-100 scale-100 w-10' : 'opacity-0 scale-50 w-0 pointer-events-none'}`}>
               <IconButton 
                 onClick={() => {
                   setIsMobileSearchOpen(!isMobileSearchOpen);

@@ -72,7 +72,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const px = size === 'xl' ? 'px-8' : size === 'slim' ? 'px-4' : 'px-6';
 
   // Liquid glass effect
-  const glassStyles = "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
+  const glassStyles = "bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
   const solidStyles = "bg-gray-50 dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-sm";
   const bgClasses = glass ? glassStyles : solidStyles;
   // Determinar el padding en pixeles para el estado activo
