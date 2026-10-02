@@ -18,6 +18,7 @@ import { PropertyCardSkeleton } from '../molecules/PropertyCardSkeleton';
 import { SearchBar } from '../molecules/SearchBar';
 import { ChatMessage } from '../molecules/ChatMessage';
 import { PropertyCard } from '../molecules/PropertyCard';
+import { useToast } from '../../context/ToastContext';
 
 export interface UIKitTemplateProps {
   onNavigate?: (route: string) => void;
@@ -35,6 +36,7 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
   const [isDark, setIsDark] = useState(false);
   const [activeTab, setActiveTab] = useState('design-system');
   const [isMobileSimulated, setIsMobileSimulated] = useState(false);
+  const { addToast } = useToast();
 
   // Estados interactivos globales para el UI Kit
   const [globalLoading, setGlobalLoading] = useState(false);
@@ -275,12 +277,35 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
       <Section title="Feedback (Toasts & Chat)">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Semantic Toasts</h4>
-            <div className="space-y-2 relative h-[300px]">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Semantic Toasts</h4>
+              <div className="flex gap-2">
+                <Button 
+                  variant="tertiary" 
+                  size="sm" 
+                  onClick={() => addToast('success', 'Toast Automático', 'Se cerrará solo en 4 seg.')}
+                >
+                  Auto
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => addToast('info', 'Toast Manual', 'Este requiere que lo cierres.', false)}
+                >
+                  Manual
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2 relative h-[500px]">
               <div className="relative transform-none max-w-full"><SemanticToast type="success" title="Operación exitosa" message="La propiedad ha sido publicada." /></div>
               <div className="relative transform-none max-w-full"><SemanticToast type="danger" title="Error de validación" message="Revisa los campos obligatorios." /></div>
               <div className="relative transform-none max-w-full"><SemanticToast type="warning" title="Conexión inestable" message="Intentando reconectar al servidor..." /></div>
               <div className="relative transform-none max-w-full"><SemanticToast type="info" title="Cuenta en revisión" message="Tus documentos están siendo validados." /></div>
+              <div className="relative transform-none max-w-full"><SemanticToast type="hide" title="Publicación pausada" message="La propiedad ya no será visible en las búsquedas." /></div>
+              <div className="relative transform-none max-w-full"><SemanticToast type="show" title="Publicación activada" message="La propiedad vuelve a estar visible para los usuarios." /></div>
+              <div className="relative transform-none max-w-full"><SemanticToast type="delete" title="Propiedad eliminada" message="La propiedad ha sido eliminada de tu inventario." /></div>
+              <div className="relative transform-none max-w-full"><SemanticToast type="create" title="Propiedad publicada" message="Tu nueva propiedad ya está disponible en el catálogo." /></div>
+              <div className="relative transform-none max-w-full"><SemanticToast type="update" title="Cambios guardados" message="La información de la propiedad ha sido actualizada con éxito." /></div>
             </div>
           </div>
           <div className="space-y-4">

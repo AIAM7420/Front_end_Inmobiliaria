@@ -7,6 +7,7 @@ import { PeriodDropdown } from '../../molecules/PeriodDropdown';
 import { IconButton } from '../../atoms/IconButton';
 import { Button } from '../../atoms/Button';
 import { generateChartData, type ChartViewMode } from '../../../utils/chartData';
+import { ModuleLayout } from '../../templates/ModuleLayout';
 
 export const AdminOverview: React.FC = () => {
   const [isUsersSheetOpen, setIsUsersSheetOpen] = useState(false);
@@ -175,47 +176,44 @@ export const AdminOverview: React.FC = () => {
       sidePanelWidthClass="w-[30%]"
       mainPanelWidthClass="md:w-[70%]"
       mainContent={
-        <div className="flex flex-col gap-3 md:gap-4 h-full w-full pt-[116px] md:pt-[124px] pb-[100px] px-4 md:px-6 animate-in fade-in">
-          
-          {/* 1. Header Flotante (Controles) */}
-          <header className="flex justify-between items-center mb-1 shrink-0 relative min-h-[48px]">
-            {/* Greeting (Left side) */}
-            <div className={`ml-4 md:ml-6 flex-1 flex flex-col items-start justify-center gap-0.5 md:gap-1 truncate transition-all duration-300 ${isSplitOpen ? 'opacity-0 w-0 invisible' : 'opacity-100'}`}>
-              <h1 className="font-montserrat font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white shrink-0 leading-none">Hola, Admin</h1>
-              <p className="font-inter text-sm md:text-base text-gray-500 dark:text-gray-400 truncate leading-tight mt-0.5">Panel de Control Global</p>
-            </div>
-            
-            {/* Selector de Periodo Desktop - CENTRADO */}
-            <div className={`hidden md:flex absolute z-30 transition-all duration-500 ease-in-out w-[400px] xl:w-[450px] ${
-              isSplitOpen 
-                ? 'left-4 md:left-6 translate-x-0' 
-                : 'left-1/2 -translate-x-1/2'
-            }`}>
-              <PeriodSelector 
-                selectedPeriod={selectedPeriod} 
-                onChange={setSelectedPeriod} 
-              />
-            </div>
-
-            <div className="flex items-center gap-2 mr-4 md:mr-6 flex-1 justify-end">
-              {/* Selector de Periodo Mobile */}
-              <PeriodDropdown
-                selectedPeriod={selectedPeriod}
-                onChange={setSelectedPeriod}
-                options={['Semana', 'Mes', '3 Meses', '6 Meses', 'Año']}
-                className="md:hidden"
-              />
-
-              <div className="relative z-20">
-                <IconButton 
-                  icon={<Bell className="w-5 h-5 md:w-6 md:h-6 text-inmo-secondary dark:text-white" strokeWidth={2} />} 
-                  variant="secondary"
-                  className="relative shrink-0 md:!w-12 md:!h-12 md:bg-white md:dark:bg-inmo-darkcard shadow-soft"
-                  onClick={() => console.log('Notificaciones Admin')}
+        <ModuleLayout
+          title="Hola, Admin"
+          subtitle="Panel de Control Global"
+          isFullScreen={true}
+          showSearch={false}
+          showFilters={false}
+          headerEndContent={
+            <>
+              {/* Selector de Periodo Desktop - CENTRADO */}
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 w-full max-w-[400px] xl:max-w-[450px]">
+                <PeriodSelector 
+                  selectedPeriod={selectedPeriod} 
+                  onChange={setSelectedPeriod} 
                 />
               </div>
-            </div>
-          </header>
+
+              <div className="flex items-center gap-2 flex-1 justify-end">
+                {/* Selector de Periodo Mobile */}
+                <PeriodDropdown
+                  selectedPeriod={selectedPeriod}
+                  onChange={setSelectedPeriod}
+                  options={['Semana', 'Mes', '3 Meses', '6 Meses', 'Año']}
+                  className="md:hidden"
+                />
+
+                <div className="relative z-20">
+                  <IconButton 
+                    icon={<Bell className="w-5 h-5 md:w-6 md:h-6 text-inmo-secondary dark:text-white" strokeWidth={2} />} 
+                    variant="secondary"
+                    className="relative shrink-0 md:!w-12 md:!h-12 md:bg-white md:dark:bg-inmo-darkcard shadow-soft"
+                    onClick={() => console.log('Notificaciones Admin')}
+                  />
+                </div>
+              </div>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-3 md:gap-4 h-full w-full animate-in fade-in">
 
           {/* 2. KPIs Unificados */}
           <div className="grid grid-cols-12 md:grid-cols-[2fr_2fr_2fr_1fr] gap-3 md:gap-4 shrink-0 mt-2 relative z-0">
@@ -556,7 +554,8 @@ export const AdminOverview: React.FC = () => {
 
           </div>
           
-        </div>
+          </div>
+        </ModuleLayout>
       }
     />
   );

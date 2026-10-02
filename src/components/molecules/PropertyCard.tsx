@@ -18,6 +18,7 @@ export interface PropertyCardProps {
   onToggleFavorite?: () => void;
   onClick?: () => void;
   variant?: 'standard' | 'asesor';
+  hideFeaturesText?: boolean;
   views?: number;
   messages?: number;
 }
@@ -37,6 +38,7 @@ export const PropertyCard = React.memo(({
   onToggleFavorite,
   onClick,
   variant = 'standard',
+  hideFeaturesText = false,
   views = 0,
   messages = 0
 }: PropertyCardProps) => {
@@ -52,10 +54,10 @@ export const PropertyCard = React.memo(({
 
   return (
     <div 
-      className="@container bg-white dark:bg-inmo-darkcard rounded-card p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-inmo-darktertiary/40 cursor-pointer transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.02] flex flex-col w-full"
+      className="@container h-full bg-white dark:bg-inmo-darkcard rounded-card p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-inmo-darktertiary/40 cursor-pointer transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.02] flex flex-col w-full"
       onClick={onClick}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px]">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] shrink-0">
         <img src={image} alt={title} className="object-cover w-full h-full transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
         
         {/* TAGS */}
@@ -86,22 +88,22 @@ export const PropertyCard = React.memo(({
         )}
       </div>
 
-      <div className="pt-4 flex flex-col gap-4">
+      <div className="pt-3 @[300px]:pt-4 flex flex-col flex-1 gap-3 @[300px]:gap-4">
         {/* ROW 1 & 2: TITLE, PRICE & LOCATION */}
-        <div className="flex justify-between items-start gap-3">
-          <div className="flex flex-col gap-1 flex-1">
-            <h3 className="text-lg font-bold font-montserrat text-inmo-secondary dark:text-white leading-tight line-clamp-2 min-h-[2lh]" title={title}>
+        <div className="flex flex-col @[300px]:flex-row @[300px]:justify-between @[300px]:items-start gap-1 @[300px]:gap-3">
+          <div className="flex flex-col gap-1 @[300px]:flex-1 min-w-0">
+            <h3 className="text-base @[300px]:text-lg font-bold font-montserrat text-inmo-secondary dark:text-white leading-tight line-clamp-2" title={title}>
               {title}
             </h3>
-            <div className="flex items-center text-gray-500 dark:text-gray-400">
+            <div className="flex items-center text-gray-500 dark:text-gray-400 min-w-0">
               <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
-              <span className="text-[13px] font-inter line-clamp-1">{location}</span>
+              <span className="text-[13px] font-inter truncate">{location}</span>
             </div>
           </div>
-          <div className="flex flex-col items-end shrink-0">
+          <div className="flex flex-col @[300px]:items-end shrink-0 mt-1 @[300px]:mt-0">
             <div className="flex items-baseline gap-1">
               <span className="text-[15px] font-bold font-montserrat text-inmo-accent">$</span>
-              <span className="text-[22px] font-black font-montserrat text-inmo-secondary dark:text-white tracking-tighter leading-none">
+              <span className="text-[20px] @[300px]:text-[22px] font-black font-montserrat text-inmo-secondary dark:text-white tracking-tighter leading-none">
                 {price.toLocaleString('es-MX')}
               </span>
             </div>
@@ -113,28 +115,28 @@ export const PropertyCard = React.memo(({
         
         {/* ROW 3: FEATURES PILLS */}
         {variant === 'standard' ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-auto pt-2">
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Bed className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
               <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
-                {beds} <span className="hidden @[250px]:inline">Beds</span>
+                {beds} {!hideFeaturesText && <span className="hidden @[250px]:inline">Beds</span>}
               </span>
             </div>
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Bath className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
               <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
-                {baths} <span className="hidden @[250px]:inline">Baths</span>
+                {baths} {!hideFeaturesText && <span className="hidden @[250px]:inline">Baths</span>}
               </span>
             </div>
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Maximize className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
               <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
-                {sqft} <span className="hidden @[250px]:inline">m²</span>
+                {sqft} {!hideFeaturesText && <span className="hidden @[250px]:inline">m²</span>}
               </span>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto pt-2">
             <div className="flex space-x-2 text-gray-500 dark:text-gray-400">
               <div className="flex items-center space-x-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
                 <Eye className="w-4 h-4 text-inmo-accent" strokeWidth={2} />

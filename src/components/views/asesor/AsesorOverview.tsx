@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Heart, TrendingUp, Podium, Home, Building2, MapPin, Briefcase, Activity } from 'lucide-react';
+import { Bell, Heart, TrendingUp, Podium, Home, Building2, MapPin, Briefcase, Activity, DollarSign, Eye, Clock, ArrowUpRight } from 'lucide-react';
 import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { APIProvider, Map } from '@vis.gl/react-google-maps';
 import { BottomSheet } from '../../organisms/BottomSheet';
@@ -34,8 +34,8 @@ export const AsesorOverview: React.FC = () => {
   const currentChartData = generateChartData(selectedPeriod, chartViewMode);
 
   const darkStyles = [
+    { featureType: "all", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { elementType: "geometry", stylers: [{ color: "#212121" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
     { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
     { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#757575" }] },
@@ -47,8 +47,21 @@ export const AsesorOverview: React.FC = () => {
   ];
   
   const lightStyles = [
+    { featureType: "all", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] }
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+    // Silver / Grayscale aesthetic
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#e9e9e9" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] }
   ];
 
   const renderMainContent = () => (
@@ -127,10 +140,11 @@ export const AsesorOverview: React.FC = () => {
       <div className="flex flex-col gap-4 md:gap-6 animate-in fade-in h-full">
 
       {/* 3. KPIs Unificados + Botones Laterales */}
-      <div className={`grid grid-cols-12 ${activeSidePanel !== null ? 'md:grid-cols-[1fr_1fr_1fr_1fr_auto]' : 'md:grid-cols-5'} gap-3 md:gap-4 shrink-0 transition-all duration-500`}>
+      {/* Mobile: 12-col grid | Desktop: flex row so button column can auto-shrink */}
+      <div className="grid grid-cols-12 md:flex md:flex-row gap-3 md:gap-4 shrink-0">
         
         {/* Nuevos Leads */}
-        <div className="col-span-4 md:col-span-1 order-1 md:order-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[100ms] fill-mode-both">
+        <div className="col-span-4 md:flex-1 order-1 md:order-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[100ms] fill-mode-both min-w-0">
           <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
             <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
               <path d="M 0 40 L 0 30 Q 25 15 50 25 T 100 10 L 100 40 Z" fill="currentColor" />
@@ -152,7 +166,7 @@ export const AsesorOverview: React.FC = () => {
         </div>
 
         {/* Mensajes */}
-        <div className="col-span-4 md:col-span-1 order-2 md:order-2 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[200ms] fill-mode-both">
+        <div className="col-span-4 md:flex-1 order-2 md:order-2 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[200ms] fill-mode-both min-w-0">
           <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
             <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
               <path d="M 0 40 L 0 25 Q 30 35 60 20 T 100 5 L 100 40 Z" fill="currentColor" />
@@ -174,50 +188,52 @@ export const AsesorOverview: React.FC = () => {
         </div>
 
         {/* Botones Interactivos Desktop (Stacked on Mobile too) */}
-        <div className={`col-span-4 md:col-span-1 order-3 md:order-5 flex flex-col gap-2 md:gap-3 h-full animate-in fade-in slide-in-from-bottom-4 duration-500 delay-[500ms] fill-mode-both ${activeSidePanel !== null ? '' : 'w-full'}`}>
+        <div className={`col-span-4 order-3 md:order-5 flex flex-col gap-2 md:gap-3 h-full animate-in fade-in slide-in-from-bottom-4 delay-[500ms] fill-mode-both transition-[width,flex,min-width] ease-[cubic-bezier(0.4,0,0.2,1)] duration-500 ${
+          activeSidePanel !== null ? 'md:flex-none md:w-[64px]' : 'md:flex-1 md:min-w-0 delay-500'
+        }`}>
           <button 
             onClick={() => setActiveSidePanel('ranking')}
-            className={`bg-inmo-accent text-white font-inter font-bold overflow-hidden flex flex-col md:flex-row items-center justify-center flex-1 transition-[width,padding,gap,border-radius,opacity] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            className={`bg-inmo-accent text-white font-inter font-bold overflow-hidden flex flex-col md:flex-row items-center justify-center flex-1 rounded-[16px] md:rounded-[20px] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] w-full ${
               activeSidePanel === 'ranking'
                 ? 'opacity-50 cursor-default'
                 : 'shadow-glow hover:bg-red-600 active:scale-95 cursor-pointer hover:scale-[1.02]'
             } ${
               activeSidePanel !== null 
-                ? 'w-full md:w-[56px] rounded-[16px] p-0 gap-0' 
-                : 'rounded-[16px] md:rounded-[20px] gap-1 md:gap-3 px-1 md:px-5 w-full py-2 md:py-0 delay-0'
+                ? 'gap-0 p-0' 
+                : 'gap-1 md:gap-3 px-1 md:px-5 py-2 md:py-0 delay-500'
             }`}
           >
             <Podium className="w-4 h-4 md:w-6 md:h-6 text-white shrink-0" strokeWidth={1.5} />
-            <span className={`font-inter font-medium text-[9px] md:text-sm lg:text-base text-white whitespace-nowrap overflow-hidden transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            <span className={`font-inter font-medium text-[9px] md:text-sm lg:text-base text-white whitespace-nowrap overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
               activeSidePanel !== null 
-                ? 'max-w-0 opacity-0 hidden md:block' 
-                : 'max-w-[120px] opacity-100 delay-[400ms]'
+                ? 'md:max-w-0 md:opacity-0 md:w-0 md:hidden' 
+                : 'max-w-[120px] opacity-100 delay-[800ms]'
             }`}>Ranking</span>
           </button>
 
           <button 
             onClick={() => setActiveSidePanel('portafolio')}
-            className={`font-inter font-bold overflow-hidden flex flex-col md:flex-row items-center justify-center flex-1 bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white shadow-soft transition-[width,padding,gap,border-radius,opacity] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            className={`font-inter font-bold overflow-hidden flex flex-col md:flex-row items-center justify-center flex-1 bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white shadow-soft rounded-[16px] md:rounded-[20px] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] w-full ${
               activeSidePanel === 'portafolio'
                 ? 'opacity-50 cursor-default'
                 : 'hover:bg-gray-100 dark:hover:bg-inmo-darkbg active:scale-95 cursor-pointer hover:scale-[1.02]'
             } ${
               activeSidePanel !== null 
-                ? 'w-full md:w-[56px] rounded-[16px] p-0 gap-0' 
-                : 'rounded-[16px] md:rounded-[20px] gap-1 md:gap-3 px-1 md:px-5 w-full py-2 md:py-0 delay-0'
+                ? 'gap-0 p-0' 
+                : 'gap-1 md:gap-3 px-1 md:px-5 py-2 md:py-0 delay-500'
             }`}
           >
             <Briefcase className="w-4 h-4 md:w-6 md:h-6 shrink-0 text-inmo-secondary dark:text-white" strokeWidth={1.5} />
-            <span className={`font-inter font-medium text-[9px] md:text-sm lg:text-base text-inmo-secondary dark:text-white whitespace-nowrap overflow-hidden transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            <span className={`font-inter font-medium text-[9px] md:text-sm lg:text-base text-inmo-secondary dark:text-white whitespace-nowrap overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
               activeSidePanel !== null 
-                ? 'max-w-0 opacity-0 hidden md:block' 
-                : 'max-w-[120px] opacity-100 delay-[400ms]'
+                ? 'md:max-w-0 md:opacity-0 md:w-0 md:hidden' 
+                : 'max-w-[120px] opacity-100 delay-[800ms]'
             }`}>Portafolio</span>
           </button>
         </div>
 
         {/* Visitas */}
-        <div className="col-span-6 md:col-span-1 order-4 md:order-3 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[300ms] fill-mode-both">
+        <div className="col-span-6 md:flex-1 order-4 md:order-3 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[300ms] fill-mode-both min-w-0">
           <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
             <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
               <path d="M 0 40 L 0 35 Q 20 20 40 25 T 80 15 L 100 5 L 100 40 Z" fill="currentColor" />
@@ -240,7 +256,7 @@ export const AsesorOverview: React.FC = () => {
         </div>
 
         {/* Favoritos */}
-        <div className="col-span-6 md:col-span-1 order-5 md:order-4 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[400ms] fill-mode-both">
+        <div className="col-span-6 md:flex-1 order-5 md:order-4 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-card p-3 md:p-5 shadow-sm flex flex-col items-center justify-center text-center group transition-all duration-300 relative overflow-hidden hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4 delay-[400ms] fill-mode-both min-w-0">
           <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
             <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
               <path d="M 0 40 L 0 5 Q 30 20 60 10 T 100 25 L 100 40 Z" fill="currentColor" />
@@ -495,87 +511,160 @@ export const AsesorOverview: React.FC = () => {
 
     if (activeSidePanel === 'portafolio') {
       return (
-        <div className="flex flex-col gap-3">
-          {/* Card 1: Gauge (Venta vs Renta) */}
-          <div className="bg-white dark:bg-inmo-darkcard rounded-card p-6 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col items-center">
-            <p className="font-inter text-sm font-semibold text-gray-500 dark:text-gray-400 mb-8">Distribución del Inventario</p>
-            
-            <div className="relative w-full max-w-[260px] aspect-[2/1] flex justify-center items-end">
-              <svg viewBox="0 0 100 50" className="absolute top-0 left-0 w-full h-full overflow-visible">
-                <path d="M 5 50 A 45 45 0 0 1 95 50" fill="none" stroke="currentColor" className="text-gray-100 dark:text-gray-800" strokeWidth="10" strokeLinecap="round" />
-                <path d="M 5 50 A 45 45 0 0 1 95 50" fill="none" stroke="currentColor" className="text-inmo-accent" strokeWidth="10" strokeLinecap="round" strokeDasharray="141.37" strokeDashoffset="28.27" /> 
-              </svg>
-              <div className="z-10 flex flex-col items-center mb-1">
-                <span className="font-montserrat font-black text-5xl text-inmo-secondary dark:text-white leading-none">80%</span>
-                <span className="font-inter text-xs font-bold text-inmo-accent mt-2 uppercase tracking-wide">Venta</span>
-              </div>
+        <div className="flex flex-col gap-3 h-full">
+          {/* Card 1: Valor del Portafolio */}
+          <div className="bg-white dark:bg-inmo-darkcard rounded-card p-5 shadow-soft border border-gray-100 dark:border-inmo-darktertiary">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-4 h-4 text-gray-400" />
+              <p className="font-inter text-xs font-bold text-gray-400 uppercase tracking-wider">Valor del Portafolio</p>
             </div>
+            <div className="flex items-baseline gap-2">
+              <span className="font-montserrat font-black text-3xl md:text-4xl text-inmo-secondary dark:text-white">$24.5M</span>
+              <span className="font-inter text-xs font-bold text-inmo-success flex items-center gap-0.5">
+                <ArrowUpRight className="w-3 h-3" />+12%
+              </span>
+            </div>
+            <p className="font-inter text-[11px] text-gray-400 mt-1">15 propiedades activas</p>
+          </div>
+
+          {/* Card 2: Estado de Propiedades */}
+          <div className="bg-white dark:bg-inmo-darkcard rounded-card p-5 shadow-soft border border-gray-100 dark:border-inmo-darktertiary">
+            <p className="font-inter text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Estado de Propiedades</p>
             
-            <div className="w-full flex justify-between items-center mt-8 px-4">
-              <div className="flex flex-col items-center">
-                <span className="font-montserrat font-bold text-xl text-inmo-secondary dark:text-white">12</span>
-                <span className="font-inter text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Activas Hoy</span>
+            {/* Progress bar */}
+            <div className="w-full h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden flex mb-3">
+              <div className="h-full bg-inmo-success rounded-l-full" style={{ width: '60%' }} />
+              <div className="h-full bg-inmo-warning" style={{ width: '20%' }} />
+              <div className="h-full bg-gray-300 dark:bg-gray-600 rounded-r-full" style={{ width: '20%' }} />
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-inmo-success" />
+                  <span className="font-inter text-sm text-inmo-secondary dark:text-white">Activas</span>
+                </div>
+                <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">12</span>
               </div>
-              <div className="flex flex-col items-center">
-                <span className="font-montserrat font-bold text-xl text-gray-400 dark:text-gray-500">15</span>
-                <span className="font-inter text-[10px] font-semibold text-gray-300 dark:text-gray-600 uppercase tracking-wider">Meta</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-inmo-warning" />
+                  <span className="font-inter text-sm text-inmo-secondary dark:text-white">Pausadas</span>
+                </div>
+                <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">3</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  <span className="font-inter text-sm text-inmo-secondary dark:text-white">Borradores</span>
+                </div>
+                <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">3</span>
               </div>
             </div>
           </div>
 
-          {/* Cards 2 & 3: Sparklines */}
-          <div className="grid grid-cols-2 gap-3 mt-1">
-            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-4 md:p-5 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col justify-center relative overflow-hidden">
-              <p className="font-inter text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Activas</p>
-              <div className="flex items-center justify-between w-full">
-                <span className="font-montserrat font-black text-3xl md:text-4xl text-inmo-secondary dark:text-white">12</span>
-                <div className="flex-1 ml-3 relative h-14 md:h-16 flex items-center justify-center">
-                  <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
-                    <path d="M 0 25 C 20 25, 30 10, 50 15 C 70 20, 80 5, 100 10" fill="none" stroke="currentColor" className="text-inmo-success" strokeWidth="3" strokeLinecap="round" />
-                  </svg>
-                  <span className="absolute -top-4 right-0 font-inter text-[9px] font-bold text-inmo-success">+15%</span>
-                </div>
+          {/* Cards 3 & 4: Mini KPIs */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Eye className="w-3.5 h-3.5 text-gray-400" />
+                <p className="font-inter text-[10px] font-bold text-gray-400 uppercase tracking-wider">Visitas / sem</p>
               </div>
+              <span className="font-montserrat font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white">847</span>
+              <span className="font-inter text-[10px] font-bold text-inmo-success mt-1 flex items-center gap-0.5">
+                <ArrowUpRight className="w-2.5 h-2.5" />+23%
+              </span>
             </div>
 
-            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-4 md:p-5 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col justify-center relative overflow-hidden">
-              <p className="font-inter text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Pausadas</p>
-              <div className="flex items-center justify-between w-full">
-                <span className="font-montserrat font-black text-3xl md:text-4xl text-inmo-secondary dark:text-white">3</span>
-                <div className="flex-1 ml-3 relative h-14 md:h-16 flex items-center justify-center">
-                  <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
-                    <path d="M 0 15 C 20 20, 40 10, 60 25 C 80 15, 90 25, 100 5" fill="none" stroke="currentColor" className="text-inmo-info" strokeWidth="3" strokeLinecap="round" />
-                  </svg>
-                  <span className="absolute -top-4 right-0 font-inter text-[9px] font-bold text-inmo-info">-2%</span>
-                </div>
+            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <p className="font-inter text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tiempo prom.</p>
               </div>
+              <span className="font-montserrat font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white">18d</span>
+              <span className="font-inter text-[10px] text-gray-400 mt-1">en el mercado</span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 mt-1">
-            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-5 border border-gray-100 dark:border-inmo-darktertiary shadow-soft flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-inmo-info/10 flex items-center justify-center text-inmo-info"><Home className="w-5 h-5"/></div>
-                  <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Casas</span>
-                </div>
-                <span className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">8</span>
+          {/* Card 5: Desglose por Tipo — 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-3 flex-1 min-h-[220px]">
+            {/* Casas */}
+            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-3 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col items-center justify-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+                <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+                  <path d="M 0 40 L 0 30 Q 25 15 50 25 T 100 10 L 100 40 Z" fill="currentColor" />
+                  <path d="M 0 30 Q 25 15 50 25 T 100 10" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
               </div>
-              <div className="w-full h-px bg-gray-50 dark:bg-inmo-darktertiary"></div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-inmo-accent/10 flex items-center justify-center text-inmo-accent"><Building2 className="w-5 h-5"/></div>
-                  <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Departamentos</span>
-                </div>
-                <span className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">5</span>
+              <div className="flex items-center gap-1.5 justify-center relative z-10 mb-1">
+                <span className="font-inter text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Casas</span>
+                <Home className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
               </div>
-              <div className="w-full h-px bg-gray-50 dark:bg-inmo-darktertiary"></div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-inmo-success/10 flex items-center justify-center text-inmo-success"><MapPin className="w-5 h-5"/></div>
-                  <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Terrenos</span>
+              <span className="font-montserrat font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white relative z-10">8</span>
+              <div className="mt-1 flex justify-center w-full relative z-10">
+                <div className="px-1.5 py-0.5 rounded bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center gap-1">
+                  <span className="font-inter text-[9px] font-bold">$14.2M</span>
                 </div>
-                <span className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">2</span>
+              </div>
+            </div>
+
+            {/* Deptos */}
+            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-3 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col items-center justify-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+                <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+                  <path d="M 0 40 L 0 25 Q 30 35 60 20 T 100 5 L 100 40 Z" fill="currentColor" />
+                  <path d="M 0 25 Q 30 35 60 20 T 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+              <div className="flex items-center gap-1.5 justify-center relative z-10 mb-1">
+                <span className="font-inter text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Deptos</span>
+                <Building2 className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
+              </div>
+              <span className="font-montserrat font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white relative z-10">5</span>
+              <div className="mt-1 flex justify-center w-full relative z-10">
+                <div className="px-1.5 py-0.5 rounded bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center gap-1">
+                  <span className="font-inter text-[9px] font-bold">$8.1M</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Terrenos */}
+            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-3 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col items-center justify-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+                <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+                  <path d="M 0 40 L 0 35 Q 20 20 40 25 T 80 15 L 100 5 L 100 40 Z" fill="currentColor" />
+                  <path d="M 0 35 Q 20 20 40 25 T 80 15 L 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+              <div className="flex items-center gap-1.5 justify-center relative z-10 mb-1">
+                <span className="font-inter text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Terrenos</span>
+                <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
+              </div>
+              <span className="font-montserrat font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white relative z-10">2</span>
+              <div className="mt-1 flex justify-center w-full relative z-10">
+                <div className="px-1.5 py-0.5 rounded bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center gap-1">
+                  <span className="font-inter text-[9px] font-bold">$2.2M</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Comercial */}
+            <div className="bg-white dark:bg-inmo-darkcard rounded-card p-3 shadow-soft border border-gray-100 dark:border-inmo-darktertiary flex flex-col items-center justify-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+                <svg viewBox="0 0 100 40" className="w-full h-full text-inmo-secondary dark:text-white" preserveAspectRatio="none">
+                  <path d="M 0 40 L 0 5 Q 30 20 60 10 T 100 25 L 100 40 Z" fill="currentColor" />
+                  <path d="M 0 5 Q 30 20 60 10 T 100 25" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+              <div className="flex items-center gap-1.5 justify-center relative z-10 mb-1">
+                <span className="font-inter text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Comercial</span>
+                <Briefcase className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
+              </div>
+              <span className="font-montserrat font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white relative z-10">3</span>
+              <div className="mt-1 flex justify-center w-full relative z-10">
+                <div className="px-1.5 py-0.5 rounded bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center gap-1">
+                  <span className="font-inter text-[9px] font-bold">$4.8M</span>
+                </div>
               </div>
             </div>
           </div>

@@ -25,8 +25,7 @@ export const MainLayout: React.FC = () => {
     activeRoute = activeRoute.slice(0, -1);
   }
 
-  // Configuración especial por vista (Full screen layouts sin scroll global)
-  const isFullScreenLayout = ['map', 'home', 'asesor', 'asesor/propiedades', 'admin', 'messages', 'asesor/mensajes', 'favorites'].includes(activeRoute);
+  const isFullScreenLayout = ['map', 'home', 'asesor', 'asesor/propiedades', 'admin', 'admin/asesores', 'admin/moderacion', 'messages', 'asesor/mensajes', 'favorites'].includes(activeRoute);
 
   return (
     <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden">

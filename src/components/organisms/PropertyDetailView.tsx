@@ -5,6 +5,7 @@ import { IconButton } from '../atoms/IconButton';
 import { Button } from '../atoms/Button';
 import { useAppContext } from '../../context/AppContext';
 import { AsesorInlineProfile } from './AsesorInlineProfile';
+import { PropertyMiniMap } from '../molecules/PropertyMiniMap';
 
 export interface PropertyDetailViewProps {
   property: {
@@ -16,6 +17,8 @@ export interface PropertyDetailViewProps {
     beds: number;
     baths: number;
     sqft: number;
+    lat?: number;
+    lng?: number;
     tags: { text: string; variant: 'venta' | 'renta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' }[];
   };
   layout?: 'vertical' | 'horizontal';
@@ -159,10 +162,16 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
             </div>
             {/* Full width Map (Expands to fill space) */}
             <div className="w-full flex-1 min-h-[120px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink">
-               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-50" />
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-inmo-accent/20 p-2.5 rounded-full">
-                 <div className="w-4 h-4 bg-inmo-accent rounded-full border-[3px] border-white shadow-lg" />
-               </div>
+              {property.lat && property.lng ? (
+                <PropertyMiniMap lat={property.lat} lng={property.lng} propertyType={property.type} />
+              ) : (
+                <>
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-50" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-inmo-accent/20 p-2.5 rounded-full">
+                    <div className="w-4 h-4 bg-inmo-accent rounded-full border-[3px] border-white shadow-lg" />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -283,10 +292,16 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
           
           {/* Full width Map */}
           <div className="w-full h-[140px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0">
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-50" />
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-inmo-accent/20 p-2.5 rounded-full">
-               <div className="w-4 h-4 bg-inmo-accent rounded-full border-[3px] border-white shadow-lg" />
-             </div>
+            {property.lat && property.lng ? (
+              <PropertyMiniMap lat={property.lat} lng={property.lng} propertyType={property.type} />
+            ) : (
+              <>
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-50" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-inmo-accent/20 p-2.5 rounded-full">
+                  <div className="w-4 h-4 bg-inmo-accent rounded-full border-[3px] border-white shadow-lg" />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Description */}
@@ -350,3 +365,4 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
     </div>
   );
 }
+

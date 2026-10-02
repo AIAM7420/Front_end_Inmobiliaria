@@ -10,6 +10,7 @@ interface BottomSheetProps {
   title?: string | React.ReactNode;
   noPadding?: boolean;
   isHero?: boolean;
+  hideCloseButton?: boolean;
   heightMode?: 'content' | 'fixed-75' | 'fixed-85';
   defaultExpanded?: boolean;
   fullHeight?: boolean;
@@ -24,6 +25,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   defaultExpanded = false,
   noPadding = false,
   isHero = false,
+  hideCloseButton = false,
   heightMode = 'fixed-85',
   fullHeight = false
 }) => {
@@ -174,7 +176,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             </div>
           )}
 
-          {isExpanded && (
+          {isExpanded && !hideCloseButton && (
             <div className={`absolute right-4 z-50 ${isHero ? 'top-4' : 'top-3'} animate-in fade-in zoom-in duration-300`}>
               <IconButton
                 onClick={(e) => {

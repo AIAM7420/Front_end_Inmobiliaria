@@ -18,6 +18,8 @@ const PublicProfile = lazy(() => import('./components/templates/PublicProfileTem
 const AsesorProfile = lazy(() => import('./components/templates/AsesorProfileTemplate').then(m => ({ default: m.AsesorProfileTemplate })));
 const AdminProfile = lazy(() => import('./components/templates/AdminProfileTemplate').then(m => ({ default: m.AdminProfileTemplate })));
 const AsesorPublicProfile = lazy(() => import('./components/templates/AsesorPublicProfileTemplate').then(m => ({ default: m.AsesorPublicProfileTemplate })));
+const AdminUsersView = lazy(() => import('./components/views/admin/AdminUsersView').then(m => ({ default: m.AdminUsersView })));
+const AdminPublicationsView = lazy(() => import('./components/views/admin/AdminPublicationsView').then(m => ({ default: m.AdminPublicationsView })));
 
 // Guardia para proteger rutas según el rol
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -142,6 +144,16 @@ function AppRoutes() {
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/asesores" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminUsersView />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/moderacion" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminPublicationsView />
               </ProtectedRoute>
             } />
             

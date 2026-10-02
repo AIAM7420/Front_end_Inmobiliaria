@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Sun, Moon, MoreVertical, LogOut, Crown, Search, SlidersHorizontal } from 'lucide-react';
+import { User, Sun, Moon, MoreVertical, LogOut, Crown, Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '../atoms/Button';
 import { IconButton } from '../atoms/IconButton';
 import { SearchBar } from '../molecules/SearchBar';
@@ -310,8 +310,8 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
             }`}
           >
             <div className="p-4 border-b border-gray-100 dark:border-inmo-darktertiary flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-inmo-accent/10 flex items-center justify-center text-inmo-accent font-bold">
-                {userInitials}
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-inmo-darktertiary flex items-center justify-center text-white dark:text-gray-400 font-bold">
+                <User className="w-6 h-6 text-white dark:text-gray-400" strokeWidth={1.5} />
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-montserrat font-bold text-inmo-secondary dark:text-white">{userName}</span>

@@ -5,12 +5,14 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   leftIcon?: React.ReactNode;
   error?: string;
   wrapperClassName?: string;
+  containerClassName?: string;
 }
 
 export const Textarea: React.FC<TextareaProps> = ({
   leftIcon,
   error,
   wrapperClassName = '',
+  containerClassName = '',
   className = '',
   ...props
 }) => {
@@ -24,7 +26,7 @@ export const Textarea: React.FC<TextareaProps> = ({
     : "text-inmo-secondary dark:text-white placeholder-gray-400";
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className={`flex flex-col gap-2 w-full ${containerClassName}`}>
       <label className={`${baseWrapperStyles} ${errorWrapperStyles} ${wrapperClassName}`}>
         {leftIcon && <div className="shrink-0 mt-1">{leftIcon}</div>}
         

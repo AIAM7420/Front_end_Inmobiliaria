@@ -33,6 +33,7 @@ export interface ModuleLayoutProps {
 
   // Prevent default scroll behavior to allow children to handle their own scroll
   noScroll?: boolean;
+  noBottomPadding?: boolean;
   
   children: React.ReactNode;
 }
@@ -55,6 +56,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
   headerEndContent,
   controlsMaxWidthClass = '',
   noScroll = false,
+  noBottomPadding = false,
   children
 }) => {
   return (
@@ -64,7 +66,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
       {/* Title Area */}
       <div className="mt-2 mb-6 w-full flex justify-between items-start md:items-center relative">
         <div className="flex flex-col">
-          <h1 className="font-montserrat font-bold text-3xl text-inmo-secondary dark:text-white mb-2">{title}</h1>
+          <h1 className="font-montserrat font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white mb-2">{title}</h1>
           {subtitle && (
             <p className="text-gray-500 font-inter text-sm">
               {subtitle}
@@ -146,7 +148,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
         onScroll={(e) => {
           window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
         }}
-        className={`flex-1 min-h-0 h-full relative overflow-x-hidden ${noScroll ? 'flex flex-col overflow-hidden' : 'overflow-y-auto max-md:hide-scrollbar pb-32 md:pb-6'} p-2 -m-2`}
+        className={`flex-1 min-h-0 h-full relative overflow-x-hidden ${noScroll ? 'flex flex-col overflow-hidden' : `overflow-y-auto max-md:hide-scrollbar ${noBottomPadding ? 'pb-24 md:pb-6' : 'pb-32 md:pb-6'}`} p-2 -m-2`}
       >
         {children}
       </div>

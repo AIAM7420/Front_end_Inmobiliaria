@@ -75,8 +75,8 @@ export const AsesorSubscription: React.FC = () => {
       description: 'Cada 1 mes · Hasta 10 propiedades',
       monthlyPrice: '500',
       annualPrice: '500',
-      features: [],
-      notIncluded: [],
+      features: ['Hasta 10 propiedades', 'Soporte estándar', 'Estadísticas básicas'],
+      notIncluded: ['Destacar propiedades', 'Herramientas IA'],
       stripePriceIdMonthly: 'price_monthly_basic',
       stripePriceIdAnnual: null,
     },
@@ -87,8 +87,8 @@ export const AsesorSubscription: React.FC = () => {
       description: 'Cada 1 mes · Hasta 15 propiedades',
       monthlyPrice: '800',
       annualPrice: '800',
-      features: [],
-      notIncluded: [],
+      features: ['Hasta 15 propiedades', 'Soporte prioritario', 'Estadísticas avanzadas', 'Destacar 3 propiedades'],
+      notIncluded: ['Herramientas IA'],
       stripePriceIdMonthly: 'price_monthly_pro',
       stripePriceIdAnnual: null,
     },
@@ -99,7 +99,7 @@ export const AsesorSubscription: React.FC = () => {
       description: 'Cada 1 mes · Hasta 20 propiedades',
       monthlyPrice: '1,000',
       annualPrice: '1,000',
-      features: [],
+      features: ['Hasta 20 propiedades', 'Soporte 24/7', 'Estadísticas avanzadas', 'Destacar 10 propiedades', 'Herramientas IA exclusivas'],
       notIncluded: [],
       stripePriceIdMonthly: 'price_monthly_premium',
       stripePriceIdAnnual: null,
@@ -120,79 +120,76 @@ export const AsesorSubscription: React.FC = () => {
   if (step === 'checkout-confirmation' && selectedPlan) {
     const price = selectedPlan.monthlyPrice;
     return (
-      <div className="h-full overflow-y-auto flex flex-col items-center py-12 px-6 md:px-8 animate-in fade-in zoom-in-95 duration-500 w-full">
+      <div className="flex flex-col gap-6 pb-8 animate-in fade-in zoom-in-95 duration-300 px-6 mt-8">
         
-        {/* Security badge / Lock */}
-        <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-6">
-          <Shield className="w-8 h-8 text-green-500" />
+        {/* Header */}
+        <div>
+          <button onClick={() => setStep('plans')} className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-inmo-secondary dark:hover:text-white transition-colors mb-6">
+            <ArrowRight className="w-4 h-4 rotate-180" /> Volver a planes
+          </button>
+          <h3 className="font-montserrat font-bold text-xl text-inmo-secondary dark:text-white mb-2">Completar Suscripción</h3>
+          <p className="font-inter text-sm text-gray-500 dark:text-gray-400">Estás a un paso de actualizar tu plan. Revisa tu orden antes de proceder al pago seguro.</p>
         </div>
 
-        <h2 className="font-montserrat font-black text-2xl text-inmo-secondary dark:text-white mb-2 text-center">
-          Completar Suscripción
-        </h2>
-        <p className="font-inter text-sm text-gray-500 dark:text-gray-400 text-center mb-8 max-w-md">
-          Estás a un paso de actualizar tu plan. Serás redirigido a la pasarela segura de Stripe para procesar tu pago.
-        </p>
-
         {/* Receipt Card */}
-        <div className="bg-white dark:bg-inmo-darkcard rounded-3xl p-6 md:p-8 shadow-soft border border-gray-100 dark:border-white/5 w-full max-w-md mb-8">
-          <h3 className="font-inter font-bold text-gray-400 text-xs uppercase tracking-wider mb-4">Resumen de Orden</h3>
-          
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <p className="font-bold text-inmo-secondary dark:text-white text-lg">Plan {selectedPlan.name}</p>
-              <p className="text-sm text-gray-500">Facturación cada 1 mes</p>
+        <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="text-inmo-accent shrink-0">
+                {selectedPlan.icon}
+              </div>
+              <div>
+                <p className="font-bold text-sm text-inmo-secondary dark:text-white">Plan {selectedPlan.name}</p>
+                <p className="text-xs text-gray-400">Ciclo de facturación mensual</p>
+              </div>
             </div>
-            <span className="font-montserrat font-black text-xl text-inmo-secondary dark:text-white">
+            <span className="font-montserrat font-black text-lg text-inmo-secondary dark:text-white">
               ${price}
             </span>
           </div>
 
-          <div className="w-full h-px bg-gray-100 dark:bg-white/5 my-4" />
+          <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
 
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-500">Subtotal</span>
-            <span className="font-medium text-inmo-secondary dark:text-white">${price} MXN</span>
-          </div>
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-sm text-gray-500">Impuestos</span>
-            <span className="text-sm text-gray-400">Calculado en checkout</span>
+          <div className="p-4 flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-500">Subtotal</span>
+              <span className="font-medium text-inmo-secondary dark:text-white">${price} MXN</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-500">Impuestos</span>
+              <span className="text-sm text-gray-400">Se calculan en Stripe</span>
+            </div>
           </div>
 
-          <div className="bg-gray-50 dark:bg-inmo-darkbg rounded-xl p-4 flex justify-between items-center">
-            <span className="font-bold text-inmo-secondary dark:text-white">Total a pagar</span>
+          <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+
+          <div className="p-4 bg-gray-50 dark:bg-inmo-darkbg/50 flex justify-between items-center">
+            <span className="font-bold text-xs text-gray-400 uppercase tracking-wider">Total a pagar</span>
             <span className="font-montserrat font-black text-2xl text-inmo-accent">
-              ${price} <span className="text-sm font-bold">MXN</span>
+              ${price} <span className="text-sm font-bold text-inmo-accent">MXN</span>
             </span>
           </div>
         </div>
 
-        {/* Action */}
-        <div className="w-full max-w-md flex flex-col gap-4">
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-2">
+          <div className="flex items-center gap-2 opacity-70 order-2 sm:order-1 self-start sm:self-center">
+            <Shield className="w-4 h-4 text-gray-500" />
+            <span className="font-inter text-xs text-gray-500 font-medium tracking-wide">PAGOS SEGUROS POR</span>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" className="h-[18px] w-auto grayscale dark:grayscale-0 dark:invert ml-1" />
+          </div>
+          
           <Button 
             variant="accent"
-            className="w-full justify-center !py-4 text-base !rounded-xl font-bold"
+            className="w-full sm:w-auto justify-center !py-3 !px-8 order-1 sm:order-2"
             onClick={confirmCheckout}
             isLoading={isRedirecting}
-            icon={!isRedirecting ? <ExternalLink className="w-5 h-5" /> : undefined}
+            icon={!isRedirecting ? <ExternalLink className="w-4 h-4" /> : undefined}
           >
-            {isRedirecting ? 'Conectando con Stripe...' : 'Pagar de forma segura'}
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-center text-gray-500"
-            onClick={() => setStep('plans')}
-            disabled={isRedirecting}
-          >
-            Cancelar y volver a planes
+            {isRedirecting ? 'Conectando...' : 'Proceder al pago'}
           </Button>
         </div>
 
-        {/* Trust Badges */}
-        <div className="mt-8 flex items-center gap-2 opacity-50">
-          <Shield className="w-4 h-4 text-gray-500" />
-          <span className="font-inter text-xs text-gray-500 font-medium tracking-wide">PAGOS SEGUROS ENCRIPTADOS POR STRIPE</span>
-        </div>
       </div>
     );
   }
@@ -200,7 +197,7 @@ export const AsesorSubscription: React.FC = () => {
   // ─── STEP: Plans Selection ─────────────────────────────────────
   if (step === 'plans') {
     return (
-      <div className="h-full overflow-y-auto flex flex-col gap-8 w-full pb-24 px-6 md:px-8 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col gap-8 w-full pb-24 px-6 md:px-8 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Back */}
         <button onClick={() => setStep('overview')} className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-inmo-secondary dark:hover:text-white transition-colors self-start">
@@ -242,8 +239,24 @@ export const AsesorSubscription: React.FC = () => {
                   </span>
                 </div>
                 
-                <p className="font-inter text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{plan.description}</p>
+                                <p className="font-inter text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">{plan.description}</p>
                 
+                {/* Features */}
+                <div className="flex flex-col gap-3 mb-8">
+                  {plan.features.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-inmo-accent shrink-0 mt-0.5" />
+                      <span className="font-inter text-sm text-gray-600 dark:text-gray-300">{feature}</span>
+                    </div>
+                  ))}
+                  {plan.notIncluded.map((feature, idx) => (
+                    <div key={'not-'+idx} className="flex items-start gap-2 opacity-50">
+                      <X className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                      <span className="font-inter text-sm text-gray-500 dark:text-gray-400 line-through">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
                 {/* CTA */}
                 <div className="mt-auto">
                   <Button 
@@ -293,157 +306,82 @@ export const AsesorSubscription: React.FC = () => {
 
   // ─── STEP: Overview (Default) ──────────────────────────────────
   return (
-    <div className="h-full overflow-y-auto flex flex-col gap-8 w-full pb-24 px-6 md:px-8 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex flex-col gap-6 pb-8 animate-in fade-in zoom-in-95 duration-300 px-6 mt-8">
       
-      {/* ── Plan Actual Header ── */}
-      <section className="flex flex-col gap-5">
-        <div className="flex items-start justify-between gap-4">
+      <div>
+        <h3 className="font-montserrat font-bold text-xl text-inmo-secondary dark:text-white mb-2">Suscripción</h3>
+        <p className="font-inter text-sm text-gray-500 dark:text-gray-400">Gestiona tu plan actual y mejora tus límites.</p>
+      </div>
+
+      {/* ── Plan Actual Card ── */}
+      <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+        <div className="flex items-center justify-between p-4">
           <div className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-bold text-xs border border-green-200 dark:border-green-800 w-fit">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Activo
-            </span>
-            <h2 className="font-montserrat font-black text-3xl text-inmo-secondary dark:text-white mt-2">
+            <h4 className="font-bold text-lg text-inmo-secondary dark:text-white flex items-center gap-2">
               Plan Básico
-            </h2>
-            <p className="font-inter text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              Plan gratuito con límites en propiedades y leads.
-            </p>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-bold text-[10px] uppercase tracking-wider border border-green-200 dark:border-green-800">
+                <CheckCircle2 className="w-3 h-3" /> Activo
+              </span>
+            </h4>
+            <p className="text-xs text-gray-400">Plan gratuito con límites en propiedades y leads.</p>
           </div>
-          <Button 
-            variant="ghost" 
-            onClick={handleStripePortal}
-            icon={<CreditCard className="w-4 h-4" />}
-            className="!px-3 !py-2 !text-xs !rounded-xl shrink-0"
-          >
-            Facturación
-          </Button>
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-inmo-darkbg px-3 py-1 rounded-lg">Mensual</span>
         </div>
-
-        {/* Renewal info */}
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-inmo-darkcard rounded-xl border border-gray-100 dark:border-white/5">
-          <span className="font-inter text-xs text-gray-500 dark:text-gray-400">
-            Renovación: <span className="font-bold text-inmo-secondary dark:text-white">{usage.renewalDate}</span>
-          </span>
-        </div>
-      </section>
-
-      {/* ── Consumo ── */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Propiedades */}
-        <div className="bg-white dark:bg-inmo-darkcard rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-white/5 flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <Building2 className="w-6 h-6 text-gray-400" />
-              <div>
-                <span className="font-inter font-bold text-sm text-inmo-secondary dark:text-white block leading-tight">Propiedades</span>
-                <span className="font-inter text-[11px] text-gray-400">Publicaciones activas</span>
+        <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Building2 className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <div className="flex flex-col">
+              <p className="font-bold text-sm text-inmo-secondary dark:text-white">Propiedades ({usage.properties.used}/{usage.properties.limit})</p>
+              <div className="w-32 h-1.5 bg-gray-100 dark:bg-inmo-darktertiary rounded-full mt-1.5 overflow-hidden">
+                <div className="h-full bg-inmo-accent rounded-full" style={{ width: `${propertiesPercent}%` }} />
               </div>
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-montserrat font-black text-2xl text-inmo-secondary dark:text-white leading-none">{usage.properties.used}</span>
-              <span className="font-inter font-semibold text-sm text-gray-400">de {usage.properties.limit}</span>
-            </div>
-          </div>
-          <div className="w-full bg-gray-100 dark:bg-white/10 rounded-full h-2.5 overflow-hidden">
-            <div 
-              className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${propertiesPercent >= 80 ? 'bg-inmo-accent' : 'bg-inmo-accent/70'}`} 
-              style={{ width: `${propertiesPercent}%` }} 
-            />
           </div>
           {propertiesPercent >= 80 && (
-            <p className="font-inter text-xs text-inmo-accent mt-2.5 font-medium">
-              ⚠ Te queda {usage.properties.limit - usage.properties.used} propiedad disponible
-            </p>
+            <span className="text-xs font-bold text-inmo-accent">⚠ {usage.properties.limit - usage.properties.used} restantes</span>
           )}
         </div>
-
-        {/* Leads */}
-        <div className="bg-white dark:bg-inmo-darkcard rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-white/5 flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <Users className="w-6 h-6 text-gray-400" />
-              <div>
-                <span className="font-inter font-bold text-sm text-inmo-secondary dark:text-white block leading-tight">Leads</span>
-                <span className="font-inter text-[11px] text-gray-400">Contactados este mes</span>
+        <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Users className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <div className="flex flex-col">
+              <p className="font-bold text-sm text-inmo-secondary dark:text-white">Leads ({usage.leads.used}/{usage.leads.limit})</p>
+              <div className="w-32 h-1.5 bg-gray-100 dark:bg-inmo-darktertiary rounded-full mt-1.5 overflow-hidden">
+                <div className="h-full bg-inmo-accent rounded-full" style={{ width: `${leadsPercent}%` }} />
               </div>
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-montserrat font-black text-2xl text-inmo-secondary dark:text-white leading-none">{usage.leads.used}</span>
-              <span className="font-inter font-semibold text-sm text-gray-400">de {usage.leads.limit}</span>
-            </div>
-          </div>
-          <div className="w-full bg-gray-100 dark:bg-white/10 rounded-full h-2.5 overflow-hidden">
-            <div 
-              className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${leadsPercent >= 80 ? 'bg-inmo-accent' : 'bg-inmo-accent/70'}`}
-              style={{ width: `${leadsPercent}%` }} 
-            />
           </div>
           {leadsPercent >= 80 && (
-            <p className="font-inter text-xs text-inmo-accent mt-2.5 font-medium">
-              ⚠ Te quedan {usage.leads.limit - usage.leads.used} leads disponibles
-            </p>
+            <span className="text-xs font-bold text-inmo-accent">⚠ {usage.leads.limit - usage.leads.used} restantes</span>
           )}
         </div>
-      </section>
+      </div>
 
       {/* ── Upgrade CTA ── */}
-      <section className="bg-inmo-accent rounded-3xl p-8 md:p-10 shadow-glow relative overflow-hidden flex items-center min-h-[140px]">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
-          <div className="flex items-start gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-sm">
-              <Sparkles className="w-7 h-7 text-white" />
-            </div>
-            <div className="pt-1">
-              <h3 className="font-montserrat font-bold text-xl text-white mb-1.5">
-                ¿Necesitas más capacidad?
-              </h3>
-              <p className="font-inter text-sm text-white/90 leading-relaxed max-w-lg">
-                Mejora tu plan para publicar más propiedades, contactar leads ilimitados y acceder a potentes herramientas de IA.
-              </p>
-            </div>
+      <div className="bg-inmo-accent rounded-2xl p-6 shadow-glow relative overflow-hidden flex flex-col gap-4">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="relative z-10 flex items-center gap-4">
+          <Sparkles className="w-8 h-8 text-white shrink-0" />
+          <div>
+            <h3 className="font-montserrat font-bold text-base text-white mb-0.5">
+              ¿Necesitas más capacidad?
+            </h3>
+            <p className="font-inter text-xs text-white/90 leading-relaxed">
+              Sube de nivel para publicar más propiedades y contactar leads ilimitados.
+            </p>
           </div>
-          <Button 
-            variant="secondary" 
-            onClick={() => setStep('plans')}
-            icon={<ArrowRight className="w-5 h-5" />}
-            className="shrink-0 w-full md:w-auto justify-center !py-3 !px-6"
-          >
-            Ver Planes
-          </Button>
         </div>
-      </section>
-
-      {/* ── Billing Quick Actions ── */}
-      <section className="flex flex-col gap-3">
-        <h3 className="font-montserrat font-bold text-sm text-gray-400 uppercase tracking-wider ml-1">Facturación</h3>
-        
-        <div 
-          onClick={handleStripePortal}
-          className="bg-white dark:bg-inmo-darkcard rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-white/5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-all group active:scale-[0.98]"
+        <Button 
+          variant="secondary" 
+          onClick={() => setStep('plans')}
+          icon={<ArrowRight className="w-4 h-4" />}
+          className="w-full sm:w-1/2 self-center justify-center !py-2.5 text-sm"
         >
-          <CreditCard className="w-6 h-6 text-gray-400 group-hover:text-inmo-accent transition-colors shrink-0" />
-          <div className="flex-1">
-            <h4 className="font-inter font-bold text-sm text-inmo-secondary dark:text-white">Método de Pago</h4>
-            <p className="font-inter text-xs text-gray-400">Gestionar tarjetas y métodos de pago en Stripe</p>
-          </div>
-          <ExternalLink className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-inmo-accent transition-colors" />
-        </div>
-
-        <div 
-          onClick={handleStripePortal}
-          className="bg-white dark:bg-inmo-darkcard rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-white/5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-all group active:scale-[0.98]"
-        >
-          <HelpCircle className="w-6 h-6 text-gray-400 group-hover:text-inmo-accent transition-colors shrink-0" />
-          <div className="flex-1">
-            <h4 className="font-inter font-bold text-sm text-inmo-secondary dark:text-white">Historial y Facturas</h4>
-            <p className="font-inter text-xs text-gray-400">Ver recibos y descargar facturas desde Stripe</p>
-          </div>
-          <ExternalLink className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-inmo-accent transition-colors" />
-        </div>
-      </section>
+          Ver Planes y Precios
+        </Button>
+      </div>
 
     </div>
   );

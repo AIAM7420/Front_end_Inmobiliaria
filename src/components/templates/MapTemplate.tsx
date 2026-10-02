@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Globe, Ghost, SlidersHorizontal, Search, MapPin } from 'lucide-react';
 import { APIProvider, Map, Marker, useApiLoadingStatus, APILoadingStatus } from '@vis.gl/react-google-maps';
 import { SearchBar } from '../molecules/SearchBar';
@@ -17,8 +18,9 @@ import { AsesorChat } from '../organisms/AsesorChat';
 import { useAppContext } from '../../context/AppContext';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
 import { LocationTag } from '../molecules/LocationTag';
+import { createSvgIcon, mapStyles } from '../../utils/mapStyles';
 
-import { createPortal } from 'react-dom';
+
 import { useMap } from '@vis.gl/react-google-maps';
 
 export interface MapTemplateProps {}
@@ -74,32 +76,6 @@ const CustomOverlay = ({ position, children, zIndex = 0 }: { position: google.ma
   );
 };
 
-const createSvgIcon = (propertyType: string, zoom: number = 13) => {
-  const bgColor = '%23FA003F';
-  const textColor = '%23FFFFFF';
-  const borderColor = '%23FA003F';
-  
-  let iconPaths = '';
-  if (propertyType === 'casa') {
-    iconPaths = '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>';
-  } else if (propertyType === 'departamento') {
-    iconPaths = '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>';
-  } else if (propertyType === 'terreno') {
-    iconPaths = '<path d="M10 10v.2A3 3 0 0 1 8.9 16v0H5v0h0a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L14 3l-1.4 2.5"/>';
-  } else {
-    iconPaths = '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
-  }
-
-  if (zoom < 12) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="${bgColor}" stroke="${textColor}" stroke-width="2"/></svg>`;
-    return `data:image/svg+xml;charset=UTF-8,${svg}`;
-  }
-  
-  // zoom >= 12 (Icons only)
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35"><rect x="0" y="0" width="35" height="35" rx="17.5" fill="${bgColor}" stroke="${borderColor}" stroke-width="1.25"/><g transform="translate(6, 6) scale(0.9)" fill="none" stroke="${textColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconPaths}</g></svg>`;
-  return `data:image/svg+xml;charset=UTF-8,${svg}`;
-};
-
 const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWireframeMode }: { properties: typeof MOCK_PROPERTIES, onMarkerClick: (id: number) => void, isDarkMode?: boolean, isWireframeMode?: boolean }) => {
   const status = useApiLoadingStatus();
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -125,43 +101,9 @@ const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWirefram
 
   const showOverlay = status !== APILoadingStatus.LOADED || isWireframeMode;
 
-  const lightStyles = [
-    { featureType: "all", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] },
-    // Silver / Grayscale aesthetic
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
-    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#e9e9e9" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] }
-  ];
+  
 
-  const darkStyles = [
-    { elementType: "geometry", stylers: [{ color: "#212121" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
-    { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#757575" }] },
-    { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#2c2c2c" }] },
-    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#8a8a8a" }] },
-    { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#373737" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#3c3c3c" }] },
-    { featureType: "road.highway.controlled_access", elementType: "geometry", stylers: [{ color: "#4e4e4e" }] },
-    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#000000" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#3d3d3d" }] }
-  ];
+  
 
   return (
     <div className="relative w-full h-full bg-gray-100 dark:bg-inmo-darkbg">
@@ -172,7 +114,7 @@ const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWirefram
           onCameraChanged={(ev: any) => setZoom(ev.detail.zoom)}
           disableDefaultUI={true}
           gestureHandling="greedy"
-          styles={isDarkMode ? darkStyles : lightStyles}
+          styles={isDarkMode ? mapStyles.dark : mapStyles.light}
           padding={{ bottom: 100 }}
           className="w-full h-full"
         >
@@ -586,3 +528,10 @@ export const MapTemplate: React.FC<MapTemplateProps> = () => {
     </>
   );
 };
+
+
+
+
+
+
+

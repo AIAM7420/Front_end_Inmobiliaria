@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, User, Mail, Lock, LogOut, Camera, Shield, ChevronRight, Settings, HelpCircle, UserCircle2, Calendar, AlertTriangle, Trash2, FileText, CheckCircle2, AlertCircle, Clock, CreditCard, UploadCloud } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, LogOut, Camera, Shield, ChevronRight, Settings, HelpCircle, UserCircle2, Calendar, AlertTriangle, Trash2, FileText, CheckCircle2, AlertCircle, Clock, CreditCard, UploadCloud, Zap } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 import { Button } from '../atoms/Button';
 import { Input } from '../atoms/Input';
 import { IconButton } from '../atoms/IconButton';
@@ -8,12 +9,17 @@ import { useAppContext } from '../../context/AppContext';
 import { SplitViewLayout } from '../templates/SplitViewLayout';
 import { AsesorSubscription } from '../views/asesor/AsesorSubscription';
 
-type ActiveView = 'root' | 'account' | 'documents' | 'plan' | 'general' | 'security' | 'support' | 'delete';
+type ActiveView = 'root' | 'account' | 'documents' | 'plan' | 'payments' | 'general' | 'security' | 'support' | 'delete';
 
 export const AsesorProfileTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAppContext();
+  const { addToast } = useToast();
+
+  const handleStripePortal = () => {
+    addToast('info', 'Portal Seguro', 'Redirigiendo a Stripe para gestionar tus pagos y facturas...');
+  };
   
   // Extract ?view= from query params
   const searchParams = new URLSearchParams(location.search);
@@ -62,42 +68,38 @@ export const AsesorProfileTemplate = () => {
     switch (viewToRender) {
       case 'account':
         return (
-          <div className="flex flex-col gap-8 pb-8 animate-in fade-in zoom-in-95 duration-300">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center justify-center space-y-4 mt-8">
-              <div className="relative cursor-pointer group">
-                <div className="w-32 h-32 rounded-full bg-inmo-secondary flex items-center justify-center overflow-hidden border-4 border-white dark:border-inmo-darkbg">
-                  <span className="text-4xl font-montserrat font-bold text-white">RE</span>
+          <div className="flex flex-col gap-6 pb-8 animate-in fade-in zoom-in-95 duration-300 px-6 mt-8">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="relative w-28 h-28 cursor-pointer group shrink-0">
+                  <div className="w-full h-full rounded-full bg-gray-300 dark:bg-inmo-darktertiary flex items-center justify-center overflow-hidden border-4 border-gray-50 dark:border-inmo-darkbg">
+                    <User className="w-14 h-14 text-white dark:text-gray-400" strokeWidth={1.5} />
+                  </div>
+                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Camera className="w-8 h-8 text-white" />
+                  </div>
+                  
                 </div>
-                <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Camera className="w-8 h-8 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-inmo-accent text-white flex items-center justify-center border-2 border-white dark:border-inmo-darkbg" title="Agente Verificado">
-                  <Shield className="w-4 h-4" />
-                </div>
-              </div>
-              <Button variant="text" className="!text-inmo-accent font-bold">Cambiar foto de perfil</Button>
+              <Button variant="text" className="!text-inmo-accent font-bold text-sm">Cambiar foto de perfil</Button>
             </div>
 
-            {/* Form */}
-            <div className="flex flex-col gap-5 px-6 mt-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Nombre Comercial</label>
-                <Input leftIcon={<User className="w-6 h-6 text-gray-400" />} defaultValue="Roberto Estate" />
+            <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Nombre Comercial</label>
+                <Input leftIcon={<User className="w-5 h-5 text-gray-400" />} defaultValue="Roberto Estate" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Teléfono de Contacto</label>
-                <Input type="tel" leftIcon={<User className="w-6 h-6 text-gray-400" />} defaultValue="55 1234 5678" />
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Teléfono de Contacto</label>
+                <Input type="tel" leftIcon={<User className="w-5 h-5 text-gray-400" />} defaultValue="55 1234 5678" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Correo Profesional</label>
-                <Input type="email" leftIcon={<Mail className="w-6 h-6 text-gray-400" />} defaultValue="roberto@estate.com" />
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Correo Profesional</label>
+                <Input type="email" leftIcon={<Mail className="w-5 h-5 text-gray-400" />} defaultValue="roberto@estate.com" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
               </div>
             </div>
 
-            <div className="flex justify-center mt-8 px-6">
-              <Button onClick={closeDetail} className="w-full">Guardar Cambios</Button>
-            </div>
+            <Button onClick={closeDetail} className="w-full sm:w-1/3 self-center !py-3">Guardar Cambios</Button>
           </div>
         );
       case 'documents':
@@ -167,9 +169,65 @@ export const AsesorProfileTemplate = () => {
           </div>
         );
       case 'plan':
+        return <AsesorSubscription />;
+      case 'payments':
         return (
-          <div className="h-full overflow-hidden flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300 mt-8">
-            <AsesorSubscription />
+          <div className="flex flex-col gap-6 pb-8 animate-in fade-in zoom-in-95 duration-300 px-6 mt-8">
+            <div>
+              <h3 className="font-montserrat font-bold text-xl text-inmo-secondary dark:text-white mb-2">Métodos de Pago</h3>
+              <p className="font-inter text-sm text-gray-500 dark:text-gray-400">Gestiona tus tarjetas y métodos de pago.</p>
+            </div>
+
+            {/* Current Payment Method */}
+            <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Tarjeta Principal</p>
+                    <p className="text-xs text-gray-400">•••• •••• •••• 4242 · Visa</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-2.5 py-1 rounded-lg">Activa</span>
+              </div>
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Vencimiento</p>
+                    <p className="text-xs text-gray-400">Expira en diciembre 2028</p>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-inmo-darkbg px-3 py-1 rounded-lg">12/28</span>
+              </div>
+              
+            </div>
+
+            {/* Billing History */}
+            <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div onClick={handleStripePortal} className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-inmo-darktertiary transition-colors group"><div className="flex items-center gap-3"><FileText className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-inmo-accent transition-colors" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Historial de Facturas</p>
+                    <p className="text-xs text-gray-400">Ver recibos y descargar facturas</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />
+              </div>
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-inmo-darktertiary transition-colors group">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-inmo-accent transition-colors" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Portal de Facturación</p>
+                    <p className="text-xs text-gray-400">Gestionar pagos directamente en Stripe</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />
+              </div>
+            </div>
+
+            <Button variant="accent" className="w-full sm:w-1/3 self-center !py-3 !rounded-full" onClick={handleStripePortal}>Agregar Método de Pago</Button>
           </div>
         );
       case 'security':
@@ -179,21 +237,23 @@ export const AsesorProfileTemplate = () => {
               <h3 className="font-montserrat font-bold text-xl text-inmo-secondary dark:text-white mb-2">Seguridad</h3>
               <p className="font-inter text-sm text-gray-500 dark:text-gray-400">Actualiza tu contraseña para mantener tu cuenta protegida.</p>
             </div>
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Contraseña Actual</label>
-                <Input type="password" leftIcon={<Lock className="w-6 h-6 text-gray-400" />} placeholder="••••••••" />
+            <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contraseña Actual</label>
+                <Input type="password" leftIcon={<Lock className="w-5 h-5 text-gray-400" />} placeholder="••••••••" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Nueva Contraseña</label>
-                <Input type="password" leftIcon={<Lock className="w-6 h-6 text-gray-400" />} placeholder="••••••••" />
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Nueva Contraseña</label>
+                <Input type="password" leftIcon={<Lock className="w-5 h-5 text-gray-400" />} placeholder="••••••••" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Confirmar Nueva Contraseña</label>
-                <Input type="password" leftIcon={<Lock className="w-6 h-6 text-gray-400" />} placeholder="••••••••" />
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Confirmar Nueva Contraseña</label>
+                <Input type="password" leftIcon={<Lock className="w-5 h-5 text-gray-400" />} placeholder="••••••••" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
               </div>
-              <Button onClick={closeDetail} className="w-full mt-4">Actualizar Contraseña</Button>
             </div>
+            <Button onClick={closeDetail} className="w-full sm:w-1/3 self-center !py-3">Actualizar Contraseña</Button>
           </div>
         );
       case 'general':
@@ -256,42 +316,41 @@ export const AsesorProfileTemplate = () => {
               <h3 className="font-montserrat font-bold text-xl text-inmo-secondary dark:text-white mb-2">Soporte</h3>
               <p className="font-inter text-sm text-gray-500 dark:text-gray-400">¿Necesitas ayuda? Estamos para ti.</p>
             </div>
-
-            {/* Opciones de soporte */}
-            <div className="flex flex-col gap-4">
-              <div className="bg-white dark:bg-inmo-darkcard rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-white/5 flex items-start gap-4 cursor-pointer hover:shadow-md transition-all group">
-                <Mail className="w-6 h-6 text-gray-400 shrink-0 mt-0.5 group-hover:text-inmo-accent transition-colors" />
-                <div className="flex-1">
-                  <h4 className="font-bold text-sm text-inmo-secondary dark:text-white mb-1">Correo Electrónico</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Escríbenos y te respondemos en menos de 24 hrs.</p>
-                  <span className="text-xs font-bold text-inmo-accent mt-2 inline-block">soporte@inmo.mx</span>
+            <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-inmo-darktertiary transition-colors group">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-inmo-accent transition-colors" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Correo Electrónico</p>
+                    <p className="text-xs text-gray-400">soporte@inmo.mx · Respuesta en menos de 24 hrs.</p>
+                  </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0 mt-2" />
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />
               </div>
-
-              <div className="bg-white dark:bg-inmo-darkcard rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-white/5 flex items-start gap-4 cursor-pointer hover:shadow-md transition-all group">
-                <HelpCircle className="w-6 h-6 text-gray-400 shrink-0 mt-0.5 group-hover:text-inmo-accent transition-colors" />
-                <div className="flex-1">
-                  <h4 className="font-bold text-sm text-inmo-secondary dark:text-white mb-1">Centro de Ayuda</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Consulta nuestra documentación, guías y tutoriales.</p>
-                  <span className="text-xs font-bold text-inmo-accent mt-2 inline-block">Abrir Centro de Ayuda →</span>
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-inmo-darktertiary transition-colors group">
+                <div className="flex items-center gap-3">
+                  <HelpCircle className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-inmo-accent transition-colors" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Centro de Ayuda</p>
+                    <p className="text-xs text-gray-400">Documentación, guías y tutoriales.</p>
+                  </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0 mt-2" />
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />
               </div>
-
-              <div className="bg-white dark:bg-inmo-darkcard rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-white/5 flex items-start gap-4 cursor-pointer hover:shadow-md transition-all group">
-                <AlertTriangle className="w-6 h-6 text-gray-400 shrink-0 mt-0.5 group-hover:text-inmo-accent transition-colors" />
-                <div className="flex-1">
-                  <h4 className="font-bold text-sm text-inmo-secondary dark:text-white mb-1">Reportar un Problema</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">¿Algo no funciona? Cuéntanos para solucionarlo rápido.</p>
-                  <span className="text-xs font-bold text-inmo-accent mt-2 inline-block">Crear reporte →</span>
+              <div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />
+              <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-inmo-darktertiary transition-colors group">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-inmo-accent transition-colors" />
+                  <div>
+                    <p className="font-bold text-sm text-inmo-secondary dark:text-white">Reportar un Problema</p>
+                    <p className="text-xs text-gray-400">¿Algo no funciona? Cuéntanos para solucionarlo.</p>
+                  </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0 mt-2" />
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />
               </div>
             </div>
-
-            {/* Versión */}
-            <div className="text-center mt-4">
+            <div className="text-center mt-2">
               <p className="font-inter text-xs text-gray-400">INMO v2.0.0 · Hecho con ❤️ en México</p>
             </div>
           </div>
@@ -317,11 +376,13 @@ export const AsesorProfileTemplate = () => {
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
-              <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-4">Escribe <span className="text-red-500">ELIMINAR</span> para confirmar</label>
-              <Input placeholder="ELIMINAR" />
+            <div className="bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft border border-gray-100 dark:border-white/5 overflow-hidden">
+              <div className="p-4 flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Escribe <span className="text-red-500">ELIMINAR</span> para confirmar</label>
+                <Input placeholder="ELIMINAR" wrapperClassName="!bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !border !border-gray-100 dark:!border-white/5" />
+              </div>
             </div>
-            <Button onClick={closeDetail} variant="secondary" className="w-full mt-4 !text-red-500 !border !border-red-300 dark:!border-red-800 hover:!bg-red-50 dark:hover:!bg-red-900/10">Confirmar Baja Permanente</Button>
+            <Button onClick={closeDetail} variant="secondary" className="w-full sm:w-1/3 self-center !py-3 !text-red-500 !border !border-red-300 dark:!border-red-800 hover:!bg-red-50 dark:hover:!bg-red-900/10">Confirmar Baja Permanente</Button>
           </div>
         );
       default:
@@ -341,6 +402,7 @@ export const AsesorProfileTemplate = () => {
       case 'account': return 'Cuenta Profesional';
       case 'documents': return 'Expediente';
       case 'plan': return 'Suscripción';
+      case 'payments': return 'Métodos de Pago';
       case 'security': return 'Seguridad';
       case 'general': return 'General';
       case 'support': return 'Soporte';
@@ -373,12 +435,12 @@ export const AsesorProfileTemplate = () => {
             }`}
           >
             <div className="flex items-center gap-4">
-              <div className="relative w-14 h-14 rounded-full bg-inmo-secondary flex items-center justify-center border-2 border-white dark:border-inmo-darkbg overflow-hidden shrink-0">
-                <span className="text-xl font-montserrat font-bold text-white">RE</span>
-                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-inmo-accent text-white flex items-center justify-center border border-white" title="Verificado">
-                  <Shield className="w-2.5 h-2.5" />
+              <div className="relative w-14 h-14 shrink-0">
+                  <div className="w-full h-full rounded-full bg-gray-300 dark:bg-inmo-darktertiary flex items-center justify-center border-2 border-gray-50 dark:border-inmo-darkbg overflow-hidden">
+                    <User className="w-7 h-7 text-white dark:text-gray-400" strokeWidth={1.5} />
+                  </div>
+                  
                 </div>
-              </div>
               <div className="flex flex-col">
                 <span className="font-bold text-base text-inmo-secondary dark:text-white flex items-center gap-1.5">
                   Roberto Estate
@@ -396,7 +458,8 @@ export const AsesorProfileTemplate = () => {
           <div className="bg-white dark:bg-inmo-darkcard rounded-2xl border border-transparent dark:border-white/5 overflow-hidden flex flex-col">
             
             <SettingRow icon={<FileText />} label="Expediente y Verificación" isActive={activeView === 'documents'} onClick={() => setActiveView('documents')} />
-            <SettingRow icon={<CreditCard />} label="Suscripción y Pagos" isActive={activeView === 'plan'} onClick={() => setActiveView('plan')} />
+            <SettingRow icon={<Zap />} label="Suscripción" isActive={activeView === 'plan'} onClick={() => setActiveView('plan')} />
+            <SettingRow icon={<CreditCard />} label="Métodos de Pago" isActive={activeView === 'payments'} onClick={() => setActiveView('payments')} />
             <SettingRow icon={<Settings />} label="General" isActive={activeView === 'general'} onClick={() => setActiveView('general')} />
             <SettingRow icon={<Shield />} label="Seguridad" isActive={activeView === 'security'} onClick={() => setActiveView('security')} />
             <SettingRow icon={<HelpCircle />} label="Soporte" isActive={activeView === 'support'} onClick={() => setActiveView('support')} />

@@ -36,6 +36,7 @@ export interface SplitViewLayoutProps {
   sidePanelTransparent?: boolean;
   /** Whether to hide the default desktop close button */
   hideDesktopCloseButton?: boolean;
+  hideMobileCloseButton?: boolean;
   /** Whether to prevent the main panel from scrolling */
   mainPanelNoScroll?: boolean;
   /** Override for mobile bottom sheet open state. Defaults to isOpen */
@@ -61,6 +62,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   desktopNoPadding = false,
   sidePanelTransparent = false,
   hideDesktopCloseButton = false,
+  hideMobileCloseButton = false,
   mainPanelNoScroll = false,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -161,6 +163,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
           defaultExpanded={false}
           noPadding={bottomSheetNoPadding}
           isHero={bottomSheetIsHero}
+          hideCloseButton={hideMobileCloseButton}
           heightMode={bottomSheetHeightMode}
           fullHeight={bottomSheetFullHeight}
         >

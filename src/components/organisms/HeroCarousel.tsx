@@ -64,7 +64,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images, title = "Enc
   const realSlideIndex = getRealSlideIndex();
 
   return (
-    <div className="relative w-full h-[220px] rounded-[32px] overflow-hidden shadow-sm mt-2">
+    <div className="relative w-full h-[180px] md:h-[220px] rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm mt-1 md:mt-2">
       {/* Track del carrusel */}
       <div
         className={`flex h-full transform-gpu will-change-transform ${
@@ -95,7 +95,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images, title = "Enc
       </div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center px-8 pointer-events-none">
+      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center px-5 md:px-8 pointer-events-none">
         <h2 className="text-white text-hero font-montserrat text-center leading-tight drop-shadow-md">
           {title}
         </h2>

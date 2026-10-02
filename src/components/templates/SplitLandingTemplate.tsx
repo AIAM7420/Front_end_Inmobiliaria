@@ -216,9 +216,9 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
 
   const landingGrid = (
     <>
-      <main className={`px-6 flex flex-col gap-8 pt-[100px] pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all ${isTransitioning ? 'blur-[2px] opacity-80 pointer-events-none' : ''}`}>
+      <main className={`px-4 md:px-6 flex flex-col gap-5 md:gap-8 pt-[88px] md:pt-[100px] pb-[120px] md:pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all ${isTransitioning ? 'blur-[2px] opacity-80 pointer-events-none' : ''}`}>
       {isWireframeMode ? (
-        <div className="w-full h-[220px] rounded-[32px] bg-gray-200 dark:bg-inmo-darkcard animate-pulse mt-2 shadow-sm" />
+        <div className="w-full h-[180px] md:h-[220px] rounded-[24px] md:rounded-[32px] bg-gray-200 dark:bg-inmo-darkcard animate-pulse mt-1 md:mt-2 shadow-sm" />
       ) : (
         <HeroCarousel images={CAROUSEL_IMAGES} />
       )}
@@ -264,7 +264,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
           </div>
 
           {/* Contenedor Muted (Catálogo de Filtros) */}
-          <div className="bg-gray-100/80 dark:bg-white/5 rounded-2xl p-4 -mx-6 px-6 md:mx-0 md:px-5 mt-2 flex flex-col md:flex-row md:items-end justify-between gap-5">
+          <div className="bg-gray-100/80 dark:bg-white/5 rounded-2xl p-3 md:p-4 -mx-4 px-4 md:-mx-6 md:mx-0 md:px-5 mt-1 md:mt-2 flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-5">
             
             {/* Lado Izquierdo: Categorías */}
             <div className={`flex flex-row ${gridMode === 'split' ? 'gap-3' : 'gap-3 md:gap-6'} flex-1 min-w-0 w-full`}>
@@ -352,7 +352,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
 
         {/* Recomendaciones Section */}
         {!isFiltering && (
-          <div className="flex flex-col mt-8">
+          <div className="flex flex-col mt-4 md:mt-8">
             <div className="flex items-center justify-between ml-4 md:ml-6 pr-4 md:pr-0">
               <h2 className="text-xl font-bold text-inmo-secondary dark:text-white border-l-4 border-inmo-accent pl-3">
                 Recomendaciones para ti
@@ -370,7 +370,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
               </button>
 
               {/* Carrusel */}
-              <div ref={carouselRef} className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pt-4 pb-4 -mx-6 px-6 md:mx-0 md:px-0">
+              <div ref={carouselRef} className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory scroll-pl-4 md:scroll-pl-0 pt-3 md:pt-4 pb-4 -mx-4 px-4 md:-mx-6 md:mx-0 md:px-0">
                 {(isWireframeMode || isLoading)
                 ? Array.from({ length: 8 }).map((_, idx) => (
                     <div key={`rec-skel-${idx}`} className="shrink-0 w-[280px] md:w-[340px] snap-start">
@@ -389,6 +389,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
                         sqft={property.sqft}
                         tags={(property as any).tags}
                         isFavorite={property.isFavorite}
+                        hideFeaturesText={true}
                         onClick={() => handleSelectProperty(property.id)}
                       />
                     </div>
@@ -409,7 +410,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
 
         {/* PromoBanner (CTA) entre secciones */}
         {!isFiltering && (
-          <div className="my-8 md:my-10">
+          <div className="my-4 md:my-10">
             {isWireframeMode ? (
               <div className="w-full h-[180px] rounded-card bg-gray-200 dark:bg-inmo-darkcard animate-pulse shadow-sm" />
             ) : (
@@ -423,7 +424,7 @@ export const SplitLandingTemplate: React.FC<LandingTemplateProps> = () => {
         )}
 
         {/* Catálogo General Section */}
-        <div className="flex flex-col gap-4 mb-12 mt-8">
+        <div className="flex flex-col gap-4 mb-6 md:mb-12 mt-4 md:mt-8">
           {catalogProperties.length > 0 && (
             <div className="flex items-center justify-between ml-4 md:ml-6">
               <h2 className="text-xl font-bold text-inmo-secondary dark:text-white border-l-4 border-inmo-accent pl-3">
