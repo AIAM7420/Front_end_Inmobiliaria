@@ -6,7 +6,7 @@ for (const mobile of [false, true]) {
       await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 });
       await page.addInitScript(value => localStorage.setItem('inmo_theme', value), dark ? 'dark' : 'light');
       await page.goto('/');
-      await expect(page.getByRole('heading', { name: 'Explorar catálogo' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Catálogo general' })).toBeVisible();
       await expect(page.locator('html')).toHaveClass(dark ? /dark/ : /^(?!.*dark).*$/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await page.getByRole('button', { name: 'Abrir filtros', exact: true }).focus();

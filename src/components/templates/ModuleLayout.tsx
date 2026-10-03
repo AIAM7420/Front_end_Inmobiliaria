@@ -64,7 +64,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
       isFullScreen ? 'pt-[104px]' : 'pt-0 pb-24'
     }`}>
       {/* Title Area */}
-      <div className="mt-2 mb-6 w-full flex justify-between items-start md:items-center relative">
+      <div className="mt-2 mb-6 w-full shrink-0 flex justify-between items-start md:items-center relative">
         <div className="flex flex-col">
           <h1 className="font-montserrat font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white mb-2">{title}</h1>
           {subtitle && (

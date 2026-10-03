@@ -6,6 +6,8 @@ import { ConnectedPropertyCard } from './ConnectedPropertyCard';
 vi.mock('../../integrations/backend/hooks/useProperties', () => ({
   useGetPhotos: () => ({ data: [], isLoading: false }),
   useGetPhotoUrl: () => ({ data: undefined, isLoading: false }),
+  useGetOwnPhotos: () => ({ data: [], isLoading: false }),
+  useGetOwnPhotoUrl: () => ({ data: undefined, isLoading: false }),
 }));
 
 const property: PropiedadPublica = {

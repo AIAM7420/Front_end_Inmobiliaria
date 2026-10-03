@@ -11,12 +11,19 @@ import {
   getOwnProperties,
   getOwnProperty,
   getOwnPhotos,
+  getOwnPhotoUrl,
   getPhotoUrl,
   getPhotos,
   getProperties,
   getProperty,
   updateProperty,
   uploadPhotoDirect,
+  trashProperty,
+  retireProperty,
+  reorderInventory,
+  reorderPhotos,
+  deletePhoto,
+  getSharedCommissions,
 } from '../properties.service';
 import type { ListPropertiesParams } from '../properties.service';
 import type { Id, PropiedadCrear, PropiedadEditar } from '../types';
@@ -65,6 +72,84 @@ export function useGetOwnProperty(id: Id) {
   });
 }
 
+/** Filter the complete inventory, not just the first page. The API remains paginated. */
+export function useGetInventory() {
+  return useQuery({
+    queryKey: ['properties', 'own', 'inventory'],
+    queryFn: async ({ signal }) => {
+      const items: import('../types').PropiedadPrivada[] = [];
+      const seen = new Set<string>();
+      let cursor: string | undefined;
+      do {
+        signal.throwIfAborted();
+        const page = await getOwnProperties({ limit: 100, cursor }, signal);
+        items.push(...page.items);
+        cursor = page.next_cursor ?? undefined;
+        if (cursor && seen.has(cursor)) throw new Error('No pudimos completar el inventario. Vuelve a cargarlo.');
+        if (cursor) seen.add(cursor);
+      } while (cursor);
+      return { items: [...new Map(items.map(item => [item.id, item])).values()], next_cursor: null };
+    },
+    staleTime: 10_000,
+  });
+}
+
+export function usePropertyManagement() {
+  const client = useQueryClient();
+  const invalidate = async (excludedId?: Id) => {
+    // Existing signed URLs remain valid when metadata changes. Refetching obsolete
+    // photo URLs before the list updates races a successful deletion with a 404.
+    await client.invalidateQueries({ queryKey: ['properties'], predicate: query => !['photo-url', 'own-photo-url'].includes(String(query.queryKey[1])) && (!excludedId || !query.queryKey.includes(excludedId)) });
+    await client.invalidateQueries({ queryKey: ['shared-commissions'] });
+  };
+  const retire = useMutation({ mutationFn: ({ id, etag }: { id: Id; etag: string }) => retireProperty(id, etag), onSuccess: async (_result, { id }) => {
+    client.setQueriesData<{ items: { id: Id }[] }>({ queryKey: ['properties'] }, value => value && Array.isArray(value.items) ? { ...value, items: value.items.filter(item => item.id !== id) } : value);
+    await invalidate(id);
+    client.removeQueries({ predicate: query => query.queryKey[0] === 'properties' && query.queryKey.includes(id) });
+  } });
+  const inventoryOrder = useMutation({ mutationFn: reorderInventory, onSuccess: () => invalidate() });
+  const photoOrder = useMutation({ mutationFn: ({ id, ids, etag }: { id: Id; ids: Id[]; etag: string }) => reorderPhotos(id, ids, etag), onSuccess: () => invalidate() });
+  const removePhoto = useMutation({ mutationFn: ({ id, photoId, etag }: { id: Id; photoId: Id; etag: string }) => deletePhoto(id, photoId, etag), onSuccess: async (_result, { id, photoId }) => {
+    for (const scope of ['photos', 'own-photos']) client.setQueryData<import('../types').Fotografia[]>(['properties', scope, id], photos => photos?.filter(photo => photo.id !== photoId).map((photo, index) => ({ ...photo, posicion: index + 1 })));
+    await invalidate();
+    for (const scope of ['photo-url', 'own-photo-url']) client.removeQueries({ queryKey: ['properties', scope, id, photoId], exact: true });
+  } });
+  return { retire, inventoryOrder, photoOrder, removePhoto };
+}
+
+export function useSharedCommissions(enabled: boolean) {
+  return useQuery({ queryKey: ['shared-commissions'], enabled, queryFn: async () => {
+    const items: import('../types').PropiedadComision[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    do {
+      const page = await getSharedCommissions({ limit: 100, cursor });
+      items.push(...page.items);
+      cursor = page.next_cursor ?? undefined;
+      if (cursor && seen.has(cursor)) throw new Error('No pudimos completar las comisiones.');
+      if (cursor) seen.add(cursor);
+    } while (cursor);
+    return [...new Map(items.map(item => [item.id, item])).values()];
+  } });
+}
+
+export function useTrashProperty() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, etag }: { id: Id; etag: string }) => trashProperty(id, etag),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['properties'] }),
+  });
+}
+
+export function useGetOwnPhotoUrl(propertyId: Id, photoId: Id, enabled = true) {
+  return useQuery({
+    queryKey: ['properties', 'own-photo-url', propertyId, photoId],
+    queryFn: () => getOwnPhotoUrl(propertyId, photoId),
+    enabled: enabled && Boolean(propertyId && photoId),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateProperty() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -87,7 +172,7 @@ export function useChangePublication() {
   return useMutation({
     mutationFn: ({ id, accion, etag, visible }: {
       id: Id;
-      accion: 'PUBLICAR' | 'PAUSAR' | 'ARCHIVAR';
+      accion: 'PUBLICAR' | 'PAUSAR' | 'ARCHIVAR' | 'RESTAURAR';
       etag: string;
       visible?: boolean;
     }) => changePublication(id, accion, etag, visible),

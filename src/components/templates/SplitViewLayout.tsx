@@ -147,7 +147,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
 
           <div
             onScroll={handleScroll}
-            className={`flex-1 flex flex-col overflow-hidden relative z-0 ${desktopNoPadding ? 'p-0' : 'p-0 md:p-6 md:pt-[84px]'}`}
+            className={`flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain relative z-0 ${desktopNoPadding ? 'p-0' : 'p-0 md:p-6 md:pt-[84px]'}`}
           >
              {desktop ? sideContent : null}
           </div>

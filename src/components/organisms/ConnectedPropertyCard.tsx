@@ -1,5 +1,5 @@
 import type { PropiedadPrivada, PropiedadPublica } from '../../integrations/backend/types';
-import { useGetPhotos, useGetPhotoUrl } from '../../integrations/backend/hooks/useProperties';
+import { useGetPhotos, useGetPhotoUrl, useGetOwnPhotos, useGetOwnPhotoUrl } from '../../integrations/backend/hooks/useProperties';
 import { PropertyCard } from '../molecules/PropertyCard';
 
 type CardProperty = PropiedadPublica | PropiedadPrivada;
@@ -14,9 +14,13 @@ export interface ConnectedPropertyCardProps {
 export function ConnectedPropertyCard({ property, onClick, variant = 'standard' }: ConnectedPropertyCardProps) {
   const eligible = variant === 'standard' ||
     (property.estado_publicacion === 'PUBLICADA' && property.visible && property.disponible);
-  const photos = useGetPhotos(property.id, eligible);
+  const publicPhotos = useGetPhotos(property.id, variant === 'standard' && eligible);
+  const ownPhotos = useGetOwnPhotos(property.id, variant === 'asesor');
+  const photos = variant === 'asesor' ? ownPhotos : publicPhotos;
   const firstPhotoId = photos.data?.[0]?.id ?? '';
-  const cover = useGetPhotoUrl(property.id, firstPhotoId, eligible);
+  const publicCover = useGetPhotoUrl(property.id, firstPhotoId, variant === 'standard' && eligible);
+  const ownCover = useGetOwnPhotoUrl(property.id, firstPhotoId, variant === 'asesor');
+  const cover = variant === 'asesor' ? ownCover : publicCover;
   const area = property.superficie_construccion ?? property.superficie_terreno;
 
   return (
