@@ -1,3 +1,8 @@
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../../context/AppContext';
+import { useCreateConversation } from '../../integrations/backend/hooks/useChat';
+import { Button } from '../atoms/Button';
+import { operationError } from '../../integrations/backend/versioning';
 import type { ReactNode } from 'react';
 import { Bath, Bed, Building2, MapPin, Maximize, User } from 'lucide-react';
 import type { Id, PropiedadPublica } from '../../integrations/backend/types';
@@ -109,6 +114,17 @@ export function PropertyDetailView({ propertyId, preview, layout = 'vertical' }:
         <div className="w-10 h-10 rounded-full bg-white dark:bg-inmo-darkcard flex items-center justify-center"><User className="w-5 h-5 text-gray-500" strokeWidth={1.5} /></div>
         <span className="font-inter text-sm font-semibold text-inmo-secondary dark:text-white">Asesor de la propiedad</span>
       </div>
+      <ContactProperty propertyId={property.id} />
     </div>
   </div>;
+}
+
+function ContactProperty({ propertyId }: { propertyId: string }) {
+  const { isAuthenticated } = useAppContext();
+  const navigate = useNavigate();
+  const create = useCreateConversation();
+  return <div className="space-y-3"><Button className="w-full" isLoading={create.isPending} onClick={async () => {
+    if (!isAuthenticated) { navigate('/login'); return; }
+    try { const conversation = await create.mutateAsync({ tipo: 'CLIENTE_ASESOR', propiedad_id: propertyId }); navigate('/messages?conversation=' + encodeURIComponent(conversation.id)); } catch { /* Error shown below. */ }
+  }}>Contactar asesor</Button>{create.isError && <p role="alert" className="text-sm text-inmo-danger">{operationError(create.error)}</p>}</div>;
 }

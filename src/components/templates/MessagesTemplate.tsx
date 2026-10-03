@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { MessageCircle, Send } from 'lucide-react';
 import { useGetConversations, useSendMessage } from '../../integrations/backend/hooks/useChat';
@@ -10,10 +11,12 @@ import { Skeleton } from '../atoms/Skeleton';
 export interface MessagesTemplateProps {}
 
 export function MessagesTemplate(_props: MessagesTemplateProps) {
-  const [selectedId, setSelectedId] = useState<string>('');
+  const [params] = useSearchParams();
+  const [cursor, setCursor] = useState<string | undefined>();
+  const [selectedId, setSelectedId] = useState<string>(params.get('conversation') ?? '');
   const [draft, setDraft] = useState('');
   const pendingMessageId = useRef<string | null>(null);
-  const conversations = useGetConversations({ limit: 20 });
+  const conversations = useGetConversations({ limit: 20, cursor });
   const messages = useConversationStream(selectedId);
   const me = useGetMe();
   const sendMessage = useSendMessage();
@@ -52,7 +55,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
                   <span className="block font-inter text-xs text-gray-500">{conversation.tipo === 'CLIENTE_ASESOR' ? 'Cliente y asesor' : 'Entre asesores'}</span></span>
               </Button>
             ))}
-          {conversations.data?.next_cursor && <p className="font-inter text-xs text-gray-500 mt-3">Hay más conversaciones disponibles.</p>}
+          {conversations.data?.next_cursor && <Button variant="secondary" onClick={() => setCursor(conversations.data?.next_cursor ?? undefined)}>Página siguiente</Button>}
         </section>
 
         <section className="bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft flex flex-col min-h-[520px]" aria-label="Mensajes">

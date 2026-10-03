@@ -11,7 +11,7 @@ test('public catalog and filters use the real API without exposing a token', asy
   const catalog = page.waitForResponse((response) => response.url().startsWith(`${api}/propiedades?`));
   await page.goto('/');
   expect((await catalog).status()).toBe(200);
-  await expect(page.getByText('Explorar Catálogo')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Explorar catálogo' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Abrir filtros' }).click();
   await page.getByRole('combobox', { name: 'Rango de precio' }).selectOption('under-1m');
@@ -96,7 +96,7 @@ test('protected route redirects to login and invalid credentials show a safe err
 
 test('natural language search reaches chatbot and remains private', async ({ page }) => {
   await page.goto('/');
-  const input = page.getByPlaceholder('Buscar propiedades...');
+  const input = page.getByPlaceholder('Buscar propiedades...').last();
   await input.fill('Quiero rentar una casa en Monterrey');
   const response = page.waitForResponse((item) => item.url() === `${api}/chatbot/consultas`);
   await input.press('Enter');

@@ -2,11 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getAccessToken, setAccessToken, setUnauthorizedHandler } from '../integrations/backend/axios.config';
+import type { CriteriosBusqueda } from '../integrations/backend/types';
 import type { Cuenta } from '../integrations/backend/types';
 
 export type UserRole = 'public' | 'asesor' | 'admin' | null;
 
 interface AppContextType {
+  globalSearchQuery: string;
+  setGlobalSearchQuery: (value: string) => void;
+  globalFilters: CriteriosBusqueda | null;
+  setGlobalFilters: (value: CriteriosBusqueda | null) => void;
   // Theme
   isDarkMode: boolean;
   toggleTheme: () => void;
@@ -21,6 +26,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [globalFilters, setGlobalFilters] = useState<CriteriosBusqueda | null>(null);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('inmo_theme');
     return saved === 'dark';
@@ -46,13 +53,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [queryClient]);
 
   const toggleTheme = () => setIsDarkMode(prev => !prev);
-  
+
   const login = (account: Cuenta) => setRole(account.rol === 'ASESOR' ? 'asesor' : account.rol === 'SUPERADMINISTRADOR' ? 'admin' : 'public');
-  
+
   const logout = () => { setAccessToken(null); setRole(null); queryClient.clear(); };
 
   return (
-    <AppContext.Provider value={{ isDarkMode, toggleTheme, isAuthenticated, role, login, logout }}>
+    <AppContext.Provider value={{ globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters, isDarkMode, toggleTheme, isAuthenticated, role, login, logout }}>
       {children}
     </AppContext.Provider>
   );

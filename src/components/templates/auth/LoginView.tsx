@@ -2,7 +2,7 @@ import React from 'react';
 import { AuthHeader } from '../../molecules/AuthHeader';
 import { LoginForm } from '../../organisms/LoginForm';
 import type { Cuenta } from '../../../integrations/backend/types';
-export type AuthView = 'login' | 'account-type' | 'register' | 'recovery' | 'otp' | 'new-password' | 'advisor-profile' | 'advisor-pending' | 'payment-gateway';
+export type AuthView = 'login' | 'account-type' | 'register' | 'recovery';
 
 interface LoginViewProps {
   onLogin: (account: Cuenta) => void;

@@ -7,7 +7,7 @@ import { problemFromError } from '../../integrations/backend/axios.config';
 import type { Cuenta } from '../../integrations/backend/types';
 import { localPilotNoEmail } from '../../integrations/backend/localPilot';
 
-export type AuthView = 'login' | 'account-type' | 'register' | 'recovery' | 'otp' | 'new-password' | 'advisor-profile' | 'advisor-pending' | 'payment-gateway';
+export type AuthView = 'login' | 'account-type' | 'register' | 'recovery';
 
 interface LoginFormProps {
   onLogin: (account: Cuenta) => void;

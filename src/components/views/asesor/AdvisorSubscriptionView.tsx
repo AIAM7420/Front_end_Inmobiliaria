@@ -4,8 +4,10 @@ import { useCreatePayment, useCreatePortalSession, useGetPlans, useGetSubscripti
 import { problemFromError } from '../../../integrations/backend/axios.config';
 import { Button } from '../../atoms/Button';
 import { Skeleton } from '../../atoms/Skeleton';
+import { ConflictNotice } from '../../molecules/ConflictNotice';
+import { isVersionConflict } from '../../../integrations/backend/versioning';
 
-export function AdvisorSubscriptionView() {
+export function AdvisorSubscriptionView({ embedded = false }: { embedded?: boolean }) {
   const application = useGetOwnApplication();
   const subscription = useGetSubscription();
   const plans = useGetPlans();
@@ -15,6 +17,7 @@ export function AdvisorSubscriptionView() {
   const requestIds = useRef<Record<string, string>>({});
   const [notice, setNotice] = useState('');
   const [navigationError, setNavigationError] = useState('');
+  const [conflict, setConflict] = useState(false);
   const current = subscription.data?.value;
   const selected = current?.version_plan_siguiente_id ?? current?.version_plan_id;
   const error = select.error ?? payment.error ?? portal.error;
@@ -35,7 +38,7 @@ export function AdvisorSubscriptionView() {
     }
   }
 
-  return <main className="mx-auto w-full max-w-5xl px-4 md:px-6 pt-28 pb-32 text-inmo-secondary dark:text-white">
+  return <main className={(embedded ? 'px-5 py-6 ' : 'mx-auto w-full max-w-5xl px-4 md:px-6 pt-28 pb-32 ') + 'text-inmo-secondary dark:text-white'}>
     <h1 className="font-montserrat text-3xl font-bold">Suscripción</h1>
     <p className="font-inter text-sm text-gray-500 dark:text-gray-400 mt-2">La habilitación profesional requiere solicitud aprobada y periodo pagado vigente.</p>
     {subscription.isLoading ? <Skeleton className="h-32 mt-7" /> : subscription.isError
@@ -70,10 +73,10 @@ export function AdvisorSubscriptionView() {
           <p className="font-inter text-sm text-gray-500">Cada {plan.duracion_cantidad} {plan.duracion_unidad.toLowerCase()} · Hasta {plan.limite_propiedades} propiedades</p>
           <ul className="font-inter text-sm mt-4 space-y-1">{plan.beneficios.map((benefit) => <li key={benefit}>• {benefit}</li>)}</ul>
           <Button className="mt-5 w-full py-3" variant={selected === plan.id ? 'secondary' : 'accent'}
-            disabled={!subscription.data || select.isPending} onClick={async () => {
+            disabled={!subscription.data || select.isPending || conflict} onClick={async () => {
               if (!subscription.data) return;
               try { await select.mutateAsync({ versionPlanId: plan.id, etag: subscription.data.etag }); setNotice('Plan seleccionado.'); }
-              catch { /* shown below */ }
+              catch (cause) { if (isVersionConflict(cause)) setConflict(true); }
             }}>{selected === plan.id ? 'Seleccionado' : 'Seleccionar plan'}</Button>
           {selected === plan.id && current?.estado !== 'ACTIVA' && <Button variant="secondary" className="mt-3 w-full py-3"
             isLoading={payment.isPending} onClick={() => { void pay(plan.id); }}>Ir a Checkout</Button>}
@@ -81,6 +84,7 @@ export function AdvisorSubscriptionView() {
     {current?.estado === 'ACTIVA' && <p className="font-inter text-xs text-gray-500 mt-4">Un cambio de plan se programa para el siguiente ciclo, sin prorrateo.</p>}
     <p className="font-inter text-xs text-gray-500 mt-2">El retorno del navegador no confirma el pago: espera la conciliación del webhook y actualiza esta página.</p>
     {notice && <p role="status" className="font-inter text-sm text-inmo-success mt-4">{notice}</p>}
+    {conflict && <ConflictNotice onReview={async () => { const result = await subscription.refetch(); if (result.error) throw result.error; }} onAccept={() => { setConflict(false); select.reset(); }} current={<p>Plan vigente: {current?.version_plan_id ?? 'Ninguno'} · Siguiente ciclo: {current?.version_plan_siguiente_id ?? 'Sin cambio'}</p>} />}
     {navigationError && <p role="alert" className="font-inter text-sm text-inmo-danger mt-4">{navigationError}</p>}
     {error && <p role="alert" className="font-inter text-sm text-inmo-danger mt-4">{problemFromError(error)?.detail ?? (error instanceof Error ? error.message : 'La operación no pudo completarse.')}</p>}
   </main>;

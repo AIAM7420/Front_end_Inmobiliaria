@@ -21,10 +21,11 @@ import {
 import type { ListPropertiesParams } from '../properties.service';
 import type { Id, PropiedadCrear, PropiedadEditar } from '../types';
 
-export function useGetProperties(params: ListPropertiesParams = {}) {
+export function useGetProperties(params: ListPropertiesParams = {}, enabled = true) {
   return useQuery({
     queryKey: ['properties', 'public', params],
     queryFn: () => getProperties(params),
+    enabled,
     staleTime: 30_000,
   });
 }
