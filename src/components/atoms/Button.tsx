@@ -2,37 +2,40 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'accent' | 'secondary' | 'tertiary' | 'text' | 'ghost';
+  variant?: 'accent' | 'secondary' | 'tertiary' | 'text' | 'ghost' | 'danger' | 'warning';
   isLoading?: boolean;
   icon?: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  variant = 'accent', 
-  isLoading, 
-  icon, 
+export const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'accent',
+  isLoading,
+  icon,
   disabled,
   className = '',
-  ...props 
+  type = 'button',
+  ...props
 }) => {
   // text variant shouldn't have gap-3 padding etc by default if it's meant to be inline, but we can customize it or keep it simple
-  const baseStyles = variant === 'text' 
-    ? "transition-all font-inter active:scale-95 flex items-center justify-center gap-2" 
-    : "rounded-atom flex items-center justify-center gap-3 transition-all font-inter font-bold active:scale-95";
-  
+  const baseStyles = variant === 'text'
+    ? "transition-all font-inter active:scale-95 flex items-center justify-center gap-2"
+    : "rounded-atom min-h-11 px-5 py-2.5 flex items-center justify-center gap-3 transition-all font-inter font-bold active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inmo-accent";
+
   const variants = {
     accent: "bg-inmo-accent text-white shadow-glow hover:bg-red-600 hover:-translate-y-1",
     secondary: "bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:-translate-y-1",
     tertiary: "bg-inmo-tertiary dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110",
     text: "text-gray-500 dark:text-gray-400 font-medium hover:text-inmo-accent dark:hover:text-inmo-accent",
-    ghost: "bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:text-inmo-secondary dark:hover:text-white"
+    ghost: "bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:text-inmo-secondary dark:hover:text-white",
+    danger: "bg-inmo-danger text-white shadow-[0_4px_14px_0_rgba(239,68,68,0.39)] hover:bg-red-600 hover:-translate-y-1",
+    warning: "bg-inmo-warning text-white shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:bg-orange-500 hover:-translate-y-1"
   };
 
-  const disabledStyles = variant === 'text' 
+  const disabledStyles = variant === 'text'
     ? "text-gray-300 dark:text-gray-600 cursor-not-allowed active:scale-100"
     : "bg-gray-300 dark:bg-inmo-darkbg text-gray-500 dark:text-gray-400 cursor-not-allowed shadow-none active:scale-100 hover:translate-y-0 hover:scale-100";
-    
+
   const loadingStyles = "opacity-90 cursor-wait active:scale-100 hover:translate-y-0 hover:scale-100";
 
   let currentStyles = variants[variant];
@@ -43,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
   }
 
   return (
-    <button 
+    <button type={type}
       disabled={disabled || isLoading}
       className={`${baseStyles} ${currentStyles} ${className}`}
       {...props}

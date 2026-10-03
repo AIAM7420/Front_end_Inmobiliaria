@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { Button } from '../atoms/Button';
 
 export type PeriodOption = string;
 
@@ -8,13 +9,15 @@ interface PeriodDropdownProps {
   selectedPeriod: PeriodOption;
   onChange: (period: PeriodOption) => void;
   className?: string;
+  iconOnly?: boolean;
 }
 
 export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
   options = ['Semana', '1 Mes', '3 Meses', '6 Meses', 'Año'],
   selectedPeriod,
   onChange,
-  className = ''
+  className = '',
+  iconOnly = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -30,16 +33,19 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
   }, []);
 
   return (
-    <div className={`relative w-[110px] ${className}`} ref={dropdownRef}>
-      <button
+    <div className={`relative ${iconOnly ? 'w-[44px]' : 'w-[110px]'} ${className}`} ref={dropdownRef}>
+      <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-[44px] flex items-center justify-between gap-2 px-4 bg-white dark:bg-inmo-darkcard border border-gray-200 dark:border-inmo-darktertiary rounded-full text-xs font-bold text-inmo-secondary dark:text-white shadow-soft focus:outline-none transition-all"
+        variant="secondary"
+        className={`w-full !h-[44px] flex items-center ${iconOnly ? 'justify-center !px-0 !rounded-full !gap-0' : 'justify-between px-4 !rounded-[14px] !gap-2'} !text-xs shadow-soft transition-all`}
+        icon={<ChevronDown className={`w-4 h-4 shrink-0 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />}
       >
-        <span>{selectedPeriod}</span>
-        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
+        {iconOnly ? null : (
+          <span>{selectedPeriod}</span>
+        )}
+      </Button>
 
-      <div 
+      <div
         className={`absolute top-full right-0 mt-2 w-44 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-xl shadow-xl z-50 overflow-hidden transition-all duration-200 origin-top-right ${
           isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto visible' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none invisible'
         }`}
@@ -48,21 +54,22 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
           {options.map((period) => {
             const isSelected = selectedPeriod === period;
             return (
-              <button
+              <Button
                 key={period}
+                variant="ghost"
                 onClick={() => {
                   onChange(period);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold transition-colors ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 !text-xs transition-colors !rounded-none !h-auto ${
                   isSelected
-                    ? 'text-inmo-secondary dark:text-white bg-gray-50 dark:bg-white/5'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-inmo-secondary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'
+                    ? '!text-inmo-secondary dark:!text-white bg-gray-50 dark:bg-white/5'
+                    : '!text-gray-500 dark:!text-gray-400 hover:!text-inmo-secondary dark:hover:!text-white hover:bg-gray-50 dark:hover:bg-white/5'
                 }`}
+                icon={isSelected ? <Check className="w-4 h-4 text-inmo-accent" /> : undefined}
               >
                 <span>{period}</span>
-                {isSelected && <Check className="w-4 h-4 text-inmo-accent" />}
-              </button>
+              </Button>
             );
           })}
         </div>

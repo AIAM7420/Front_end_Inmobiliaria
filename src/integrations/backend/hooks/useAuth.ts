@@ -18,7 +18,17 @@ export function useRegisterAccount() {
 export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: login,
+    mutationFn: async (credentials: Parameters<typeof login>[0]) => {
+      const session = await login(credentials);
+      setAccessToken(session.access_token);
+      try {
+        const me = await getMe();
+        return { ...session, cuenta: me.value };
+      } catch (error) {
+        expireSession();
+        throw error;
+      }
+    },
     onSuccess: (session) => {
       setAccessToken(session.access_token);
       queryClient.clear();

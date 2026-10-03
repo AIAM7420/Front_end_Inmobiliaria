@@ -13,10 +13,11 @@ export function useSearchProperties() {
 }
 
 /** API_033 is POST, but its behavior is a read and can be cached for map browsing. */
-export function useSearchQuery(criteria: CriteriosBusqueda, params: ListPropertiesParams = {}) {
+export function useSearchQuery(criteria: CriteriosBusqueda, params: ListPropertiesParams = {}, enabled = true) {
   return useQuery({
     queryKey: ['properties', 'search', criteria, params],
     queryFn: () => searchProperties(criteria, params),
+    enabled,
     staleTime: 30_000,
   });
 }

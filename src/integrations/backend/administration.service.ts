@@ -1,3 +1,4 @@
+import { versioned } from './versioning';
 import { api } from './axios.config';
 import type { Cuenta, Id, Pagina, PropiedadPrivada } from './types';
 import type { Versioned } from './auth.service';
@@ -32,9 +33,14 @@ export async function getAdminReports(params: PageParams & { estado?: string } =
   return data;
 }
 
+export async function getAdminReport(id: Id): Promise<ReporteAdministrativo> {
+  const { data } = await api.get<ReporteAdministrativo>(`/admin/reportes/${encodeURIComponent(id)}`);
+  return data;
+}
+
 export async function getAdminAccount(id: Id): Promise<Versioned<Cuenta>> {
   const response = await api.get<Cuenta>(`/admin/cuentas/${encodeURIComponent(id)}`);
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function changeAdminAccountState(
@@ -44,7 +50,7 @@ export async function changeAdminAccountState(
     `/admin/cuentas/${encodeURIComponent(id)}/estado`, { accion, motivo },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function resolveAdminReport(
@@ -59,7 +65,7 @@ export async function resolveAdminReport(
 
 export async function getAdminProperty(id: Id): Promise<Versioned<PropiedadPrivada>> {
   const response = await api.get<PropiedadPrivada>(`/admin/propiedades/${encodeURIComponent(id)}`);
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function getAdminProperties(params: PageParams & { estado?: string } = {}): Promise<Pagina<PropiedadPrivada>> {
@@ -74,7 +80,7 @@ export async function moderateAdminProperty(
     `/admin/propiedades/${encodeURIComponent(id)}/moderacion`, { accion, motivo },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export interface AuditEntry {

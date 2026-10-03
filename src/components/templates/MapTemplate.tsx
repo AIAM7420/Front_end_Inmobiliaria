@@ -127,14 +127,14 @@ function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
 
 export function MapTemplate(_props: MapTemplateProps) {
   const { isDarkMode } = useAppContext();
-  const [activeFilter, setActiveFilter] = useState<PropertyCategory>('all');
+  const [activeFilter, setActiveFilter] = useState<PropertyCategory | null>(null);
   const [extraCriteria, setExtraCriteria] = useState<CriteriosBusqueda>({});
   const [searchMode, setSearchMode] = useState<'filters' | 'text'>('filters');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const types = useGetCatalog('tipos');
-  const typeId = activeFilter === 'all'
+  const typeId = activeFilter === null
     ? undefined
     : types.data?.find((item) => item.codigo.toLowerCase() === activeFilter)?.id;
   const criteria: CriteriosBusqueda = {
@@ -149,7 +149,7 @@ export function MapTemplate(_props: MapTemplateProps) {
   const selected = properties.find((item) => item.id === selectedPropertyId);
   const mapboxToken: string | undefined = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
 
-  const handleFilterChange = (category: PropertyCategory) => {
+  const handleFilterChange = (category: PropertyCategory | null) => {
     setActiveFilter(category);
     setSearchMode('filters');
     setSelectedPropertyId(null);

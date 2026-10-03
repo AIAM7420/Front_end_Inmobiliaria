@@ -40,10 +40,10 @@ export default {
       addComponents({
         /* Tipografía Semántica Global */
         '.text-hero': {
-          '@apply font-inter font-black text-3xl text-inmo-secondary dark:text-white': {},
+          '@apply font-inter font-black text-2xl md:text-3xl text-inmo-secondary dark:text-white': {},
         },
         '.text-title': {
-          '@apply font-inter font-bold text-3xl text-inmo-secondary dark:text-white': {},
+          '@apply font-inter font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white': {},
         },
         '.text-subtitle': {
           '@apply font-montserrat font-bold text-xl text-inmo-secondary dark:text-white': {},
@@ -72,7 +72,7 @@ export default {
           '@apply font-inter font-bold text-sm': {},
         },
         '.text-banner-title': {
-          '@apply font-montserrat font-bold text-2xl text-white': {},
+          '@apply font-montserrat font-bold text-xl md:text-2xl text-white': {},
         },
         '.text-banner-body': {
           '@apply font-inter font-normal text-xs text-white/95': {},

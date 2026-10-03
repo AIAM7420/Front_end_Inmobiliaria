@@ -1,3 +1,4 @@
+import { versioned } from './versioning';
 import { api } from './axios.config';
 import type { Versioned } from './auth.service';
 import type { Id } from './types';
@@ -44,7 +45,7 @@ export async function getPlans(): Promise<Plan[]> {
 
 export async function getSubscription(): Promise<Versioned<Suscripcion>> {
   const response = await api.get<Suscripcion>('/me/suscripcion');
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function selectPlan(versionPlanId: Id, etag: string): Promise<Versioned<Suscripcion>> {
@@ -52,7 +53,7 @@ export async function selectPlan(versionPlanId: Id, etag: string): Promise<Versi
     '/me/seleccion-plan', { version_plan_id: Number(versionPlanId) },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function createPayment(versionPlanId: Id, requestId: string): Promise<Pago> {

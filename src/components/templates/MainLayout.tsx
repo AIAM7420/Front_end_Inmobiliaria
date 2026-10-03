@@ -1,75 +1,34 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { NavHeader } from '../organisms/NavHeader';
 import { FloatingNavBar } from '../organisms/FloatingNavBar';
 import { GlobalChatbot } from '../organisms/GlobalChatbot';
 import { useGetMe, useLogout } from '../../integrations/backend/hooks/useAuth';
-
-export const MainLayout: React.FC = () => {
+export function MainLayout() {
   const { isDarkMode, toggleTheme, role, isAuthenticated } = useAppContext();
-  const logout = useLogout();
   const me = useGetMe();
-  const account = me.data?.value;
+  const logout = useLogout();
   const location = useLocation();
   const navigate = useNavigate();
-  
-  const [isChatOpen, setIsChatOpen] = useState(false);
-
-  // Derivar la ruta activa a partir de la URL
-  let activeRoute = location.pathname === '/' ? 'home' : location.pathname.substring(1);
-  // Limpiar trailing slashes si existieran
-  if (activeRoute.endsWith('/')) {
-    activeRoute = activeRoute.slice(0, -1);
-  }
-
-  // Configuración especial por vista (Full screen layouts sin scroll global)
-  const isFullScreenLayout = location.pathname === '/map' || location.pathname === '/' || location.pathname === '/asesor' || location.pathname === '/admin';
-
-  return (
-    <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden">
-      
-      {/* 
-        HEADER COMÚN
-        En layouts full screen, ocultamos el header en móvil para tener pantalla completa.
-      */}
-      <div className={isFullScreenLayout ? "w-full absolute top-0 pt-6 z-30 pointer-events-none" : "pt-6"}>
-        <NavHeader 
-          isDarkMode={isDarkMode} 
-          onToggleTheme={toggleTheme} 
-          onNavigate={(r) => navigate(r === 'home' ? '/' : `/${r}`)} 
-          onLogout={() => logout.mutate()}
-          userName={account?.nombre ?? 'Invitado'}
-          userInitials={account?.nombre.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() ?? 'IN'}
-          userRole={account?.rol ?? 'Visitante'}
-          role={role || 'public'}
-          isAuthenticated={isAuthenticated}
-          activeRoute={activeRoute}
-        />
-      </div>
-
-      {/* AQUÍ SE INYECTAN LAS VISTAS (Landing, Map, Favorites, etc.) */}
-      <div className={isFullScreenLayout ? "h-screen overflow-hidden" : "pb-32"}>
-        <Outlet />
-      </div>
-
-      {/* FLOATING NAVBAR (MOBILE ONLY) */}
-      <div className="md:hidden">
-        <FloatingNavBar
-          role={role || 'public'}
-          activeRoute={activeRoute}
-          onOpenChatbot={() => setIsChatOpen(true)}
-          onNavigate={(r) => navigate(r === 'home' ? '/' : `/${r}`)}
-        />
-      </div>
-
-      {/* CHATBOT GLOBAL */}
-      <GlobalChatbot 
-        isOpen={isChatOpen} 
-        onOpen={() => setIsChatOpen(true)} 
-        onClose={() => setIsChatOpen(false)} 
-      />
-
+  const [chatOpen, setChatOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setChatOpen(true);
+    window.addEventListener('open-chatbot', open);
+    return () => window.removeEventListener('open-chatbot', open);
+  }, []);
+  const activeRoute = location.pathname === '/' ? 'home' : location.pathname.slice(1).replace(/\/$/,'');
+  const full = ['home','map','asesor','asesor/propiedades','admin','admin/asesores','admin/moderacion','admin/solicitudes','admin/reportes','admin/finanzas','profile','asesor/profile','admin/profile'].includes(activeRoute);
+  const account = me.data?.value;
+  return <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden text-inmo-secondary dark:text-white">
+    <div className={(full ? 'absolute top-0 w-full pointer-events-none ' : '') + 'pt-3 md:pt-6 z-30'}>
+      <NavHeader isDarkMode={isDarkMode} onToggleTheme={toggleTheme} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)}
+        onLogout={() => logout.mutate()} userName={account?.nombre ?? 'Invitado'} userRole={account?.rol ?? 'Visitante'}
+        userInitials={account?.nombre.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase() ?? 'IN'}
+        role={role ?? 'public'} isAuthenticated={isAuthenticated} activeRoute={activeRoute} />
     </div>
-  );
-};
+    <div className={full ? 'h-[100dvh] overflow-hidden' : 'pb-32'}><Outlet /></div>
+    <div className="md:hidden"><FloatingNavBar role={role ?? 'public'} activeRoute={activeRoute} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)} onOpenChatbot={() => setChatOpen(true)} hideChatbot={role === 'asesor' || role === 'admin'} /></div>
+    {role !== 'asesor' && role !== 'admin' && <GlobalChatbot isOpen={chatOpen} onOpen={() => setChatOpen(true)} onClose={() => setChatOpen(false)} />}
+  </div>;
+}

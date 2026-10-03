@@ -1,3 +1,4 @@
+import { versioned } from './versioning';
 import axios from 'axios';
 import { api } from './axios.config';
 import type { Id, RegistroCuenta } from './types';
@@ -54,7 +55,7 @@ export async function getOwnAdvisor(): Promise<AsesorRegistrado> {
 
 export async function getOwnApplication(): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.get<SolicitudAsesor>('/asesores/me/solicitud');
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function authorizeAdvisorDocument(payload: {
@@ -85,7 +86,7 @@ export async function confirmAdvisorDocument(comprobante: string): Promise<Docum
 
 export async function resubmitAdvisorApplication(): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.post<SolicitudAsesor>('/asesores/me/solicitudes');
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function getAdminApplications(params: { limit?: number; cursor?: string } = {}): Promise<{
@@ -98,7 +99,7 @@ export async function getAdminApplications(params: { limit?: number; cursor?: st
 
 export async function getAdminApplication(id: Id): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.get<SolicitudAsesor>(`/admin/solicitudes/${encodeURIComponent(id)}`);
-  return { value: response.data, etag: `"v${response.data.version}"` };
+  return versioned(response.data);
 }
 
 export async function getAdminDocumentUrl(id: Id): Promise<{ url: string; expires_at: string }> {
@@ -114,5 +115,5 @@ export async function decideAdvisorApplication(
     { decision, motivo },
     { headers: { 'If-Match': etag } },
   );
-  return { value: response.data, etag: `"v${response.data.version}"` };
+  return versioned(response.data);
 }

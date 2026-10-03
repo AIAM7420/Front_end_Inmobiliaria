@@ -1,3 +1,4 @@
+import { versioned } from './versioning';
 import { api } from './axios.config';
 import type { Aceptada, Cuenta, InicioSesion, RegistroCuenta, Sesion } from './types';
 
@@ -8,7 +9,7 @@ export interface Versioned<T> {
 
 export async function registerAccount(payload: RegistroCuenta): Promise<Versioned<Cuenta>> {
   const response = await api.post<Cuenta>('/cuentas', payload);
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function login(payload: InicioSesion): Promise<Sesion> {
@@ -22,7 +23,7 @@ export async function logout(): Promise<void> {
 
 export async function getMe(): Promise<Versioned<Cuenta>> {
   const response = await api.get<Cuenta>('/me');
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function updateMe(
@@ -30,7 +31,7 @@ export async function updateMe(
   etag: string,
 ): Promise<Versioned<Cuenta>> {
   const response = await api.patch<Cuenta>('/me', payload, { headers: { 'If-Match': etag } });
-  return { value: response.data, etag: response.headers.etag as string };
+  return versioned(response.data);
 }
 
 export async function confirmEmail(token: string): Promise<Aceptada> {

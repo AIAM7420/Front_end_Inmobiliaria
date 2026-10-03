@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
 import { MainLayout } from './components/templates/MainLayout';
-import { PlaceholderTemplate } from './components/templates/PlaceholderTemplate';
+import { NotFoundView } from './components/views/NotFoundView';
 
 const AuthTemplate = lazy(() => import('./components/templates/AuthTemplate').then(m => ({ default: m.AuthTemplate })));
 const ConfirmEmail = lazy(() => import('./components/templates/auth/ConfirmEmailView').then(m => ({ default: m.ConfirmEmailView })));
@@ -14,7 +14,7 @@ const UIKitTemplate = lazy(() => import('./components/templates/UiKitTemplate').
 const AsesorDashboard = lazy(() => import('./components/views/asesor/AsesorOverview').then(m => ({ default: m.AsesorOverview })));
 const AdvisorValidation = lazy(() => import('./components/views/asesor/AdvisorValidationView').then(m => ({ default: m.AdvisorValidationView })));
 const AdvisorSubscription = lazy(() => import('./components/views/asesor/AdvisorSubscriptionView').then(m => ({ default: m.AdvisorSubscriptionView })));
-const AdvisorProperties = lazy(() => import('./components/views/asesor/AdvisorPropertiesView').then(m => ({ default: m.AdvisorPropertiesView })));
+const AdvisorProperties = lazy(() => import('./components/views/asesor/AsesorInventoryView').then(m => ({ default: m.AsesorInventoryView })));
 const PaymentReturn = lazy(() => import('./components/views/asesor/PaymentReturnView').then(m => ({ default: m.PaymentReturnView })));
 const AdminDashboard = lazy(() => import('./components/views/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
 const AdminApplications = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminApplicationsView })));
@@ -23,7 +23,7 @@ const AdminProperties = lazy(() => import('./components/views/admin/AdminOperati
 const AdminReports = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminReportsView })));
 const AdminFinance = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminFinanceView })));
 const SplitLandingTemplate = lazy(() => import('./components/templates/SplitLandingTemplate').then(m => ({ default: m.SplitLandingTemplate })));
-const Profile = lazy(() => import('./components/views/ProfileView').then(m => ({ default: m.ProfileView })));
+const Profile = lazy(() => import('./components/templates/ProfileTemplate').then(m => ({ default: m.ProfileTemplate })));
 
 // Guardia para proteger rutas según el rol
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
     // Si no tiene permiso, redirigimos a home o a su dashboard respectivo
     return <Navigate to="/" replace />;
   }
@@ -57,8 +57,8 @@ function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Rutas Públicas */}
-          <Route 
-            path="/login" 
+          <Route
+            path="/login"
             element={<AuthTemplate onLogin={(account) => {
               login(account);
               if (account.rol === 'ASESOR') {
@@ -66,9 +66,9 @@ function AppRoutes() {
               } else if (account.rol === 'SUPERADMINISTRADOR') {
                 navigate('/admin', { replace: true });
               } else {
-                navigate('/', { replace: true }); 
+                navigate('/', { replace: true });
               }
-            }} />} 
+            }} />}
           />
           <Route path="/ui-kit" element={<UIKitTemplate onNavigate={() => {}} />} />
           <Route path="/confirmar-correo" element={<ConfirmEmail />} />
@@ -89,6 +89,10 @@ function AppRoutes() {
               <ProtectedRoute allowedRoles={['asesor']}><MessagesTemplate /></ProtectedRoute>
             } />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/asesor/profile" element={<ProtectedRoute allowedRoles={['asesor']}><Profile /></ProtectedRoute>} />
+            <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><Profile /></ProtectedRoute>} />
+            <Route path="/admin/asesores" element={<ProtectedRoute allowedRoles={['admin']}><AdminAccounts /></ProtectedRoute>} />
+            <Route path="/admin/moderacion" element={<ProtectedRoute allowedRoles={['admin']}><AdminProperties /></ProtectedRoute>} />
             <Route path="/asesor/validacion" element={
               <ProtectedRoute allowedRoles={['asesor']}><AdvisorValidation /></ProtectedRoute>
             } />
@@ -109,12 +113,8 @@ function AppRoutes() {
             <Route path="/admin/solicitudes" element={
               <ProtectedRoute allowedRoles={['admin']}><AdminApplications /></ProtectedRoute>
             } />
-            <Route path="/admin/cuentas" element={
-              <ProtectedRoute allowedRoles={['admin']}><AdminAccounts /></ProtectedRoute>
-            } />
-            <Route path="/admin/propiedades" element={
-              <ProtectedRoute allowedRoles={['admin']}><AdminProperties /></ProtectedRoute>
-            } />
+            <Route path="/admin/cuentas" element={<Navigate to="/admin/asesores" replace />} />
+            <Route path="/admin/propiedades" element={<Navigate to="/admin/moderacion" replace />} />
             <Route path="/admin/reportes" element={
               <ProtectedRoute allowedRoles={['admin']}><AdminReports /></ProtectedRoute>
             } />
@@ -127,8 +127,8 @@ function AppRoutes() {
               </ProtectedRoute>
             } />
           </Route>
-          
-          <Route path="*" element={<div className="min-h-screen bg-gray-50 dark:bg-inmo-darkbg flex flex-col"><PlaceholderTemplate type="404" /></div>} />
+
+          <Route path="*" element={<div className="min-h-screen bg-gray-50 dark:bg-inmo-darkbg flex flex-col"><NotFoundView /></div>} />
         </Routes>
       </Suspense>
     </>

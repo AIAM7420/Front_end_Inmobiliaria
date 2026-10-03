@@ -29,7 +29,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({ isOpen, onApply,
   };
 
   return (
-    <div className={`w-full transition-all duration-300 ease-in-out origin-top ${isOpen ? 'opacity-100 scale-y-100 max-h-[400px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'} ${className}`}>
+    <div hidden={!isOpen} className={`w-full transition-all duration-300 ease-in-out origin-top ${isOpen ? 'opacity-100 scale-y-100 max-h-[400px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'} ${className}`}>
       <div className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl p-5 rounded-card shadow-xl border border-gray-100 dark:border-inmo-darktertiary/50 mb-3">
         <div className="flex flex-col gap-3">
           {zones.isPending ? <Skeleton className="w-full h-[46px]" /> : <Select
@@ -44,7 +44,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({ isOpen, onApply,
             {zones.data?.map((zone) => <option key={zone.id} value={zone.id}>{zone.nombre}</option>)}
           </Select>}
           {zones.isError && <p role="alert" className="text-xs text-inmo-danger font-inter">No pudimos cargar las zonas. Puedes buscar por precio.</p>}
-          <Select 
+          <Select
             aria-label="Rango de precio"
             value={priceBand}
             onChange={(event) => setPriceBand(event.target.value)}
@@ -57,7 +57,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({ isOpen, onApply,
             <option value="1m-3m" className="text-black dark:text-white">$1M - $3M</option>
             <option value="over-3m" className="text-black dark:text-white">Más de $3M</option>
           </Select>
-          <Button 
+          <Button
             onClick={apply}
             className="w-full h-12 mt-1"
           >

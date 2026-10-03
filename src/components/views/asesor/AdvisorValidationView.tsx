@@ -3,13 +3,14 @@ import { useGetOwnApplication, useGetOwnAdvisor, useResubmitAdvisorApplication, 
 import { problemFromError } from '../../../integrations/backend/axios.config';
 import { Button } from '../../atoms/Button';
 import { Skeleton } from '../../atoms/Skeleton';
+import { FileDropZone } from '../../atoms/FileDropZone';
 
 const documentTypes = [
   { code: 'IDENTIFICACION_OFICIAL', label: 'Identificación oficial' },
   { code: 'CONSTANCIA_ACTIVIDAD_INMOBILIARIA', label: 'Constancia de actividad inmobiliaria' },
 ] as const;
 
-export function AdvisorValidationView() {
+export function AdvisorValidationView({ embedded = false }: { embedded?: boolean }) {
   const advisor = useGetOwnAdvisor();
   const application = useGetOwnApplication();
   const upload = useUploadAdvisorDocument();
@@ -33,12 +34,12 @@ export function AdvisorValidationView() {
     }
   }
 
-  return <main className="mx-auto w-full max-w-5xl px-4 md:px-6 pt-28 pb-32 text-inmo-secondary dark:text-white">
+  return <main className={(embedded ? 'px-5 py-6 ' : 'mx-auto w-full max-w-5xl px-4 md:px-6 pt-28 pb-32 ') + 'text-inmo-secondary dark:text-white'}>
     <h1 className="font-montserrat text-3xl font-bold">Validación profesional</h1>
     <p className="font-inter text-sm text-gray-500 dark:text-gray-400 mt-2">Tu expediente se revisa antes de habilitar funciones profesionales.</p>
     {(advisor.isLoading || application.isLoading) ? <div className="space-y-4 mt-8"><Skeleton className="h-24" /><Skeleton className="h-48" /></div>
       : (advisor.isError || application.isError) ? <section role="alert" className="mt-8 rounded-card bg-white dark:bg-inmo-darkcard p-6 font-inter text-sm">
-        No encontramos un expediente de asesor para esta cuenta. Si usas la cuenta sintética del piloto, regístrate como asesor con un correo de prueba nuevo para crear una solicitud real.
+        No pudimos consultar tu expediente. Intenta nuevamente; si aún no tienes perfil profesional, completa el registro de asesor.
       </section>
         : <>
           <section className="mt-8 rounded-card bg-white dark:bg-inmo-darkcard p-6 shadow-soft">
@@ -54,13 +55,10 @@ export function AdvisorValidationView() {
             <h2 className="font-montserrat font-bold text-lg">Documentos</h2>
             <p className="font-inter text-sm text-gray-500 mt-2">Sube ambos documentos en PDF, JPEG o WebP, de hasta 5 MB cada uno. Permanecen privados en R2.</p>
             <div className="grid md:grid-cols-2 gap-4 mt-5">
-              {documentTypes.map(({ code, label }) => <label key={code} className="rounded-2xl border border-inmo-tertiary dark:border-inmo-darktertiary p-4 font-inter text-sm">
-                <span className="block font-bold mb-3">{label}</span>
-                <input type="file" accept=".pdf,.jpg,.jpeg,.webp,application/pdf,image/jpeg,image/webp"
-                  disabled={upload.isPending} className="block w-full text-xs" aria-label={label}
-                  onChange={(event) => { void sendDocument(code, event.target.files?.[0]); event.target.value = ''; }} />
+              {documentTypes.map(({ code, label }) => <div key={code} className="rounded-2xl border border-inmo-tertiary dark:border-inmo-darktertiary p-4 font-inter text-sm">
+                {upload.isPending ? <p>Carga en curso…</p> : <FileDropZone label={label} accept="application/pdf,image/jpeg,image/webp" maxSizeMB={5} onFileSelect={file => { void sendDocument(code, file); }} />}
                 {uploadingType === code && <span className="block mt-2">Subiendo y comprobando…</span>}
-              </label>)}
+              </div>)}
             </div>
             <ul className="mt-5 space-y-2 font-inter text-sm">
               {current.documentos.map((document) => <li key={document.id}>{document.nombre} · {document.estado}</li>)}

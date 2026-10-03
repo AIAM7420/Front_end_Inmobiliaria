@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   changeAdminAccountState, getAdminAccount, getAdminAccounts, getAdminProperties, getAdminProperty,
-  getAdminReports, getAdminSubscriptions, getAdminAudit, moderateAdminProperty, resolveAdminReport,
+  getAdminReport, getAdminReports, getAdminSubscriptions, getAdminAudit, moderateAdminProperty, resolveAdminReport,
 } from '../administration.service';
 import type { PageParams } from '../administration.service';
 import type { Id } from '../types';
@@ -20,6 +20,10 @@ export function useGetAdminReports(params: PageParams & { estado?: string } = {}
     queryFn: () => getAdminReports(params),
     staleTime: 10_000,
   });
+}
+
+export function useGetAdminReport(id: Id) {
+  return useQuery({ queryKey: ['admin', 'report', id], queryFn: () => getAdminReport(id), enabled: Boolean(id) });
 }
 
 export function useGetAdminAccount(id: Id) {
