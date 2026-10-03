@@ -21,7 +21,7 @@ export function MainLayout() {
   const full = ['home','map','asesor','asesor/propiedades','admin','admin/asesores','admin/moderacion','admin/solicitudes','admin/reportes','admin/finanzas','profile','asesor/profile','admin/profile'].includes(activeRoute);
   const account = me.data?.value;
   return <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden text-inmo-secondary dark:text-white">
-    <div className={(full ? 'absolute top-0 w-full pointer-events-none ' : '') + 'pt-3 md:pt-6 z-30'}>
+    <div className={(activeRoute === 'map' ? 'hidden md:block ' : '') + (full ? 'absolute top-0 w-full pointer-events-none ' : '') + 'pt-3 md:pt-6 z-30'}>
       <NavHeader isDarkMode={isDarkMode} onToggleTheme={toggleTheme} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)}
         onLogout={() => logout.mutate()} userName={account?.nombre ?? 'Invitado'} userRole={account?.rol ?? 'Visitante'}
         userInitials={account?.nombre.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase() ?? 'IN'}

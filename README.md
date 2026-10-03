@@ -2,6 +2,8 @@
 
 React, TypeScript y Vite. La capa de API y hooks vive en `src/integrations/backend`.
 
+Integración visual y funciones de inventario: [contratos, procedencia, pruebas y capturas](./docs/Fidelidad_visual_e_inventario.md).
+
 ## Local
 
 Configura `VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1` en `.env.local`

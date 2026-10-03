@@ -37,6 +37,7 @@ export const LoginForm: React.FC<LoginFormProps> = React.memo(({ onLogin, onNavi
       className="w-full max-w-sm flex flex-col gap-5 animate-in fade-in transform-gpu will-change-[opacity,transform] duration-500 ease-out"
     >
       <Input
+        aria-label="Correo electrónico"
         type="email"
         value={correo}
         onChange={(event) => setCorreo(event.target.value)}
@@ -46,19 +47,17 @@ export const LoginForm: React.FC<LoginFormProps> = React.memo(({ onLogin, onNavi
       />
       <div className="flex flex-col gap-1">
         <Input
+          aria-label="Contraseña"
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
           placeholder="Contraseña ..."
           leftIcon={<KeyRound className="w-5 h-5 text-gray-400" strokeWidth={1.5} />}
-          rightIcon={
-            showPassword ? (
-              <EyeOff className="w-5 h-5 text-gray-400 cursor-pointer" strokeWidth={1.5} onClick={() => setShowPassword(false)} />
-            ) : (
-              <Eye className="w-5 h-5 text-gray-400 cursor-pointer" strokeWidth={1.5} onClick={() => setShowPassword(true)} />
-            )
-          }
+          rightIcon={<button type="button" aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} aria-pressed={showPassword}
+            onClick={() => setShowPassword(!showPassword)} className="flex rounded-full focus-visible:outline-2 focus-visible:outline-inmo-accent">
+            {showPassword ? <EyeOff className="w-5 h-5 text-gray-400" strokeWidth={1.5} /> : <Eye className="w-5 h-5 text-gray-400" strokeWidth={1.5} />}
+          </button>}
         />
         {!localPilotNoEmail && <div className="flex justify-start mt-1">
           <Button
@@ -77,9 +76,9 @@ export const LoginForm: React.FC<LoginFormProps> = React.memo(({ onLogin, onNavi
       {login.isError && <p role="alert" className="font-inter text-sm text-inmo-danger">
         {problemFromError(login.error)?.detail ?? 'No pudimos iniciar sesión. Verifica tu correo y contraseña.'}
       </p>}
-      <Button type="submit" variant="accent" isLoading={login.isPending} disabled={!correo.trim() || !password}
-        className="w-full h-14 mt-2" icon={<User className="w-5 h-5" />}>Iniciar sesión</Button>
-      <div className="flex items-center justify-center gap-1 mt-6">
+      <Button type="submit" variant="accent" isLoading={login.isPending}
+        className="w-full h-14 mt-2" icon={<User className="w-6 h-6" strokeWidth={2} />}>Iniciar sesión</Button>
+      <div className="flex items-center justify-center gap-1 mt-2">
         <span className="text-sm text-gray-500 dark:text-gray-400 font-inter">¿No tienes cuenta?</span>
         <Button type="button" variant="text" onClick={() => onNavigate('account-type')} className="text-sm font-bold">
           Regístrate aquí

@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-const api = 'http://127.0.0.1:8000/api/v1';
+const api = process.env.E2E_API_URL ?? 'http://127.0.0.1:8000/api/v1';
+const base = `http://127.0.0.1:${process.env.E2E_FRONTEND_PORT ?? '5173'}`;
 
 test.beforeAll(async ({ request }) => {
-  const response = await request.get('http://127.0.0.1:8000/health/ready');
+  const response = await request.get(api.replace(/\/api\/v1$/, '') + '/health/ready');
   expect(response.ok(), 'The isolated E2E backend and MySQL must be ready').toBeTruthy();
 });
 
@@ -11,7 +12,7 @@ test('public catalog and filters use the real API without exposing a token', asy
   const catalog = page.waitForResponse((response) => response.url().startsWith(`${api}/propiedades?`));
   await page.goto('/');
   expect((await catalog).status()).toBe(200);
-  await expect(page.getByRole('heading', { name: 'Explorar catálogo' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Catálogo general' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Abrir filtros' }).click();
   await page.getByRole('combobox', { name: 'Rango de precio' }).selectOption('under-1m');
@@ -40,7 +41,7 @@ test('confirmed synthetic user logs in and opens protected chat without persisti
   const login = page.waitForResponse((response) => response.url() === `${api}/sesiones`);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
   expect((await login).status()).toBe(200);
-  await expect(page).toHaveURL('http://127.0.0.1:5173/');
+  await expect(page).toHaveURL(base + '/');
   const storage = await page.evaluate(() => ({
     local: JSON.stringify(localStorage), session: JSON.stringify(sessionStorage),
   }));
@@ -85,7 +86,7 @@ test('public registration reaches the API and asks for email confirmation', asyn
 
 test('protected route redirects to login and invalid credentials show a safe error', async ({ page }) => {
   await page.goto('/messages');
-  await expect(page).toHaveURL('http://127.0.0.1:5173/login');
+  await expect(page).toHaveURL(base + '/login');
   await page.getByPlaceholder('Correo electrónico').fill('nobody@example.invalid');
   await page.getByPlaceholder('Contraseña ...').fill('Incorrect1!');
   const login = page.waitForResponse((response) => response.url() === `${api}/sesiones`);
@@ -114,7 +115,7 @@ test('advisor dashboard loads own portfolio and notifications through the API', 
   const portfolio = page.waitForResponse((response) =>
     response.url().startsWith(`${api}/me/propiedades?`));
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page).toHaveURL('http://127.0.0.1:5173/asesor');
+  await expect(page).toHaveURL(base + '/asesor');
   expect((await portfolio).status()).toBe(200);
   await expect(page.getByText('Mis propiedades')).toBeVisible();
 });
@@ -128,7 +129,7 @@ test('admin dashboard loads privileged accounts and reports', async ({ page }) =
   const reports = page.waitForResponse((response) =>
     response.url().startsWith(`${api}/admin/reportes?`));
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page).toHaveURL('http://127.0.0.1:5173/admin');
+  await expect(page).toHaveURL(base + '/admin');
   expect((await accounts).status()).toBe(200);
   expect((await reports).status()).toBe(200);
   await expect(page.getByRole('heading', { name: 'Administración' })).toBeVisible();

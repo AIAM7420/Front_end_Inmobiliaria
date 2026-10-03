@@ -37,14 +37,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const startTime = useRef(0);
 
   useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
     if (isOpen) {
       setIsExpanded(defaultExpanded);
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+      sheetRef.current?.focus();
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      if (isOpen) { document.body.style.overflow = overflow; previous?.focus(); }
     };
   }, [isOpen, defaultExpanded]);
 
@@ -128,6 +129,17 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         inert={!isOpen}
         aria-hidden={!isOpen}
         role="dialog"
+        tabIndex={-1}
+        onKeyDown={event => {
+          if (event.key === 'Escape') { event.stopPropagation(); onClose?.(); }
+          if (event.key !== 'Tab') return;
+          const nodes = Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]') ?? [])
+            .filter(node => node.getClientRects().length > 0);
+          if (!nodes.length) { event.preventDefault(); return; }
+          const first = nodes[0], last = nodes[nodes.length - 1];
+          if (event.shiftKey && (document.activeElement === first || document.activeElement === sheetRef.current)) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }}
         aria-modal={isOpen}
         aria-label={typeof title === 'string' ? title : 'Detalle'}
         className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-inmo-darkbg z-50 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.15)] overflow-hidden ${
@@ -176,12 +188,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     ? 'bg-black/20 backdrop-blur-md text-white hover:bg-black/30'
                     : 'bg-gray-100 dark:bg-inmo-darkcard text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
+                aria-label="Volver al panel anterior"
                 icon={<ArrowLeft className="w-5 h-5" strokeWidth={2.5} />}
               />
             </div>
           )}
 
-          {isExpanded && !hideCloseButton && (
+          {onClose && !hideCloseButton && (
             <div className={`absolute right-4 z-50 ${isHero ? 'top-4' : 'top-3'} animate-in fade-in zoom-in duration-300`}>
               <IconButton
                 onClick={(e) => {
@@ -194,6 +207,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     ? 'bg-black/20 backdrop-blur-md text-white hover:bg-black/30'
                     : 'bg-gray-100 dark:bg-inmo-darkcard text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
+                aria-label="Cerrar detalle"
                 icon={<X className="w-5 h-5" strokeWidth={2.5} />}
               />
             </div>

@@ -1,0 +1,70 @@
+{
+  "source": "01295bee792791081933a936c51d820f0b6877d3",
+  "scope": "Only the explicitly captured common regions, not the whole application",
+  "results": [
+    {
+      "mobile": false,
+      "dark": false,
+      "part": "logo",
+      "pixels": 535680,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": false,
+      "dark": false,
+      "part": "password",
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": false,
+      "dark": true,
+      "part": "logo",
+      "pixels": 535680,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": false,
+      "dark": true,
+      "part": "password",
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": true,
+      "dark": false,
+      "part": "logo",
+      "pixels": 132600,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": true,
+      "dark": false,
+      "part": "password",
+      "pixels": 19152,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": true,
+      "dark": true,
+      "part": "logo",
+      "pixels": 132600,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "mobile": true,
+      "dark": true,
+      "part": "password",
+      "pixels": 19152,
+      "changed": 0,
+      "percent": 0
+    }
+  ]
+}

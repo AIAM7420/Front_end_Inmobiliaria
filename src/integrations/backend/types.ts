@@ -81,6 +81,8 @@ export interface PropiedadPublica {
 export type PaginaPropiedadPublica = Pagina<PropiedadPublica>;
 
 export interface PropiedadPrivada {
+  orden_inventario?: number | null;
+  recuperable?: boolean;
   id: Id;
   asesor_id: Id;
   tipo_id: Id;
@@ -131,6 +133,8 @@ export interface PropiedadCrear {
 export type PropiedadEditar = Partial<Omit<PropiedadCrear, 'amenidad_ids'>> & {
   amenidad_ids?: Id[];
 };
+
+export type PropiedadComision = PropiedadPublica & { porcentaje_comision: string };
 
 export interface CatalogoItem {
   id: Id;
