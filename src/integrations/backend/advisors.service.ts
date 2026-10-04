@@ -62,7 +62,7 @@ export async function getOwnAdvisor(): Promise<AsesorRegistrado> {
 
 export async function getOwnApplication(): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.get<SolicitudAsesor>('/asesores/me/solicitud');
-  return versioned(response.data);
+  return versioned(response.data, { allowInitialZero: true });
 }
 
 export async function authorizeAdvisorDocument(payload: {
@@ -93,7 +93,7 @@ export async function confirmAdvisorDocument(comprobante: string): Promise<Docum
 
 export async function resubmitAdvisorApplication(): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.post<SolicitudAsesor>('/asesores/me/solicitudes');
-  return versioned(response.data);
+  return versioned(response.data, { allowInitialZero: true });
 }
 
 export async function getAdminApplications(params: { limit?: number; cursor?: string } = {}): Promise<{
@@ -106,7 +106,7 @@ export async function getAdminApplications(params: { limit?: number; cursor?: st
 
 export async function getAdminApplication(id: Id): Promise<Versioned<SolicitudAsesor>> {
   const response = await api.get<SolicitudAsesor>(`/admin/solicitudes/${encodeURIComponent(id)}`);
-  return versioned(response.data);
+  return versioned(response.data, { allowInitialZero: true });
 }
 
 export async function getAdminDocumentUrl(id: Id): Promise<{ url: string; expires_at: string }> {
