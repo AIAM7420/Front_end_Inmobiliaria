@@ -14,8 +14,8 @@ interface AuthTemplateProps {
 
 export const AuthTemplate: React.FC<AuthTemplateProps> = ({ onLogin }) => {
   const [params] = useSearchParams();
-  const [currentView, setCurrentView] = useState<AuthView>(params.get('view') === 'recovery' ? 'recovery' : 'login');
-  const [accountType, setAccountType] = useState<'prospecto' | 'asesor'>('prospecto');
+  const [currentView, setCurrentView] = useState<AuthView>(params.get('view') === 'recovery' ? 'recovery' : params.get('view') === 'register' ? 'register' : 'login');
+  const [accountType, setAccountType] = useState<'prospecto' | 'asesor'>(params.get('type') === 'asesor' ? 'asesor' : 'prospecto');
 
   const handleLogin = (account: Cuenta) => {
     if (onLogin) onLogin(account);

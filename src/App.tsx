@@ -26,6 +26,7 @@ const SplitLandingTemplate = lazy(() => import('./components/templates/SplitLand
 const Profile = lazy(() => import('./components/templates/ProfileTemplate').then(m => ({ default: m.ProfileTemplate })));
 const PublicAdvisor = lazy(() => import('./components/templates/AsesorPublicProfileTemplate').then(m => ({ default: m.AsesorPublicProfileTemplate })));
 const AdminProfile = lazy(() => import('./components/templates/AdminProfileTemplate').then(m => ({ default: m.AdminProfileTemplate })));
+const AdvisorOnboarding = lazy(() => import('./components/templates/auth/AdvisorOnboardingView').then(m => ({ default: m.AdvisorOnboardingView })));
 
 // Guardia para proteger rutas según el rol
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -64,7 +65,7 @@ function AppRoutes() {
             element={<AuthTemplate onLogin={(account) => {
               login(account);
               if (account.rol === 'ASESOR') {
-                navigate('/asesor', { replace: true });
+                navigate('/registro-asesor', { replace: true });
               } else if (account.rol === 'SUPERADMINISTRADOR') {
                 navigate('/admin', { replace: true });
               } else {
@@ -74,6 +75,9 @@ function AppRoutes() {
           />
           {import.meta.env.DEV && <Route path="/ui-kit" element={<UIKitTemplate onNavigate={() => {}} />} />}
           <Route path="/confirmar-correo" element={<ConfirmEmail />} />
+          <Route path="/registro-asesor" element={<ProtectedRoute allowedRoles={['asesor']}><AdvisorOnboarding /></ProtectedRoute>} />
+          <Route path="/pagos/exito" element={<ProtectedRoute allowedRoles={['asesor']}><PaymentReturn /></ProtectedRoute>} />
+          <Route path="/pagos/cancelado" element={<ProtectedRoute allowedRoles={['asesor']}><PaymentReturn /></ProtectedRoute>} />
           <Route path="/restablecer-contrasena" element={<NewPassword onNavigate={() => navigate('/login')} />} />
 
           {/* RUTAS PUBLICAS (CON LAYOUT) */}
@@ -103,8 +107,6 @@ function AppRoutes() {
             <Route path="/asesor/suscripcion" element={
               <ProtectedRoute allowedRoles={['asesor']}><AdvisorSubscription /></ProtectedRoute>
             } />
-            <Route path="/pagos/exito" element={<ProtectedRoute allowedRoles={['asesor']}><PaymentReturn /></ProtectedRoute>} />
-            <Route path="/pagos/cancelado" element={<ProtectedRoute allowedRoles={['asesor']}><PaymentReturn /></ProtectedRoute>} />
             <Route path="/asesor/propiedades" element={
               <ProtectedRoute allowedRoles={['asesor']}><AdvisorProperties /></ProtectedRoute>
             } />

@@ -22,8 +22,8 @@ export function useGetOwnAdvisor(enabled = true) {
   return useQuery({ queryKey: ['advisor', 'own'], queryFn: getOwnAdvisor, staleTime: 10_000, enabled });
 }
 
-export function useGetOwnApplication() {
-  return useQuery({ queryKey: ['advisor', 'application'], queryFn: getOwnApplication, staleTime: 10_000 });
+export function useGetOwnApplication(enabled = true) {
+  return useQuery({ queryKey: ['advisor', 'application'], queryFn: getOwnApplication, staleTime: 10_000, enabled });
 }
 
 export function useUploadAdvisorDocument() {

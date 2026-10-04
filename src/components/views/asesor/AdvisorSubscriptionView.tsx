@@ -12,11 +12,11 @@ import { ConflictNotice } from '../../molecules/ConflictNotice';
 
 type Step = 'overview' | 'plans' | 'checkout-confirmation';
 
-export function AdvisorSubscriptionView({ embedded = false }: { embedded?: boolean }) {
+export function AdvisorSubscriptionView({ embedded = false, initialStep = 'overview' }: { embedded?: boolean; initialStep?: Step }) {
   const application = useGetOwnApplication(), subscription = useGetSubscription(), plans = useGetPlans();
   const select = useSelectPlan(), payment = useCreatePayment(), portal = useCreatePortalSession();
   const help = useQuery({ queryKey: ['help'], queryFn: getHelp });
-  const [step, setStep] = useState<Step>('overview'), [chosen, setChosen] = useState<Plan | null>(null);
+  const [step, setStep] = useState<Step>(initialStep), [chosen, setChosen] = useState<Plan | null>(null);
   const [notice, setNotice] = useState(''), [navigationError, setNavigationError] = useState(''), [conflict, setConflict] = useState(false);
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
   const requestIds = useRef<Record<string, string>>({});
