@@ -19,9 +19,9 @@ export const AccountTypeView: React.FC<AccountTypeViewProps> = ({
   return (
     <div className="bg-white dark:bg-inmo-darkbg min-h-screen w-full flex flex-col items-center px-6 transition-colors overflow-y-auto pb-12 justify-center py-10">
       {/* Header */}
-      <AuthHeader 
-        title="¿Cómo deseas registrarte?" 
-        subtitle="Selecciona el tipo de cuenta que mejor se adapte a ti." 
+      <AuthHeader
+        title="¿Cómo deseas registrarte?"
+        subtitle="Selecciona el tipo de cuenta que mejor se adapte a ti."
       />
 
       {/* Account Type Cards */}
@@ -29,7 +29,7 @@ export const AccountTypeView: React.FC<AccountTypeViewProps> = ({
         <AccountTypeCard
           icon={<Home className="w-8 h-8" strokeWidth={1.5} />}
           title="Prospecto"
-          description="Busco comprar o rentar una propiedad"
+          description="Busco comprar una propiedad"
           isSelected={selectedType === 'prospecto'}
           onClick={() => setSelectedType('prospecto')}
         />

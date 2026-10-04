@@ -14,7 +14,7 @@ for (const mobile of [false, true]) {
     await page.getByRole('button', { name: 'Abrir menú de usuario', exact: true }).click();
     await page.getByRole('button', { name: 'Ver perfil', exact: true }).click();
     await page.getByRole('button', { name: /Información personal/ }).click();
-    const input = page.getByRole('textbox', { name: 'Nombre', exact: true });
+    const input = page.getByRole('textbox', { name: 'Nombre completo', exact: true });
     await expect(input).toBeVisible();
     const originalName = await input.inputValue();
     const login = await request.post(`${api}/sesiones`, { data: { correo: 'e2e-general@example.invalid', password: 'E2eTesting1!' } });
@@ -32,7 +32,8 @@ for (const mobile of [false, true]) {
     if (mobile) await page.getByRole('dialog').press('Escape');
     else await page.getByRole('button', { name: 'Cerrar detalle', exact: true }).click();
     await page.getByRole('button', { name: 'General', exact: true }).click();
-    await page.getByRole('button', { name: 'Usar modo oscuro', exact: true }).filter({ hasText: 'Usar modo oscuro' }).click();
+    await page.getByRole('combobox', { name: 'Apariencia', exact: true }).selectOption('OSCURO');
+    await page.getByRole('button', { name: 'Guardar preferencias', exact: true }).click();
     await expect(page.locator('html')).toHaveClass(/dark/);
     await page.screenshot({ path: `docs/evidence/fidelity/profile-${mobile ? 'mobile' : 'desktop'}-dark.png`, fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

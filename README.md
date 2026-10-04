@@ -2,7 +2,7 @@
 
 React, TypeScript y Vite. La capa de API y hooks vive en `src/integrations/backend`.
 
-Integración visual y funciones de inventario: [contratos, procedencia, pruebas y capturas](./docs/Fidelidad_visual_e_inventario.md).
+Integración actual completa: [matriz de pantallas, contratos, procedencia, pruebas y capturas](./docs/Integracion_total_INMO.md). Misma aplicación integrada para `AIAM7420/Front_end_Inmobiliaria` y `angggsoft/inmo`, basada en `01295be`.
 
 ## Local
 

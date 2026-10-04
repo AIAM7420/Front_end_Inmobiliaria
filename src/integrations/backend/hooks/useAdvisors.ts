@@ -18,8 +18,8 @@ export function useRegisterAdvisor() {
   return useMutation({ mutationFn: registerAdvisor });
 }
 
-export function useGetOwnAdvisor() {
-  return useQuery({ queryKey: ['advisor', 'own'], queryFn: getOwnAdvisor, staleTime: 10_000 });
+export function useGetOwnAdvisor(enabled = true) {
+  return useQuery({ queryKey: ['advisor', 'own'], queryFn: getOwnAdvisor, staleTime: 10_000, enabled });
 }
 
 export function useGetOwnApplication() {
@@ -30,7 +30,7 @@ export function useUploadAdvisorDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ tipo, file }: {
-      tipo: 'IDENTIFICACION_OFICIAL' | 'CONSTANCIA_ACTIVIDAD_INMOBILIARIA';
+      tipo: 'IDENTIFICACION_OFICIAL' | 'CONSTANCIA_ACTIVIDAD_INMOBILIARIA' | 'CONSTANCIA_SITUACION_FISCAL' | 'LICENCIA_INMOBILIARIA';
       file: File;
     }) => {
       if (file.size < 1 || file.size > 5 * 1024 * 1024 ||

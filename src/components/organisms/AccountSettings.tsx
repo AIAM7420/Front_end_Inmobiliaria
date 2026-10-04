@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, CreditCard, FileCheck, LogOut, Settings, Shield, User } from 'lucide-react';
+import { ArrowLeft, ChevronRight, CreditCard, FileCheck, LifeBuoy, LogOut, Settings, Shield, Trash2, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Cuenta } from '../../integrations/backend/types';
 import { IconButton } from '../atoms/IconButton';
@@ -15,6 +15,8 @@ export function AccountSettings({ account, advisor, view, open, pending, onSelec
       { key: 'plan', label: 'Suscripción y pagos', icon: <CreditCard className="w-5 h-5 shrink-0" /> }] : []),
     { key: 'general', label: 'General', icon: <Settings className="w-5 h-5 shrink-0" /> },
     { key: 'security', label: 'Seguridad', icon: <Shield className="w-5 h-5 shrink-0" /> },
+    { key: 'support', label: 'Ayuda y soporte', icon: <LifeBuoy className="w-5 h-5 shrink-0" /> },
+    { key: 'close', label: 'Baja permanente', icon: <Trash2 className="w-5 h-5 shrink-0" /> },
   ];
   return <div className="h-full min-h-0 overflow-y-auto overscroll-contain bg-gray-50 dark:bg-inmo-darkbg pb-24 pt-[88px] md:pt-[100px] font-inter">
     <div className="sticky top-0 z-20 bg-gray-50/80 dark:bg-inmo-darkbg/80 backdrop-blur-xl px-4 py-4 flex items-center gap-3">

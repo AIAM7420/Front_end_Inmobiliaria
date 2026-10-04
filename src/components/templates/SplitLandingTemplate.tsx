@@ -7,6 +7,7 @@ import { SplitViewLayout } from './SplitViewLayout';
 import { useAppContext } from '../../context/AppContext';
 import { useGetCatalog, useGetProperties } from '../../integrations/backend/hooks/useProperties';
 import { useSearchQuery } from '../../integrations/backend/hooks/useSearch';
+import { chatbotCriteria } from '../../integrations/backend/chatbotCriteria';
 import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
 import { ConnectedPropertyCard } from '../organisms/ConnectedPropertyCard';
 import { ConnectedHero } from '../organisms/ConnectedHero';
@@ -29,7 +30,6 @@ export function SplitLandingTemplate() {
   const hasFilters = Boolean(globalFilters && Object.values(globalFilters).some(value => value !== undefined && value !== null && value !== ''));
   const publicCatalog = useGetProperties({ limit: 20, cursor }, !hasFilters && !globalSearchQuery.trim());
   const filteredCatalog = useSearchQuery(globalFilters ?? {}, { limit: 20, cursor }, hasFilters && !globalSearchQuery.trim());
-  const catalog = hasFilters ? filteredCatalog : publicCatalog;
   const types = useGetCatalog('tipos');
   const chatbot = useChatbotQuery();
   const search = chatbot.mutate;
@@ -38,9 +38,11 @@ export function SplitLandingTemplate() {
   }, [globalSearchQuery, search]);
   useEffect(() => { setCursor(undefined); setSelectedId(''); }, [globalFilters, globalSearchQuery]);
   const textMode = Boolean(globalSearchQuery.trim());
-  const properties = textMode ? chatbot.data?.resultados ?? [] : catalog.data?.items ?? [];
-  const busy = textMode ? chatbot.isPending : catalog.isLoading;
-  const failed = textMode ? chatbot.isError : catalog.isError;
+  const textCatalog = useSearchQuery(chatbotCriteria(chatbot.data), { limit: 20, cursor }, textMode && chatbot.data?.estado === 'RESULTADOS' && !chatbot.isPending);
+  const catalog = textMode ? textCatalog : hasFilters ? filteredCatalog : publicCatalog;
+  const properties = textMode ? catalog.data?.items ?? chatbot.data?.resultados ?? [] : catalog.data?.items ?? [];
+  const busy = textMode ? chatbot.isPending || textCatalog.isLoading : catalog.isLoading;
+  const failed = textMode ? chatbot.isError || textCatalog.isError : catalog.isError;
   const selected = properties.find(property => property.id === selectedId);
   const catalogCards = <div className={`grid gap-6 transition-all duration-500 ${selectedId ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4'}`}>
     {busy ? Array.from({length:4},(_,i)=><PropertyCardSkeleton key={i} />)
@@ -74,7 +76,7 @@ export function SplitLandingTemplate() {
       {textMode && chatbot.data?.aclaracion && <p role="status">{chatbot.data.aclaracion}</p>}
       {catalogCards}
       {!busy && !failed && !properties.length && <p role="status" className="rounded-card bg-white dark:bg-inmo-darkcard p-8 text-gray-500">No encontramos propiedades con esos criterios.</p>}
-      {!textMode && catalog.data?.next_cursor && <Button variant="secondary" onClick={() => setCursor(catalog.data?.next_cursor ?? undefined)}>Página siguiente</Button>}
+      {catalog.data?.next_cursor && <Button variant="secondary" onClick={() => setCursor(catalog.data?.next_cursor ?? undefined)}>Página siguiente</Button>}
       {cursor && <Button variant="text" onClick={() => setCursor(undefined)}>Volver al inicio</Button>}
     </section>
   </main><Footer /></>;

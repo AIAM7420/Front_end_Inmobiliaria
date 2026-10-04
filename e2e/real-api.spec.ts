@@ -65,8 +65,9 @@ test('confirmed synthetic user logs in and opens protected chat without persisti
   await expect.poll(() => sentFrames.length).toBeGreaterThan(0);
   expect((JSON.parse(sentFrames[0]) as { type: string }).type).toBe('auth');
   await expect.poll(() => receivedTypes.includes('auth.ok')).toBe(true);
-  await expect(page.getByText('Conversaciones', { exact: true })).toBeVisible();
-  await expect(page.getByText('Todavía no tienes conversaciones.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chats', exact: true })).toBeVisible();
+  const inbox = await page.request.get(`${api}/conversaciones`, { headers: { Authorization: `Bearer ${(await (await page.request.post(`${api}/sesiones`, { data: { correo: 'e2e-general@example.invalid', password: 'E2eTesting1!' } })).json()).access_token}` } });
+  expect(inbox.status()).toBe(200);
 });
 
 test('public registration reaches the API and asks for email confirmation', async ({ page }) => {
@@ -113,11 +114,11 @@ test('advisor dashboard loads own portfolio and notifications through the API', 
   await page.getByPlaceholder('Correo electrónico').fill('e2e-advisor@example.invalid');
   await page.getByPlaceholder('Contraseña ...').fill('E2eTesting1!');
   const portfolio = page.waitForResponse((response) =>
-    response.url().startsWith(`${api}/me/propiedades?`));
+    response.url().startsWith(`${api}/me/estadisticas?`));
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
   await expect(page).toHaveURL(base + '/asesor');
   expect((await portfolio).status()).toBe(200);
-  await expect(page.getByText('Mis propiedades')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Portafolio', exact: true })).toBeVisible();
 });
 
 test('admin dashboard loads privileged accounts and reports', async ({ page }) => {
@@ -125,14 +126,14 @@ test('admin dashboard loads privileged accounts and reports', async ({ page }) =
   await page.getByPlaceholder('Correo electrónico').fill('e2e-admin@example.invalid');
   await page.getByPlaceholder('Contraseña ...').fill('E2eTesting1!');
   const accounts = page.waitForResponse((response) =>
-    response.url().startsWith(`${api}/admin/cuentas?`));
+    response.url().startsWith(`${api}/admin/estadisticas?`));
   const reports = page.waitForResponse((response) =>
     response.url().startsWith(`${api}/admin/reportes?`));
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
   await expect(page).toHaveURL(base + '/admin');
   expect((await accounts).status()).toBe(200);
   expect((await reports).status()).toBe(200);
-  await expect(page.getByRole('heading', { name: 'Administración' })).toBeVisible();
+  await expect(page.getByText('Panel de Control Global', { exact: true })).toBeVisible();
 });
 
 test('general account cannot read administration and revoked JWT stops working', async ({ request }) => {

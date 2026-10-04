@@ -11,8 +11,8 @@ const executablePath = process.env.PLAYWRIGHT_CHROME_EXECUTABLE || (process.plat
 const browser = await chromium.launch({ executablePath, headless: true });
 const results = [];
 try {
-  for (const mobile of [false, true]) for (const dark of [false, true]) {
-    const viewport = mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 };
+  for (const size of [{ name: 'desktop', width: 1440, height: 900 }, { name: 'tablet', width: 820, height: 1180 }, { name: 'mobile', width: 390, height: 844 }]) for (const dark of [false, true]) {
+    const viewport = { width: size.width, height: size.height };
     const context = await browser.newContext({ viewport });
     await context.addInitScript(theme => localStorage.setItem('inmo_theme', theme), dark ? 'dark' : 'light');
     const captures = {};
@@ -23,8 +23,8 @@ try {
       await page.waitForFunction(() => getComputedStyle(document.querySelector('form')).maxWidth === '384px');
       await page.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map(img => img.decode().catch(() => {}))); });
       captures[name] = {};
-      for (const [part, clip] of [['logo', { x: 0, y: 0, width: viewport.width, height: mobile ? 340 : 372 }], ['password', { x: mobile ? 24 : 528, y: mobile ? 440 : 472, width: mobile ? 342 : 384, height: 56 }]]) {
-        captures[name][part] = (await page.screenshot({ path: `${directory}/${name}-${part}-${mobile ? 'mobile' : 'desktop'}-${dark ? 'dark' : 'light'}.png`, clip, animations: 'disabled' })).toString('base64');
+      for (const [part, locator] of [['logo', page.getByRole('img', { name: 'INMO', exact: true }).filter({ visible: true })], ['password', page.getByPlaceholder('Contraseña ...').locator('..')]]) {
+        captures[name][part] = { png: (await locator.screenshot({ path: `${directory}/${name}-${part}-${size.name}-${dark ? 'dark' : 'light'}.png`, animations: 'disabled' })).toString('base64'), box: await locator.boundingBox() };
       }
       await page.close();
     }
@@ -42,8 +42,8 @@ try {
         let changed = 0;
         for (let i = 0; i < a.length; i += 4) if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2] || a[i + 3] !== b[i + 3]) changed++;
         return { pixels: a.length / 4, changed, percent: 100 * changed / (a.length / 4) };
-      }, [captures.reference[part], captures.integrated[part]]);
-      results.push({ mobile, dark, part, ...stats });
+      }, [captures.reference[part].png, captures.integrated[part].png]);
+      results.push({ size: size.name, dark, part, reference: captures.reference[part].box, integrated: captures.integrated[part].box, ...stats });
     }
     await context.close();
   }

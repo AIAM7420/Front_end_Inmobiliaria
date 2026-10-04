@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   changeAdminAccountState, getAdminAccount, getAdminAccounts, getAdminProperties, getAdminProperty,
-  getAdminReport, getAdminReports, getAdminSubscriptions, getAdminAudit, moderateAdminProperty, resolveAdminReport,
+  getAdminReport, getAdminReports, getAdminSubscriptions, getAdminAudit, moderateAdminProperty, resolveAdminReport, getAdminPhotos, getAdminPhotoUrl,
 } from '../administration.service';
 import type { PageParams } from '../administration.service';
 import type { Id } from '../types';
 
-export function useGetAdminAccounts(params: PageParams = {}) {
+export function useGetAdminPhotos(id: Id, enabled = true) { return useQuery({ queryKey: ['admin', 'photos', id], queryFn: () => getAdminPhotos(id), enabled: enabled && !!id }); }
+export function useGetAdminPhotoUrl(id: Id, photo: Id, enabled = true) { return useQuery({ queryKey: ['admin', 'photos', id, photo, 'url'], queryFn: () => getAdminPhotoUrl(id, photo), enabled: enabled && !!id && !!photo, staleTime: 120_000 }); }
+
+export function useGetAdminAccounts(params: PageParams & { texto?: string; estado?: string } = {}) {
   return useQuery({
     queryKey: ['admin', 'accounts', params],
     queryFn: () => getAdminAccounts(params),

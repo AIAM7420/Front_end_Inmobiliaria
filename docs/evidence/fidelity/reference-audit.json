@@ -1,0 +1,920 @@
+{
+  "source": "01295bee792791081933a936c51d820f0b6877d3",
+  "scope": "Raw pixels and positions of shared static login regions; full reference captures for review, not a claim of whole-application pixel identity",
+  "results": [
+    {
+      "size": "desktop",
+      "dark": false,
+      "part": "logo",
+      "reference": {
+        "x": 592.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "integrated": {
+        "x": 592.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "desktop",
+      "dark": false,
+      "part": "password",
+      "reference": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "desktop",
+      "dark": true,
+      "part": "logo",
+      "reference": {
+        "x": 592.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "integrated": {
+        "x": 592.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "desktop",
+      "dark": true,
+      "part": "password",
+      "reference": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": false,
+      "part": "logo",
+      "reference": {
+        "x": 282.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "integrated": {
+        "x": 282.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": false,
+      "part": "password",
+      "reference": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": true,
+      "part": "logo",
+      "reference": {
+        "x": 282.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "integrated": {
+        "x": 282.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": true,
+      "part": "password",
+      "reference": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": false,
+      "part": "logo",
+      "reference": {
+        "x": 67.125,
+        "y": 76,
+        "width": 255.734375,
+        "height": 256
+      },
+      "integrated": {
+        "x": 67.125,
+        "y": 76,
+        "width": 255.734375,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": false,
+      "part": "password",
+      "reference": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "integrated": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "pixels": 19152,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": true,
+      "part": "logo",
+      "reference": {
+        "x": 67.234375,
+        "y": 76,
+        "width": 255.53125,
+        "height": 256
+      },
+      "integrated": {
+        "x": 67.234375,
+        "y": 76,
+        "width": 255.53125,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": true,
+      "part": "password",
+      "reference": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "integrated": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "pixels": 19152,
+      "changed": 0,
+      "percent": 0
+    }
+  ],
+  "captures": [
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": false,
+      "route": "/",
+      "file": "reference/public-desktop-light-_.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": false,
+      "route": "/map",
+      "file": "reference/public-desktop-light-_map.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": false,
+      "route": "/favorites",
+      "file": "reference/public-desktop-light-_favorites.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": false,
+      "route": "/messages",
+      "file": "reference/public-desktop-light-_messages.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": false,
+      "route": "/profile",
+      "file": "reference/public-desktop-light-_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesores/1",
+      "file": "reference/public-desktop-light-_asesores_1.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesor",
+      "file": "reference/asesor-desktop-light-_asesor.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesor/propiedades",
+      "file": "reference/asesor-desktop-light-_asesor_propiedades.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesor/mensajes",
+      "file": "reference/asesor-desktop-light-_asesor_mensajes.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesor/profile",
+      "file": "reference/asesor-desktop-light-_asesor_profile.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesor/profile?view=documents",
+      "file": "reference/asesor-desktop-light-_asesor_profile_view_documents.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": false,
+      "route": "/asesor/profile?view=plan",
+      "file": "reference/asesor-desktop-light-_asesor_profile_view_plan.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": false,
+      "route": "/admin",
+      "file": "reference/admin-desktop-light-_admin.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": false,
+      "route": "/admin/asesores",
+      "file": "reference/admin-desktop-light-_admin_asesores.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": false,
+      "route": "/admin/moderacion",
+      "file": "reference/admin-desktop-light-_admin_moderacion.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": false,
+      "route": "/admin/profile",
+      "file": "reference/admin-desktop-light-_admin_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": true,
+      "route": "/",
+      "file": "reference/public-desktop-dark-_.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": true,
+      "route": "/map",
+      "file": "reference/public-desktop-dark-_map.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": true,
+      "route": "/favorites",
+      "file": "reference/public-desktop-dark-_favorites.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": true,
+      "route": "/messages",
+      "file": "reference/public-desktop-dark-_messages.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": true,
+      "route": "/profile",
+      "file": "reference/public-desktop-dark-_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesores/1",
+      "file": "reference/public-desktop-dark-_asesores_1.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesor",
+      "file": "reference/asesor-desktop-dark-_asesor.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesor/propiedades",
+      "file": "reference/asesor-desktop-dark-_asesor_propiedades.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesor/mensajes",
+      "file": "reference/asesor-desktop-dark-_asesor_mensajes.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesor/profile",
+      "file": "reference/asesor-desktop-dark-_asesor_profile.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesor/profile?view=documents",
+      "file": "reference/asesor-desktop-dark-_asesor_profile_view_documents.png"
+    },
+    {
+      "role": "asesor",
+      "size": "desktop",
+      "dark": true,
+      "route": "/asesor/profile?view=plan",
+      "file": "reference/asesor-desktop-dark-_asesor_profile_view_plan.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": true,
+      "route": "/admin",
+      "file": "reference/admin-desktop-dark-_admin.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": true,
+      "route": "/admin/asesores",
+      "file": "reference/admin-desktop-dark-_admin_asesores.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": true,
+      "route": "/admin/moderacion",
+      "file": "reference/admin-desktop-dark-_admin_moderacion.png"
+    },
+    {
+      "role": "admin",
+      "size": "desktop",
+      "dark": true,
+      "route": "/admin/profile",
+      "file": "reference/admin-desktop-dark-_admin_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": false,
+      "route": "/",
+      "file": "reference/public-tablet-light-_.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": false,
+      "route": "/map",
+      "file": "reference/public-tablet-light-_map.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": false,
+      "route": "/favorites",
+      "file": "reference/public-tablet-light-_favorites.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": false,
+      "route": "/messages",
+      "file": "reference/public-tablet-light-_messages.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": false,
+      "route": "/profile",
+      "file": "reference/public-tablet-light-_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesores/1",
+      "file": "reference/public-tablet-light-_asesores_1.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesor",
+      "file": "reference/asesor-tablet-light-_asesor.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesor/propiedades",
+      "file": "reference/asesor-tablet-light-_asesor_propiedades.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesor/mensajes",
+      "file": "reference/asesor-tablet-light-_asesor_mensajes.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesor/profile",
+      "file": "reference/asesor-tablet-light-_asesor_profile.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesor/profile?view=documents",
+      "file": "reference/asesor-tablet-light-_asesor_profile_view_documents.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": false,
+      "route": "/asesor/profile?view=plan",
+      "file": "reference/asesor-tablet-light-_asesor_profile_view_plan.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": false,
+      "route": "/admin",
+      "file": "reference/admin-tablet-light-_admin.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": false,
+      "route": "/admin/asesores",
+      "file": "reference/admin-tablet-light-_admin_asesores.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": false,
+      "route": "/admin/moderacion",
+      "file": "reference/admin-tablet-light-_admin_moderacion.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": false,
+      "route": "/admin/profile",
+      "file": "reference/admin-tablet-light-_admin_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": true,
+      "route": "/",
+      "file": "reference/public-tablet-dark-_.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": true,
+      "route": "/map",
+      "file": "reference/public-tablet-dark-_map.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": true,
+      "route": "/favorites",
+      "file": "reference/public-tablet-dark-_favorites.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": true,
+      "route": "/messages",
+      "file": "reference/public-tablet-dark-_messages.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": true,
+      "route": "/profile",
+      "file": "reference/public-tablet-dark-_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesores/1",
+      "file": "reference/public-tablet-dark-_asesores_1.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesor",
+      "file": "reference/asesor-tablet-dark-_asesor.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesor/propiedades",
+      "file": "reference/asesor-tablet-dark-_asesor_propiedades.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesor/mensajes",
+      "file": "reference/asesor-tablet-dark-_asesor_mensajes.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesor/profile",
+      "file": "reference/asesor-tablet-dark-_asesor_profile.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesor/profile?view=documents",
+      "file": "reference/asesor-tablet-dark-_asesor_profile_view_documents.png"
+    },
+    {
+      "role": "asesor",
+      "size": "tablet",
+      "dark": true,
+      "route": "/asesor/profile?view=plan",
+      "file": "reference/asesor-tablet-dark-_asesor_profile_view_plan.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": true,
+      "route": "/admin",
+      "file": "reference/admin-tablet-dark-_admin.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": true,
+      "route": "/admin/asesores",
+      "file": "reference/admin-tablet-dark-_admin_asesores.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": true,
+      "route": "/admin/moderacion",
+      "file": "reference/admin-tablet-dark-_admin_moderacion.png"
+    },
+    {
+      "role": "admin",
+      "size": "tablet",
+      "dark": true,
+      "route": "/admin/profile",
+      "file": "reference/admin-tablet-dark-_admin_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": false,
+      "route": "/",
+      "file": "reference/public-mobile-light-_.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": false,
+      "route": "/map",
+      "file": "reference/public-mobile-light-_map.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": false,
+      "route": "/favorites",
+      "file": "reference/public-mobile-light-_favorites.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": false,
+      "route": "/messages",
+      "file": "reference/public-mobile-light-_messages.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": false,
+      "route": "/profile",
+      "file": "reference/public-mobile-light-_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesores/1",
+      "file": "reference/public-mobile-light-_asesores_1.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesor",
+      "file": "reference/asesor-mobile-light-_asesor.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesor/propiedades",
+      "file": "reference/asesor-mobile-light-_asesor_propiedades.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesor/mensajes",
+      "file": "reference/asesor-mobile-light-_asesor_mensajes.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesor/profile",
+      "file": "reference/asesor-mobile-light-_asesor_profile.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesor/profile?view=documents",
+      "file": "reference/asesor-mobile-light-_asesor_profile_view_documents.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": false,
+      "route": "/asesor/profile?view=plan",
+      "file": "reference/asesor-mobile-light-_asesor_profile_view_plan.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": false,
+      "route": "/admin",
+      "file": "reference/admin-mobile-light-_admin.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": false,
+      "route": "/admin/asesores",
+      "file": "reference/admin-mobile-light-_admin_asesores.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": false,
+      "route": "/admin/moderacion",
+      "file": "reference/admin-mobile-light-_admin_moderacion.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": false,
+      "route": "/admin/profile",
+      "file": "reference/admin-mobile-light-_admin_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": true,
+      "route": "/",
+      "file": "reference/public-mobile-dark-_.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": true,
+      "route": "/map",
+      "file": "reference/public-mobile-dark-_map.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": true,
+      "route": "/favorites",
+      "file": "reference/public-mobile-dark-_favorites.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": true,
+      "route": "/messages",
+      "file": "reference/public-mobile-dark-_messages.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": true,
+      "route": "/profile",
+      "file": "reference/public-mobile-dark-_profile.png"
+    },
+    {
+      "role": "public",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesores/1",
+      "file": "reference/public-mobile-dark-_asesores_1.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesor",
+      "file": "reference/asesor-mobile-dark-_asesor.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesor/propiedades",
+      "file": "reference/asesor-mobile-dark-_asesor_propiedades.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesor/mensajes",
+      "file": "reference/asesor-mobile-dark-_asesor_mensajes.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesor/profile",
+      "file": "reference/asesor-mobile-dark-_asesor_profile.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesor/profile?view=documents",
+      "file": "reference/asesor-mobile-dark-_asesor_profile_view_documents.png"
+    },
+    {
+      "role": "asesor",
+      "size": "mobile",
+      "dark": true,
+      "route": "/asesor/profile?view=plan",
+      "file": "reference/asesor-mobile-dark-_asesor_profile_view_plan.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": true,
+      "route": "/admin",
+      "file": "reference/admin-mobile-dark-_admin.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": true,
+      "route": "/admin/asesores",
+      "file": "reference/admin-mobile-dark-_admin_asesores.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": true,
+      "route": "/admin/moderacion",
+      "file": "reference/admin-mobile-dark-_admin_moderacion.png"
+    },
+    {
+      "role": "admin",
+      "size": "mobile",
+      "dark": true,
+      "route": "/admin/profile",
+      "file": "reference/admin-mobile-dark-_admin_profile.png"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import { searchProperties } from '../search.service';
 import type { ListPropertiesParams } from '../properties.service';
 import type { CriteriosBusqueda } from '../types';
@@ -20,4 +20,8 @@ export function useSearchQuery(criteria: CriteriosBusqueda, params: ListProperti
     enabled,
     staleTime: 30_000,
   });
+}
+
+export function useSearchInfinite(criteria: CriteriosBusqueda, enabled = true) {
+  return useInfiniteQuery({ queryKey: ['properties', 'search', 'infinite', criteria], queryFn: ({ pageParam }) => searchProperties(criteria, { limit: 100, cursor: pageParam }), initialPageParam: undefined as string | undefined, getNextPageParam: page => page.next_cursor ?? undefined, enabled, staleTime: 30_000 });
 }

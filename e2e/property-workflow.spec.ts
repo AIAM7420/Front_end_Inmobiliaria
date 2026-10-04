@@ -37,7 +37,7 @@ test('real inventory saves, uploads and publishes with the refreshed resource ve
   await page.getByPlaceholder('Correo electrónico').fill('phase4-advisor@example.com');
   await page.getByPlaceholder('Contraseña ...').fill('Secure1!');
   await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
-  await page.getByRole('link', { name: 'Gestionar inventario' }).click();
+  await page.getByRole('button', { name: 'Mi inventario', exact: true }).filter({ visible: true }).click();
   await page.getByRole('button', { name: 'Nueva propiedad', exact: true }).click();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tipo de propiedad' }).selectOption({ label: 'Casa' });
@@ -188,7 +188,7 @@ for (const mobile of [false, true]) {
     await page.getByPlaceholder('Correo electrónico').fill('phase4-advisor@example.com');
     await page.getByPlaceholder('Contraseña ...').fill('Secure1!');
     await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
-    await page.getByRole('link', { name: 'Gestionar inventario' }).click();
+    await page.getByRole('button', { name: 'Mi inventario', exact: true }).filter({ visible: true }).click();
     const region = page.getByRole('region', { name: mobile ? 'Inventario móvil' : 'Inventario de escritorio' });
     await expect(region).toBeVisible();
     await page.getByPlaceholder('Buscar por título o ubicación...').filter({visible:true}).fill(prefix);

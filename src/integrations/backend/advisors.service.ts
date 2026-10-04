@@ -30,13 +30,20 @@ export interface DocumentoAsesor {
   mime: string;
   tamano_bytes: number;
   estado: 'PENDIENTE' | 'VERIFICADO' | 'RECHAZADO';
+  tipo?: string;
 }
 
 export interface SolicitudAsesor {
+  nombre_comercial?: string | null;
+  enviada_at?: string | null;
+  resuelta_at?: string | null;
+  motivo?: string | null;
   id: Id;
   asesor_id: Id;
   estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
   documentos: DocumentoAsesor[];
+  requisitos_version?: "V1" | "V2";
+  tipos_requeridos?: string[];
   version: number;
 }
 
@@ -59,7 +66,7 @@ export async function getOwnApplication(): Promise<Versioned<SolicitudAsesor>> {
 }
 
 export async function authorizeAdvisorDocument(payload: {
-  tipo: 'IDENTIFICACION_OFICIAL' | 'CONSTANCIA_ACTIVIDAD_INMOBILIARIA';
+  tipo: 'IDENTIFICACION_OFICIAL' | 'CONSTANCIA_ACTIVIDAD_INMOBILIARIA' | 'CONSTANCIA_SITUACION_FISCAL' | 'LICENCIA_INMOBILIARIA';
   nombre: string;
   mime: 'application/pdf' | 'image/jpeg' | 'image/webp';
   tamano_bytes: number;
@@ -105,6 +112,9 @@ export async function getAdminApplication(id: Id): Promise<Versioned<SolicitudAs
 export async function getAdminDocumentUrl(id: Id): Promise<{ url: string; expires_at: string }> {
   const { data } = await api.get(`/admin/documentos/${encodeURIComponent(id)}/url`);
   return data;
+}
+export async function getOwnDocumentUrl(id: Id): Promise<{ url: string; expires_at: string }> {
+  return (await api.get<{ url: string; expires_at: string }>(`/asesores/me/documentos/${encodeURIComponent(id)}/url`)).data;
 }
 
 export async function decideAdvisorApplication(

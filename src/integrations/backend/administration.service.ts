@@ -1,6 +1,6 @@
 import { versioned } from './versioning';
 import { api } from './axios.config';
-import type { Cuenta, Id, Pagina, PropiedadPrivada } from './types';
+import type { Cuenta, Id, Pagina, PropiedadPrivada, Fotografia } from './types';
 import type { Versioned } from './auth.service';
 import type { Suscripcion } from './subscriptions.service';
 
@@ -23,12 +23,17 @@ export interface PageParams {
   cursor?: string;
 }
 
-export async function getAdminAccounts(params: PageParams = {}): Promise<Pagina<Cuenta>> {
+export interface AccountSummary { id: Id; asesor_id: Id | null; perfil_publico: boolean; creada_at: string; ultimo_acceso_at: string | null; baja_permanente: boolean; propiedades: number; plan: string | null; inventario_reciente: Array<{ id: Id; titulo: string; precio: string; estado: string }> }
+export async function getAccountSummary(id: Id): Promise<AccountSummary> { return (await api.get<AccountSummary>(`/admin/cuentas/${id}/resumen`)).data; }
+export async function getAdminPhotos(id: Id): Promise<Fotografia[]> { return (await api.get<Fotografia[]>(`/admin/propiedades/${id}/fotografias`)).data; }
+export async function getAdminPhotoUrl(id: Id, photo: Id): Promise<{ url: string; expira_at: string }> { return (await api.get<{ url: string; expira_at: string }>(`/admin/propiedades/${id}/fotografias/${photo}/url`)).data; }
+
+export async function getAdminAccounts(params: PageParams & { texto?: string; estado?: string } = {}): Promise<Pagina<Cuenta>> {
   const { data } = await api.get<Pagina<Cuenta>>('/admin/cuentas', { params });
   return data;
 }
 
-export async function getAdminReports(params: PageParams & { estado?: string } = {}): Promise<Pagina<ReporteAdministrativo>> {
+export async function getAdminReports(params: PageParams & { estado?: string; texto?: string; tipo?: string } = {}): Promise<Pagina<ReporteAdministrativo>> {
   const { data } = await api.get<Pagina<ReporteAdministrativo>>('/admin/reportes', { params });
   return data;
 }
@@ -68,7 +73,7 @@ export async function getAdminProperty(id: Id): Promise<Versioned<PropiedadPriva
   return versioned(response.data);
 }
 
-export async function getAdminProperties(params: PageParams & { estado?: string } = {}): Promise<Pagina<PropiedadPrivada>> {
+export async function getAdminProperties(params: PageParams & { estado?: string; texto?: string; asesor_id?: string } = {}): Promise<Pagina<PropiedadPrivada>> {
   const { data } = await api.get<Pagina<PropiedadPrivada>>('/admin/propiedades', { params });
   return data;
 }

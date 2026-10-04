@@ -11,6 +11,17 @@ import type {
 export interface PageParams {
   limit?: number;
   cursor?: string;
+  archivadas?: boolean;
+}
+
+export async function getConversation(id: Id): Promise<Conversacion> {
+  return (await api.get<Conversacion>(`/conversaciones/${encodeURIComponent(id)}`)).data;
+}
+export async function markConversationRead(id: Id, sequence: string): Promise<Conversacion> {
+  return (await api.put<Conversacion>(`/conversaciones/${encodeURIComponent(id)}/lectura`, { secuencia: sequence })).data;
+}
+export async function archiveConversation(id: Id, archived: boolean, version: number): Promise<Conversacion> {
+  return (await api.put<Conversacion>(`/conversaciones/${encodeURIComponent(id)}/estado`, { archivada: archived }, { headers: { 'If-Match': `"v${version}"` } })).data;
 }
 
 export async function createConversation(payload: ConversacionCrear): Promise<Conversacion> {

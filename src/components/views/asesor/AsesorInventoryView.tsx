@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Edit, Eye, EyeOff, Archive, Image } from 'lucide-react';
 import { PropertyDetailContent } from '../../organisms/PropertyDetailContent';
 import { PropertyInventory } from '../../organisms/PropertyInventory';
@@ -23,9 +24,10 @@ import { isVersionConflict,operationError } from '../../../integrations/backend/
 import { useToast } from '../../../context/ToastContext';
 import { usePropertyManagement } from '../../../integrations/backend/hooks/useProperties';
 export function AsesorInventoryView() {
+ const [params] = useSearchParams();
  const {addToast}=useToast();
  const [search,setSearch]=useState(''),[status,setStatus]=useState(''),[trashView,setTrashView]=useState(false);
- const [selected,setSelected]=useState(''),[mode,setMode]=useState<'detail'|'create'|'edit'>('detail');
+ const [selected,setSelected]=useState(params.get('property') ?? ''),[mode,setMode]=useState<'detail'|'create'|'edit'>('detail');
  const [reason,setReason]=useState(''),[commission,setCommission]=useState<string|null>(null),[notice,setNotice]=useState(''),[failure,setFailure]=useState(''),[conflict,setConflict]=useState(false);
  const [matchesOpen,setMatchesOpen]=useState(false);
  const [orderOpen,setOrderOpen]=useState(false),[sharedOpen,setSharedOpen]=useState(false);

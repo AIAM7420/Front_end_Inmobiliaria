@@ -30,6 +30,10 @@ export function useChatWebSocket(
     let stopped = false;
     let attempt = 0;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const heartbeat = setInterval(() => {
+      const socket = socketRef.current;
+      if (authenticatedRef.current && socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ping', nonce: crypto.randomUUID() }));
+    }, 25_000);
 
     const connect = () => {
       if (stopped) return;
@@ -94,6 +98,7 @@ export function useChatWebSocket(
     connect();
     return () => {
       stopped = true;
+      clearInterval(heartbeat);
       if (retryTimer) clearTimeout(retryTimer);
       socketRef.current?.close(1000, 'component unmounted');
       socketRef.current = null;

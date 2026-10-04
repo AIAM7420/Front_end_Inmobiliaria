@@ -2,6 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { PropiedadPublica } from '../../integrations/backend/types';
 import { ConnectedPropertyCard } from './ConnectedPropertyCard';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { AppProvider } from '../../context/AppContext';
 
 vi.mock('../../integrations/backend/hooks/useProperties', () => ({
   useGetPhotos: () => ({ data: [], isLoading: false }),
@@ -18,15 +21,15 @@ const property: PropiedadPublica = {
 };
 
 describe('ConnectedPropertyCard', () => {
-  it('maps API values and hides exact location and unsupported favorite controls', () => {
+  it('maps API values, hides exact location and offers favorites through real authentication', () => {
     const withPrivateFields = { ...property, direccion: 'Calle privada 99', latitud: '21.123456' };
-    render(<ConnectedPropertyCard property={withPrivateFields} />);
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><AppProvider><ConnectedPropertyCard property={withPrivateFields} /></AppProvider></MemoryRouter></QueryClientProvider>);
 
     expect(screen.getByText('Casa en León')).toBeDefined();
     expect(screen.getByText('Centro, León, Guanajuato')).toBeDefined();
     expect(screen.getByText('Sin fotografía')).toBeDefined();
     expect(screen.queryByText('Calle privada 99')).toBeNull();
     expect(screen.queryByText('21.123456')).toBeNull();
-    expect(screen.queryByRole('button', { name: /favorit/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /favorit/i }).getAttribute('aria-pressed')).toBe('false');
   });
 });
