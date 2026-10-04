@@ -1,5 +1,7 @@
 # Evidencia de integración
 
+> Registro histórico de la primera entrega. Estado y resultados actuales: [Integración total INMO](Integracion_total_INMO.md). Las cifras y limitaciones que siguen corresponden a esa entrega anterior.
+
 Fecha: 2026-10-03 UTC (sesión local iniciada el 2026-10-02).
 
 ## Controles ejecutados

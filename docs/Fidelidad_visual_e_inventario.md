@@ -1,5 +1,7 @@
 # Fidelidad visual e inventario conectado
 
+> Registro histórico de inventario y papelera. La integración completa, sus funciones nuevas y evidencia vigente están en [Integración total INMO](Integracion_total_INMO.md).
+
 Referencia: [`angggsoft/inmo`, commit `01295bee792791081933a936c51d820f0b6877d3`](https://github.com/angggsoft/inmo/tree/01295bee792791081933a936c51d820f0b6877d3). Se aplicó la skill [`estilo-inmo`](../agent/skills/estilo-inmo/SKILL.md) y sus recursos de estilo, textos y arquitectura. No se incorporaron variables privadas, dependencias instaladas, scripts de recuperación ni datos de demostración de ese repositorio.
 
 ## Decisiones autorizadas

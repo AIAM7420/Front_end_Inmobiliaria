@@ -1,90 +1,73 @@
 import { useSearchParams } from 'react-router-dom';
-import { useRef, useState } from 'react';
-import { MessageCircle, Send } from 'lucide-react';
-import { useGetConversations, useSendMessage } from '../../integrations/backend/hooks/useChat';
+import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Send, X, Archive, CheckCircle2, Paperclip } from 'lucide-react';
+import { uploadMedia } from '../../integrations/backend/media.service';
+import type { MediaFile } from '../../integrations/backend/media.service';
+import { FileDropZone } from '../atoms/FileDropZone';
+import { BottomSheet } from '../organisms/BottomSheet';
+import { MediaDownload } from '../molecules/MediaDownload';
+import { useSendMessage } from '../../integrations/backend/hooks/useChat';
+import { useChatInbox, useConversationDetails } from '../../integrations/backend/hooks/useChatInbox';
+import { archiveConversation, markConversationRead } from '../../integrations/backend/chat.service';
 import { useGetMe } from '../../integrations/backend/hooks/useAuth';
 import { useConversationStream } from '../../integrations/backend/hooks/useConversationStream';
+import { isVersionConflict, operationError } from '../../integrations/backend/versioning';
 import { Button } from '../atoms/Button';
-import { Input } from '../atoms/Input';
+import { IconButton } from '../atoms/IconButton';
+import { Textarea } from '../atoms/Textarea';
+import { Select } from '../atoms/Select';
 import { Skeleton } from '../atoms/Skeleton';
-
+import { ModuleLayout } from './ModuleLayout';
+import { SplitViewLayout } from './SplitViewLayout';
+import { ConflictNotice } from '../molecules/ConflictNotice';
 export interface MessagesTemplateProps {}
-
 export function MessagesTemplate(_props: MessagesTemplateProps) {
-  const [params] = useSearchParams();
-  const [cursor, setCursor] = useState<string | undefined>();
-  const [selectedId, setSelectedId] = useState<string>(params.get('conversation') ?? '');
-  const [draft, setDraft] = useState('');
-  const pendingMessageId = useRef<string | null>(null);
-  const conversations = useGetConversations({ limit: 20, cursor });
-  const messages = useConversationStream(selectedId);
-  const me = useGetMe();
-  const sendMessage = useSendMessage();
-
-  const send = async () => {
-    if (!selectedId || !draft.trim() || sendMessage.isPending) return;
-    const clientMessageId = pendingMessageId.current ?? crypto.randomUUID();
-    pendingMessageId.current = clientMessageId;
-    try {
-      const committed = await sendMessage.mutateAsync({
-        conversationId: selectedId,
-        payload: { cliente_mensaje_id: clientMessageId, contenido: draft },
-      });
-      messages.includeCommitted(committed);
-      pendingMessageId.current = null;
-      setDraft('');
-    } catch {
-      // Keep the same UUID for a retry after an uncertain server response.
-    }
-  };
-
-  return (
-    <main className="px-4 md:px-6 py-2 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <h1 className="font-montserrat font-bold text-2xl text-inmo-secondary dark:text-white mb-6">Chats</h1>
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 min-h-[520px]">
-        <section className="bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft" aria-label="Conversaciones">
-          <h2 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white mb-3">Conversaciones</h2>
-          {conversations.isLoading ? <div className="space-y-3" aria-label="Cargando conversaciones"><Skeleton className="h-16" /><Skeleton className="h-16" /><Skeleton className="h-16" /></div>
-            : conversations.isError ? <p role="alert" className="font-inter text-sm text-gray-500">No pudimos cargar tus conversaciones.</p>
-            : !conversations.data?.items.length ? <p className="font-inter text-sm text-gray-500">Todavía no tienes conversaciones.</p>
-            : conversations.data.items.map((conversation) => (
-              <Button key={conversation.id} type="button" variant="ghost" onClick={() => { setSelectedId(conversation.id); setDraft(''); pendingMessageId.current = null; }}
-                className={`w-full !justify-start text-left !rounded-2xl p-3 mb-2 ${selectedId === conversation.id ? '!bg-inmo-accent/10' : '!bg-gray-50 dark:!bg-inmo-darkbg'}`}
-                icon={<span className="w-10 h-10 rounded-full bg-white dark:bg-inmo-darkcard flex items-center justify-center text-inmo-accent"><MessageCircle className="w-5 h-5" /></span>}>
-                <span className="min-w-0"><span className="block font-inter font-semibold text-sm text-inmo-secondary dark:text-white">Conversación #{conversation.id}</span>
-                  <span className="block font-inter text-xs text-gray-500">{conversation.tipo === 'CLIENTE_ASESOR' ? 'Cliente y asesor' : 'Entre asesores'}</span></span>
-              </Button>
-            ))}
-          {conversations.data?.next_cursor && <Button variant="secondary" onClick={() => setCursor(conversations.data?.next_cursor ?? undefined)}>Página siguiente</Button>}
-        </section>
-
-        <section className="bg-white dark:bg-inmo-darkcard rounded-card p-4 shadow-soft flex flex-col min-h-[520px]" aria-label="Mensajes">
-          {selectedId ? <>
-            <div className="flex items-center justify-between gap-2 pb-3 border-b border-gray-100 dark:border-inmo-darktertiary">
-              <h2 className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Conversación #{selectedId}</h2>
-              <span className="font-inter text-xs text-gray-500" aria-live="polite">{messages.status === 'conectado' ? 'En tiempo real' : 'Reconectando…'}</span>
-            </div>
-            <div className="flex-1 py-4 space-y-3 overflow-y-auto max-h-[450px]">
-              {messages.history.isLoading ? <div aria-label="Cargando mensajes" className="space-y-3"><Skeleton className="h-14 w-3/4" /><Skeleton className="h-14 w-2/3 ml-auto" /></div>
-                : messages.history.isError ? <p role="alert" className="font-inter text-sm text-gray-500">No pudimos recuperar el historial.</p>
-                : !messages.items.length ? <p className="font-inter text-sm text-gray-500">No hay mensajes aún.</p>
-                : messages.items.map((message) => (
-                  <div key={`${message.conversacion_id}:${message.secuencia}`} className={`max-w-[85%] rounded-2xl px-4 py-3 ${message.emisor_id === me.data?.value.id ? 'bg-inmo-accent text-white ml-auto' : 'bg-gray-100 dark:bg-inmo-darkbg text-inmo-secondary dark:text-white'}`}>
-                    <p className="font-inter text-sm whitespace-pre-wrap break-words">{message.contenido}</p>
-                    <span className="font-inter text-[10px] opacity-70">{new Date(message.persistido_at).toLocaleString('es-MX')}</span>
-                  </div>
-                ))}
-              {messages.history.data?.next_cursor && <p className="font-inter text-xs text-gray-500">Hay más mensajes en el historial.</p>}
-            </div>
-            <form onSubmit={(event) => { event.preventDefault(); void send(); }} className="flex gap-2 pt-3 border-t border-gray-100 dark:border-inmo-darktertiary">
-              <Input value={draft} onChange={(event) => { pendingMessageId.current = null; setDraft(event.target.value); }} maxLength={4000} aria-label="Escribe un mensaje"
-                wrapperClassName="!rounded-full !bg-gray-50 dark:!bg-inmo-darkbg !shadow-none min-w-0 flex-1" placeholder="Escribe un mensaje..." />
-              <Button type="submit" disabled={!draft.trim()} isLoading={sendMessage.isPending} className="px-4" icon={<Send className="w-4 h-4" />}>Enviar</Button>
-            </form>
-            {sendMessage.isError && <p role="alert" className="font-inter text-xs text-inmo-accent mt-2">No se pudo enviar el mensaje. Puedes intentarlo de nuevo.</p>}
-          </> : <div className="flex-1 flex items-center justify-center font-inter text-sm text-gray-500 text-center">Selecciona una conversación para ver su historial.</div>}
-        </section>
-      </div>
-    </main>
-  );
+  const [params, setParams] = useSearchParams();
+  const selectedId = params.get('conversation') ?? '';
+  const [draft, setDraft] = useState(''), [filter, setFilter] = useState('active'), [search, setSearch] = useState('');
+  const [failure, setFailure] = useState(''), [conflict, setConflict] = useState(false), [busy, setBusy] = useState(false);
+  const [attachments, setAttachments] = useState<MediaFile[]>([]), [uploadOpen, setUploadOpen] = useState(false), [uploading, setUploading] = useState(false);
+  const pending = useRef<{ id: string; content: string } | null>(null);
+  const inbox = useChatInbox(), detail = useConversationDetails(selectedId), me = useGetMe(), sendMessage = useSendMessage();
+  const stream = useConversationStream(selectedId), cache = useQueryClient();
+  const ownId = me.data?.value.id;
+  const other = detail.data?.participantes?.find(p => p.id !== ownId);
+  const title = other?.nombre ?? 'Cargando interlocutor…';
+  const lastLoaded = stream.items.at(-1)?.secuencia;
+  useEffect(() => {
+    if (!selectedId || !lastLoaded || document.visibilityState !== 'visible') return;
+    let active = true;
+    void markConversationRead(selectedId, lastLoaded).then(() => { if (active) void cache.invalidateQueries({ queryKey: ['chat', 'inbox'] }); }).catch(() => { if (active) setFailure('No pudimos actualizar la lectura.'); });
+    return () => { active = false; };
+  }, [selectedId, lastLoaded, cache]);
+  const chats = inbox.data?.pages.flatMap(page => page.items).filter(c => {
+    const name = c.participantes?.find(p => p.id !== ownId)?.nombre ?? '';
+    return name.toLocaleLowerCase('es-MX').includes(search.toLocaleLowerCase('es-MX')) && (filter === 'archived' ? c.archivada : !c.archivada && (filter !== 'unread' || (c.no_leidos ?? 0) > 0));
+  }) ?? [];
+  const select = (id: string) => { setParams(id ? { conversation: id } : {}); setDraft(''); setAttachments([]); setUploadOpen(false); pending.current = null; setFailure(''); setConflict(false); };
+  async function send() {
+    if (!selectedId || !draft.trim() && !attachments.length || sendMessage.isPending || uploading) return;
+    const content = draft.trim() ? draft : 'Archivo adjunto: ' + attachments.map(a => a.nombre).join(', ');
+    if (!pending.current || pending.current.content !== content) pending.current = { id: crypto.randomUUID(), content };
+    try { const result = await sendMessage.mutateAsync({ conversationId: selectedId, payload: { cliente_mensaje_id: pending.current.id, contenido: pending.current.content, adjunto_ids: attachments.map(a => a.id) } }); stream.includeCommitted(result); pending.current = null; setDraft(''); setAttachments([]); setFailure(''); void cache.invalidateQueries({ queryKey: ['chat'] }); }
+    catch (error) { setFailure(operationError(error)); }
+  }
+  const chat = <div className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden">
+    <div className="absolute top-2 left-4 right-4 md:top-4 md:left-6 md:right-6 z-20 md:h-16 border border-white/50 dark:border-white/10 bg-white/40 dark:bg-black/20 backdrop-blur-xl flex items-center justify-between px-3 py-2 md:px-4 shadow-sm rounded-full">
+      <div className="flex items-center gap-3 min-w-0"><div className="w-10 h-10 rounded-full bg-inmo-accent/10 flex items-center justify-center relative text-inmo-accent shrink-0"><span className="font-bold">{other?.nombre.charAt(0) ?? '…'}</span>{other?.en_linea && <span aria-label="En línea" className="absolute bottom-0 right-0 w-3 h-3 bg-inmo-success rounded-full border-2 border-white dark:border-inmo-darkcard" />}</div><div className="min-w-0"><h2 className="font-bold text-sm truncate">{title}</h2><p className="text-[11px] text-gray-500">{other?.en_linea ? 'En línea' : 'Sin conexión'} · {stream.status === 'conectado' ? 'En tiempo real' : 'Reconectando…'}</p></div></div>
+      <div className="flex gap-1"><IconButton aria-label={detail.data?.archivada ? 'Recuperar conversación' : 'Archivar conversación'} icon={<Archive className="w-5 h-5" />} disabled={busy || conflict || !detail.data} onClick={async () => { if (!detail.data) return; setBusy(true); try { await archiveConversation(selectedId, !detail.data.archivada, detail.data.version ?? 1); void cache.invalidateQueries({ queryKey: ['chat'] }); } catch (error) { setFailure(operationError(error)); if (isVersionConflict(error)) setConflict(true); } finally { setBusy(false); } }} /><IconButton aria-label="Cerrar conversación" icon={<X className="w-5 h-5" />} onClick={() => select('')} /></div>
+    </div>
+    <div aria-label="Historial de mensajes" className="flex-1 overflow-y-auto p-4 pt-24 md:p-6 md:pt-28 flex flex-col gap-4 custom-scrollbar" tabIndex={0}>
+      {detail.isError || stream.history.isError ? <p role="alert">No pudimos recuperar esta conversación.</p> : stream.history.isLoading ? <Skeleton className="h-24" /> : !stream.items.length ? <p className="text-sm text-gray-500">No hay mensajes aún.</p> : stream.items.map(message => { const sent = message.emisor_id === ownId, author = detail.data?.participantes?.find(p => p.id === message.emisor_id); return <div key={message.secuencia} className={'flex flex-col gap-1 max-w-[80%] md:max-w-[70%] ' + (sent ? 'items-end self-end' : 'items-start')}><span className="text-[11px] text-gray-500">{author?.nombre ?? 'Cargando nombre…'}</span><div className={'p-3 sm:p-4 rounded-2xl shadow-sm ' + (sent ? 'bg-inmo-accent text-white rounded-tr-sm' : 'bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-tl-sm')}><p className="text-sm whitespace-pre-wrap break-words">{message.contenido}</p>{message.adjuntos?.map(a => <MediaDownload key={a.id} id={a.id} name={a.nombre} />)}</div><div className="flex items-center gap-1 text-[10px] text-gray-400"><time dateTime={message.persistido_at}>{new Date(message.persistido_at).toLocaleString('es-MX')}</time>{sent && other && BigInt(other.ultima_leida) >= BigInt(message.secuencia) && <CheckCircle2 aria-label="Leído" className="w-3 h-3 text-inmo-accent" />}</div></div>; })}
+      {conflict && <ConflictNotice current={<p>Estado: {detail.data?.archivada ? 'Archivada' : 'Activa'} · versión {detail.data?.version}</p>} onReview={async () => { const result = await detail.refetch(); if (result.isError) throw result.error; }} onAccept={() => { setConflict(false); setFailure(''); }} />}
+      {failure && <p role="alert" className="text-sm text-inmo-danger">{failure}</p>}
+    </div>
+    <div className="px-4 flex flex-wrap gap-2">{attachments.map(a => <Button variant="secondary" key={a.id} aria-label={"Quitar " + a.nombre} onClick={() => { setAttachments(items => items.filter(i => i.id !== a.id)); pending.current = null; }}>{a.nombre} ×</Button>)}</div><form className="p-4 pb-6 shrink-0 relative z-10" onSubmit={event => { event.preventDefault(); void send(); }}><div className="flex items-end gap-2 max-w-4xl mx-auto w-full"><IconButton aria-label="Adjuntar archivo" icon={<Paperclip className="w-5 h-5" />} disabled={uploading || sendMessage.isPending || attachments.length >= 4} onClick={() => setUploadOpen(true)} className="!w-[50px] !h-[50px] !rounded-full" /><Textarea aria-label="Escribe un mensaje" placeholder="Escribe un mensaje..." value={draft} onChange={event => setDraft(event.target.value)} maxLength={4000} rows={1} className="flex-1 !rounded-2xl max-h-[120px]" /><IconButton aria-label="Enviar mensaje" type="submit" icon={<Send className="w-5 h-5" />} variant="accent" disabled={!draft.trim() && !attachments.length || sendMessage.isPending || uploading || detail.isError} className="!w-[50px] !h-[50px] !rounded-full shrink-0 shadow-glow" /></div></form>
+  </div>;
+  const main = <ModuleLayout title="Chats" isFullScreen showFilters={false} searchValue={search} onSearchChange={setSearch} searchPlaceholder="Buscar conversaciones..." headerEndContent={<Select aria-label="Filtrar conversaciones" value={filter} onChange={event => setFilter(event.target.value)}><option value="active">Todos los mensajes</option><option value="unread">No leídos</option><option value="archived">Archivados</option></Select>}>
+    {inbox.isLoading ? <Skeleton className="h-64" /> : inbox.isError ? <p role="alert">No pudimos cargar conversaciones.</p> : <div className="space-y-3">{chats.map(c => { const person = c.participantes?.find(p => p.id !== ownId); return <Button key={c.id} variant="ghost" onClick={() => select(c.id)} className="w-full !h-auto !p-4 !rounded-2xl !justify-start !text-left bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-sm"><span className="w-12 h-12 rounded-full bg-inmo-accent/10 text-inmo-accent flex items-center justify-center shrink-0">{person?.nombre.charAt(0) ?? '…'}</span><span className="min-w-0 flex-1"><span className="block font-bold text-sm truncate">{person?.nombre ?? 'Nombre no disponible'}</span><span className="block text-xs text-gray-500 truncate">{c.ultimo_mensaje?.contenido ?? 'Sin mensajes'}</span></span>{(c.no_leidos ?? 0) > 0 && <span className="bg-inmo-accent text-white text-xs px-2 py-1 rounded-full">{c.no_leidos}</span>}</Button>; })}{!chats.length && <p role="status" className="text-sm text-gray-500">No hay conversaciones en esta vista.</p>}</div>}
+    {inbox.hasNextPage && <Button variant="secondary" onClick={() => void inbox.fetchNextPage()} disabled={inbox.isFetchingNextPage}>Cargar más conversaciones</Button>}
+  </ModuleLayout>;
+  return <><SplitViewLayout mainContent={main} sideContent={chat} isOpen={Boolean(selectedId)} onClose={() => select('')} sideTitle={title} desktopNoPadding />{uploadOpen && <BottomSheet isOpen onClose={uploading ? undefined : () => setUploadOpen(false)} title="Adjuntar archivo"><p className="text-sm text-gray-500 mb-4">PDF, JPEG o WebP · máximo 5 MB. Sólo los participantes podrán abrirlo.</p>{uploading ? <p role="status">Subiendo y comprobando…</p> : <FileDropZone accept="application/pdf,image/jpeg,image/webp" maxSizeMB={5} onFileSelect={async file => { setUploading(true); setFailure(''); try { const result = await uploadMedia(file, selectedId); setAttachments(items => [...items, result]); pending.current = null; setUploadOpen(false); } catch (error) { setFailure(operationError(error)); } finally { setUploading(false); } }} />}{failure && <p role="alert" className="text-inmo-danger text-sm mt-4">{failure}</p>}</BottomSheet>}</>;
 }

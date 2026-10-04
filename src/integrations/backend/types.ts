@@ -71,6 +71,7 @@ export interface PropiedadPublica {
   visible?: boolean;
   disponible?: boolean;
   comparte_comision?: boolean;
+  porcentaje_comision?: string | null;
   version?: number;
   actualizada_at?: string;
   colonia?: string | null;
@@ -81,6 +82,7 @@ export interface PropiedadPublica {
 export type PaginaPropiedadPublica = Pagina<PropiedadPublica>;
 
 export interface PropiedadPrivada {
+  retirada_at?: string | null;
   orden_inventario?: number | null;
   recuperable?: boolean;
   id: Id;
@@ -196,6 +198,11 @@ export interface Conversacion {
   tipo: 'CLIENTE_ASESOR' | 'ASESOR_ASESOR';
   participante_ids: [Id, Id];
   ultima_secuencia: string;
+  participantes?: { id: Id; nombre: string; en_linea: boolean; ultima_leida: string }[];
+  ultimo_mensaje?: { contenido: string; persistido_at: string } | null;
+  no_leidos?: number;
+  archivada?: boolean;
+  version?: number;
 }
 
 export interface Mensaje {
@@ -205,11 +212,13 @@ export interface Mensaje {
   cliente_mensaje_id: string;
   contenido: string;
   persistido_at: string;
+  adjuntos?: { id: string; nombre: string; mime: string; tamano_bytes: number }[];
 }
 
 export interface MensajeCrear {
   cliente_mensaje_id: string;
   contenido: string;
+  adjunto_ids?: string[];
 }
 
 export type ChatServerFrame =

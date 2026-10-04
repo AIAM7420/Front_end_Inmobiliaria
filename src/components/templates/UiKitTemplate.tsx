@@ -206,7 +206,6 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Badges</h4>
             <div className="flex flex-wrap gap-4">
               <Badge variant="venta">Venta</Badge>
-              <Badge variant="renta">Renta</Badge>
               <Badge variant="nuevo">Nuevo</Badge>
               <Badge variant="success">Destacado</Badge>
               <Badge variant="warning">Urgente</Badge>

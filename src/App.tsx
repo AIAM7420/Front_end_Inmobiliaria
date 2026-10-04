@@ -12,18 +12,20 @@ const FavoritesTemplate = lazy(() => import('./components/templates/FavoritesTem
 const MessagesTemplate = lazy(() => import('./components/templates/MessagesTemplate').then(m => ({ default: m.MessagesTemplate })));
 const UIKitTemplate = lazy(() => import('./components/templates/UiKitTemplate').then(m => ({ default: m.UIKitTemplate })));
 const AsesorDashboard = lazy(() => import('./components/views/asesor/AsesorOverview').then(m => ({ default: m.AsesorOverview })));
-const AdvisorValidation = lazy(() => import('./components/views/asesor/AdvisorValidationView').then(m => ({ default: m.AdvisorValidationView })));
+const AdvisorValidation = lazy(() => import('./components/views/asesor/AdvisorVerificationPanel').then(m => ({ default: m.AdvisorValidationView })));
 const AdvisorSubscription = lazy(() => import('./components/views/asesor/AdvisorSubscriptionView').then(m => ({ default: m.AdvisorSubscriptionView })));
 const AdvisorProperties = lazy(() => import('./components/views/asesor/AsesorInventoryView').then(m => ({ default: m.AsesorInventoryView })));
 const PaymentReturn = lazy(() => import('./components/views/asesor/PaymentReturnView').then(m => ({ default: m.PaymentReturnView })));
 const AdminDashboard = lazy(() => import('./components/views/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
-const AdminApplications = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminApplicationsView })));
-const AdminAccounts = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminAccountsView })));
-const AdminProperties = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminPropertiesView })));
-const AdminReports = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminReportsView })));
-const AdminFinance = lazy(() => import('./components/views/admin/AdminOperationsView').then(m => ({ default: m.AdminFinanceView })));
+const AdminApplications = lazy(() => import('./components/views/admin/AdminApplicationsView').then(m => ({ default: m.AdminApplicationsView })));
+const AdminAccounts = lazy(() => import('./components/views/admin/AdminUsersView').then(m => ({ default: m.AdminUsersView })));
+const AdminProperties = lazy(() => import('./components/views/admin/AdminPublicationsView').then(m => ({ default: m.AdminPublicationsView })));
+const AdminReports = lazy(() => import('./components/views/admin/AdminReportsView').then(m => ({ default: m.AdminReportsView })));
+const AdminFinance = lazy(() => import('./components/views/admin/AdminFinanceView').then(m => ({ default: m.AdminFinanceView })));
 const SplitLandingTemplate = lazy(() => import('./components/templates/SplitLandingTemplate').then(m => ({ default: m.SplitLandingTemplate })));
 const Profile = lazy(() => import('./components/templates/ProfileTemplate').then(m => ({ default: m.ProfileTemplate })));
+const PublicAdvisor = lazy(() => import('./components/templates/AsesorPublicProfileTemplate').then(m => ({ default: m.AsesorPublicProfileTemplate })));
+const AdminProfile = lazy(() => import('./components/templates/AdminProfileTemplate').then(m => ({ default: m.AdminProfileTemplate })));
 
 // Guardia para proteger rutas según el rol
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -70,14 +72,16 @@ function AppRoutes() {
               }
             }} />}
           />
-          <Route path="/ui-kit" element={<UIKitTemplate onNavigate={() => {}} />} />
+          {import.meta.env.DEV && <Route path="/ui-kit" element={<UIKitTemplate onNavigate={() => {}} />} />}
           <Route path="/confirmar-correo" element={<ConfirmEmail />} />
           <Route path="/restablecer-contrasena" element={<NewPassword onNavigate={() => navigate('/login')} />} />
 
           {/* RUTAS PUBLICAS (CON LAYOUT) */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<SplitLandingTemplate />} />
+            <Route path="/inmuebles" element={<ProtectedRoute allowedRoles={['asesor', 'admin']}><SplitLandingTemplate /></ProtectedRoute>} />
             <Route path="/map" element={<MapTemplate />} />
+            <Route path="/asesores/:id" element={<PublicAdvisor />} />
             <Route path="/favorites" element={<FavoritesTemplate />} />
             <Route path="/messages" element={
               <ProtectedRoute allowedRoles={['public', 'asesor']}>
@@ -90,7 +94,7 @@ function AppRoutes() {
             } />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/asesor/profile" element={<ProtectedRoute allowedRoles={['asesor']}><Profile /></ProtectedRoute>} />
-            <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><Profile /></ProtectedRoute>} />
+            <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfile /></ProtectedRoute>} />
             <Route path="/admin/asesores" element={<ProtectedRoute allowedRoles={['admin']}><AdminAccounts /></ProtectedRoute>} />
             <Route path="/admin/moderacion" element={<ProtectedRoute allowedRoles={['admin']}><AdminProperties /></ProtectedRoute>} />
             <Route path="/asesor/validacion" element={
@@ -105,7 +109,7 @@ function AppRoutes() {
               <ProtectedRoute allowedRoles={['asesor']}><AdvisorProperties /></ProtectedRoute>
             } />
             <Route path="/asesor" element={
-              <ProtectedRoute allowedRoles={['asesor', 'admin']}>
+              <ProtectedRoute allowedRoles={['asesor']}>
                 <AsesorDashboard />
               </ProtectedRoute>
             } />

@@ -14,7 +14,7 @@ export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, on
     <>
       {/* DESKTOP CHATBOT BUTTON (PC ONLY) */}
       <div className="hidden md:flex fixed bottom-6 right-6 z-40">
-        <IconButton 
+        <IconButton
           onClick={onOpen}
           icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
           variant="secondary"
@@ -36,7 +36,7 @@ export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, on
       </div>
 
       {/* CHATBOT (DESKTOP SIDE PANEL) */}
-      <div 
+      <div
         className={`hidden md:flex fixed top-[200px] bottom-[140px] right-6 z-[60] w-[420px] bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-3xl rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 dark:border-white/10 transition-all duration-500 ease-out flex-col overflow-hidden ${
           isOpen ? 'translate-x-0 opacity-100' : 'translate-x-[150%] opacity-0 pointer-events-none'
         }`}

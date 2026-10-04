@@ -1,10 +1,10 @@
 import React from 'react';
-import { Tag, Key, Sparkles, CheckCircle2, AlertTriangle, Circle, Award } from 'lucide-react';
+import { Tag, Sparkles, CheckCircle2, AlertTriangle, Circle, Award } from 'lucide-react';
 
 export interface BadgeProps {
   text?: string;
   children?: React.ReactNode;
-  variant?: 'venta' | 'renta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' | 'verified' | 'verified-lg';
+  variant?: 'venta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' | 'verified' | 'verified-lg';
   className?: string;
   responsiveText?: boolean;
 }
@@ -20,7 +20,6 @@ export const Badge: React.FC<BadgeProps> = ({
 
   const variants = {
     venta: { classes: "bg-inmo-accent text-white", Icon: Tag },
-    renta: { classes: "bg-inmo-tertiary text-inmo-secondary dark:bg-inmo-darktertiary dark:text-white", Icon: Key },
     nuevo: { classes: "bg-gray-100 dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white", Icon: Sparkles },
     primary: { classes: "bg-inmo-accent text-white", Icon: Tag },
     secondary: { classes: "bg-gray-100 dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white", Icon: Circle },

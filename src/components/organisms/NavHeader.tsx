@@ -6,6 +6,7 @@ import { IconButton } from '../atoms/IconButton';
 import { SearchBar } from '../molecules/SearchBar';
 import { FilterDropdown } from '../molecules/FilterDropdown';
 import { useAppContext } from '../../context/AppContext';
+import { navigation } from '../../navigation';
 
 export interface NavHeaderProps {
   isDarkMode?: boolean;
@@ -122,27 +123,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
     };
   }, []);
 
-  const navItems = {
-    public: [
-      { id: 'home', label: 'Inicio' },
-      { id: 'map', label: 'Mapa' },
-      { id: 'favorites', label: 'Favoritos' },
-      { id: 'messages', label: 'Mensajes' },
-    ],
-    asesor: [
-      { id: 'asesor', label: 'Inicio' },
-      { id: 'asesor/propiedades', label: 'Inmuebles' },
-      { id: 'asesor/mensajes', label: 'Mensajes' },
-    ],
-    admin: [
-      { id: 'admin', label: 'Inicio' },
-      { id: 'admin/asesores', label: 'Usuarios' },
-      { id: 'admin/moderacion', label: 'Publicaciones' },
-      { id: 'admin/finanzas', label: 'Finanzas' },
-    ]
-  };
-
-  const currentNavItems = navItems[role || 'public'];
+  const currentNavItems = navigation[role || 'public'];
 
   return (
     <div ref={headerRef} className="fixed md:sticky top-3 md:top-6 z-50 md:z-30 px-6 w-full md:mb-6 pointer-events-none">
@@ -163,7 +144,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 value={searchDraft}
                 onChange={setSearchDraft}
                 onSubmit={handleSearchSubmit}
-
+                autoFocus={isMobileSearchOpen}
                 placeholder="Buscar..."
                 size="slim"
                 glass={false}
@@ -192,7 +173,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
       <header className="relative z-50 flex justify-between items-center py-1.5 md:py-2 px-4 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full pointer-events-auto">
 
         {/* Toggle Dark Mode & Logotipo (Mobile & Desktop) */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-0 md:max-w-[calc(50%-2rem)]">
           <IconButton
             onClick={onToggleTheme}
             aria-label={isDarkMode ? 'Usar modo claro' : 'Usar modo oscuro'}
@@ -206,15 +187,16 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
           />
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-1 ml-6">
-            {currentNavItems.map((item: { id: string, label: string }) => {
+          <nav aria-label="Navegación principal de escritorio" className="hidden md:flex items-center gap-1 ml-3 min-w-0 overflow-x-auto">
+            {(role === 'admin' ? currentNavItems.slice(0, 3) : currentNavItems).map((item: { id: string, label: string }) => {
               const isActive = activeRoute === item.id;
               return (
                 <button
                   key={item.id}
+                  aria-label={item.label}
                   onClick={() => onNavigate?.(item.id)}
                   className={`
-                    relative px-6 py-3 font-inter font-bold text-sm rounded-full
+                    relative px-6 py-3 font-inter font-bold text-sm rounded-full shrink-0 whitespace-nowrap
                     transition-colors duration-300 group outline-none
                     ${isActive
                       ? 'bg-gray-100 dark:bg-white/10 text-inmo-secondary dark:text-white'
@@ -237,6 +219,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
               );
             })}
           </nav>
+          {role === 'admin' && <details className="hidden md:block shrink-0 relative"><summary aria-label="Más opciones administrativas de escritorio" className="cursor-pointer list-none px-4 py-3 font-inter font-bold text-sm rounded-full hover:bg-gray-100 dark:hover:bg-white/10">Más</summary><div className="absolute top-full left-0 mt-3 p-2 w-56 max-h-[60vh] overflow-y-auto bg-white dark:bg-inmo-darkcard rounded-2xl border border-gray-100 dark:border-inmo-darktertiary shadow-xl">{currentNavItems.slice(3).map(item => <button key={item.id} className="block w-full text-left rounded-xl px-4 py-3 text-sm font-bold hover:bg-gray-100 dark:hover:bg-white/10" onClick={event => { onNavigate?.(item.id); event.currentTarget.closest('details')?.removeAttribute('open'); }}>{item.label}</button>)}</div></details>}
         </div>
 
         {/* Logotipo Centrado (Mobile) / Izquierda-ish en Desktop? */}
@@ -252,11 +235,11 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
         />
 
         {/* User Menu Dropdown & Actions */}
-        <div className="relative z-20 flex gap-2 md:gap-3 items-center">
+        <div className="relative z-20 flex gap-2 md:gap-3 items-center min-w-0 md:max-w-[calc(50%-2rem)]">
 
           {/* Desktop Floating Search Wrapper */}
           <div className={`hidden md:flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] origin-right ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'opacity-100 scale-100 mr-2 pointer-events-auto' : 'opacity-0 scale-95 mr-0 pointer-events-none'}`}>
-            <div className={`transition-all duration-500 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-80' : 'w-0'}`}>
+            <div className={`transition-all duration-500 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-40 xl:w-80' : 'w-0'}`}>
               <SearchBar
                 value={searchDraft}
                 onChange={setSearchDraft}

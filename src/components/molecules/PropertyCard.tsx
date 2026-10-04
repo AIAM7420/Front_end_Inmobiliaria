@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Heart, MapPin, Bed, Bath, Maximize, Eye, MessageCircle } from 'lucide-react';
 import { Badge } from '../atoms/Badge';
 import { IconButton } from '../atoms/IconButton';
@@ -14,9 +14,10 @@ export interface PropertyCardProps {
   sqft?: number;
   badgeText?: string;
   badgeVariant?: any;
-  tags?: { text: string; variant: 'venta' | 'renta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' }[];
+  tags?: { text: string; variant: 'venta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' }[];
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  favoritePending?: boolean;
   onClick?: () => void;
   variant?: 'standard' | 'asesor';
   hideFeaturesText?: boolean;
@@ -38,21 +39,20 @@ export const PropertyCard = React.memo(({
   tags,
   isFavorite = false,
   onToggleFavorite,
+  favoritePending = false,
   onClick,
   variant = 'standard',
   hideFeaturesText = false,
   views,
   messages
 }: PropertyCardProps) => {
-  const [favorite, setFavorite] = useState(isFavorite);
+  const favorite = isFavorite;
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onToggleFavorite) setFavorite(!favorite);
     if (onToggleFavorite) onToggleFavorite();
   };
 
-  const isRenta = tags?.some(t => t.text.toLowerCase() === 'renta') || badgeText?.toLowerCase() === 'renta';
 
   return (
     <div
@@ -80,6 +80,9 @@ export const PropertyCard = React.memo(({
         {variant === 'standard' && onToggleFavorite && (
           <div className="absolute top-3 right-3 z-10">
             <IconButton
+              aria-label={favorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+              aria-pressed={favorite}
+              disabled={favoritePending}
               onClick={handleFavoriteClick}
               icon={<Heart className={`w-[20px] h-[20px] ${favorite ? 'fill-inmo-accent text-inmo-accent' : 'text-gray-700 dark:text-gray-300'}`} strokeWidth={2.5} />}
               variant="secondary"
@@ -112,9 +115,6 @@ export const PropertyCard = React.memo(({
                 {price.toLocaleString('es-MX')}
               </span>
             </div>
-            {isRenta && (
-              <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400 mt-1">/Mes</span>
-            )}
           </div>
         </div>
 

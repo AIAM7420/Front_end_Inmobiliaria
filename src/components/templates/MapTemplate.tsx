@@ -3,10 +3,11 @@ import { Globe } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { CriteriosBusqueda, PropiedadPublica } from '../../integrations/backend/types';
+import { chatbotCriteria } from '../../integrations/backend/chatbotCriteria';
 import { approximateZoneCenter } from '../../integrations/backend/zoneGeometry';
 import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
 import { useGetCatalog } from '../../integrations/backend/hooks/useProperties';
-import { useSearchQuery } from '../../integrations/backend/hooks/useSearch';
+import { useSearchInfinite } from '../../integrations/backend/hooks/useSearch';
 import { useAppContext } from '../../context/AppContext';
 import { SearchBar } from '../molecules/SearchBar';
 import { FloatingFilterButton } from '../atoms/FloatingFilterButton';
@@ -141,11 +142,13 @@ export function MapTemplate(_props: MapTemplateProps) {
     ...extraCriteria,
     ...(typeId ? { tipo_id: typeId } : {}),
   };
-  const search = useSearchQuery(criteria, { limit: 100 });
+  const search = useSearchInfinite(criteria, searchMode === 'filters');
   const chatbot = useChatbotQuery();
-  const properties = searchMode === 'text' ? chatbot.data?.resultados ?? [] : search.data?.items ?? [];
-  const isLoading = searchMode === 'text' ? chatbot.isPending : search.isLoading || types.isLoading;
-  const isError = searchMode === 'text' ? chatbot.isError : search.isError || types.isError;
+  const textSearch = useSearchInfinite(chatbotCriteria(chatbot.data), searchMode === 'text' && chatbot.data?.estado === 'RESULTADOS' && !chatbot.isPending);
+  const resultSearch = searchMode === 'text' ? textSearch : search;
+  const properties = searchMode === 'text' ? textSearch.data?.pages.flatMap(page => page.items) ?? chatbot.data?.resultados ?? [] : search.data?.pages.flatMap(page => page.items) ?? [];
+  const isLoading = searchMode === 'text' ? chatbot.isPending || textSearch.isLoading : search.isLoading || types.isLoading;
+  const isError = searchMode === 'text' ? chatbot.isError || textSearch.isError : search.isError || types.isError;
   const selected = properties.find((item) => item.id === selectedPropertyId);
   const mapboxToken: string | undefined = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
 
@@ -162,7 +165,9 @@ export function MapTemplate(_props: MapTemplateProps) {
   };
   const handleTextSearch = (texto: string) => {
     setSelectedPropertyId(null);
-    chatbot.mutate(texto, { onSuccess: () => setSearchMode('text') });
+    if (!texto.trim()) { setSearchMode('filters'); return; }
+    setSearchMode('text');
+    chatbot.mutate(texto);
   };
   const showResults = () => {
     setSelectedPropertyId(null);
@@ -181,6 +186,8 @@ export function MapTemplate(_props: MapTemplateProps) {
           />)}
         {!isLoading && isError && <p role="alert" className="font-inter text-sm text-inmo-danger p-4 text-center">No pudimos cargar las propiedades.</p>}
         {!isLoading && !isError && properties.length === 0 && <p className="font-inter text-sm text-gray-500 dark:text-gray-400 p-4 text-center">No encontramos propiedades con esos criterios.</p>}
+        {resultSearch.hasNextPage && <Button variant="secondary" isLoading={resultSearch.isFetchingNextPage} onClick={() => void resultSearch.fetchNextPage()}>Cargar más propiedades</Button>}
+        {resultSearch.isFetchNextPageError && <p role="alert" className="text-inmo-danger text-sm">No pudimos consultar más resultados. Reintenta cargar la siguiente página.</p>}
       </div>;
 
   return <>
@@ -209,7 +216,7 @@ export function MapTemplate(_props: MapTemplateProps) {
 
     <div className="absolute bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
       <Button onClick={showResults} className={`px-6 py-2.5 !text-xs !shadow-lg pointer-events-auto ${isSheetOpen ? 'opacity-0 pointer-events-none' : ''}`}>
-        {isLoading ? 'Cargando propiedades...' : `Ver ${properties.length} resultado${properties.length === 1 ? '' : 's'}`}
+        {isLoading ? 'Cargando propiedades...' : `Ver ${properties.length}${resultSearch.hasNextPage ? '+' : ''} resultado${properties.length === 1 ? '' : 's'}`}
       </Button>
     </div>
 
