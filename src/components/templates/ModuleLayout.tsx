@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { IconButton } from '../atoms/IconButton';
@@ -8,33 +8,33 @@ export interface ModuleLayoutProps {
   title: string;
   subtitle?: string;
   isFullScreen?: boolean;
-  
+
   // Search & Filters
   showSearch?: boolean;
   searchPlaceholder?: string;
   searchValue?: string;
   onSearchChange?: (val: string) => void;
   searchWidthClass?: string;
-  
+
   showFilters?: boolean;
   filtersContent?: React.ReactNode;
   isFiltersOpen?: boolean;
   onToggleFilters?: () => void;
   onCloseFilters?: () => void;
-  
+
   // Custom Actions (e.g., Bot Button)
   actions?: React.ReactNode;
-  
+
   // Custom content to render on the right side of the Title row (e.g., Notifications, Period Selector)
   headerEndContent?: React.ReactNode;
-  
+
   // Custom class to restrict width and alignment of the controls area (search/filters)
   controlsMaxWidthClass?: string;
 
   // Prevent default scroll behavior to allow children to handle their own scroll
   noScroll?: boolean;
   noBottomPadding?: boolean;
-  
+
   children: React.ReactNode;
 }
 
@@ -64,7 +64,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
       isFullScreen ? 'pt-[104px]' : 'pt-0 pb-24'
     }`}>
       {/* Title Area */}
-      <div className="mt-2 mb-6 w-full flex justify-between items-start md:items-center relative">
+      <div className="mt-2 mb-6 w-full shrink-0 flex justify-between items-start md:items-center relative">
         <div className="flex flex-col">
           <h1 className="font-montserrat font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white mb-2">{title}</h1>
           {subtitle && (
@@ -90,7 +90,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
                 size="slim"
                 className={searchWidthClass}
                 value={searchValue}
-                onChange={onSearchChange ? (e: any) => onSearchChange(e.target.value) : undefined}
+                onChange={onSearchChange}
               />
             )}
 
@@ -98,7 +98,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
 
             {showFilters && onToggleFilters && (
               <div className="relative">
-                <IconButton 
+                <IconButton
                   onClick={onToggleFilters}
                   icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
                   variant="secondary"
@@ -111,11 +111,11 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
                     {isFiltersOpen && typeof document !== 'undefined' && createPortal(
                       <div className="fixed inset-0 z-40" onClick={(e) => {
                         e.stopPropagation();
-                        onCloseFilters && onCloseFilters();
+                        onCloseFilters?.();
                       }}></div>,
                       document.body
                     )}
-                    <div 
+                    <div
                       className={`absolute right-0 top-full mt-3 w-72 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-xl border border-gray-100 dark:border-inmo-darktertiary z-50 overflow-hidden transition-all duration-200 origin-top-right ${
                         isFiltersOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                       }`}
@@ -123,16 +123,16 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
                       <div className="p-5 flex flex-col gap-3">
                         <div className="flex items-center justify-between px-1 mb-2">
                           <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Filtros Avanzados</span>
-                          <button 
+                          <button
                             onClick={onCloseFilters}
                             className="text-[11px] font-semibold text-inmo-accent hover:text-inmo-secondary dark:hover:text-white transition-colors flex items-center gap-1"
                           >
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                        
+
                         {filtersContent}
-                        
+
                       </div>
                     </div>
                   </>
@@ -144,7 +144,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
       )}
 
       {/* Main Content Area */}
-      <div 
+      <div
         onScroll={(e) => {
           window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
         }}

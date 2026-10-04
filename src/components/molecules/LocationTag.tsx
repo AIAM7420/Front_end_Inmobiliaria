@@ -8,14 +8,14 @@ export interface LocationTagProps {
   className?: string;
 }
 
-export const LocationTag: React.FC<LocationTagProps> = ({ 
-  city = "León", 
-  state = "Guanajuato, México", 
+export const LocationTag: React.FC<LocationTagProps> = ({
+  city = "León",
+  state = "Guanajuato, México",
   onClick,
   className = ""
 }) => {
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`flex items-center justify-between gap-3 bg-white/60 dark:bg-black/40 backdrop-blur-2xl border border-white/60 dark:border-white/20 pl-6 pr-1.5 py-1.5 rounded-full shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] cursor-pointer hover:bg-white/80 dark:hover:bg-black/60 transition-colors ${className}`}
     >

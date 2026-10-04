@@ -16,12 +16,12 @@ interface BottomSheetProps {
   fullHeight?: boolean;
 }
 
-export const BottomSheet: React.FC<BottomSheetProps> = ({ 
-  isOpen, 
-  onClose, 
+export const BottomSheet: React.FC<BottomSheetProps> = ({
+  isOpen,
+  onClose,
   onBack,
-  children, 
-  title, 
+  children,
+  title,
   defaultExpanded = false,
   noPadding = false,
   isHero = false,
@@ -37,20 +37,21 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const startTime = useRef(0);
 
   useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
     if (isOpen) {
       setIsExpanded(defaultExpanded);
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+      sheetRef.current?.focus();
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      if (isOpen) { document.body.style.overflow = overflow; previous?.focus(); }
     };
   }, [isOpen, defaultExpanded]);
 
   const getHeightClasses = () => {
     if (isExpanded) return 'h-[100dvh] rounded-none';
-    
+
     switch (heightMode) {
       case 'content':
         return 'h-auto max-h-[90dvh] rounded-t-[32px] pb-6';
@@ -111,20 +112,36 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         setIsExpanded(true);
       }
     }
-    
+
     startY.current = 0;
     currentY.current = 0;
   };
 
   return (
     <>
-      <div 
+      <div
         className={`fixed inset-0 bg-black/60 backdrop-blur-[2px] z-40 transition-opacity duration-300 cursor-pointer ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
-      
-      <div 
+
+      <div
         ref={sheetRef}
+        inert={!isOpen}
+        aria-hidden={!isOpen}
+        role="dialog"
+        tabIndex={-1}
+        onKeyDown={event => {
+          if (event.key === 'Escape') { event.stopPropagation(); onClose?.(); }
+          if (event.key !== 'Tab') return;
+          const nodes = Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]') ?? [])
+            .filter(node => node.getClientRects().length > 0);
+          if (!nodes.length) { event.preventDefault(); return; }
+          const first = nodes[0], last = nodes[nodes.length - 1];
+          if (event.shiftKey && (document.activeElement === first || document.activeElement === sheetRef.current)) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }}
+        aria-modal={isOpen}
+        aria-label={typeof title === 'string' ? title : 'Detalle'}
         className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-inmo-darkbg z-50 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.15)] overflow-hidden ${
           !isDragging ? 'transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]' : ''
         } ${
@@ -132,10 +149,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         } ${getHeightClasses()}`}
       >
         <div className="w-full relative shrink-0">
-          <div 
+          <div
             className={`flex flex-col items-center justify-center cursor-grab active:cursor-grabbing w-full z-50 transition-all duration-300 ${
-              isHero 
-                ? 'absolute top-0 left-0 right-0 pt-4 pb-4 bg-gradient-to-b from-black/40 to-transparent pointer-events-none' 
+              isHero
+                ? 'absolute top-0 left-0 right-0 pt-4 pb-4 bg-gradient-to-b from-black/40 to-transparent pointer-events-none'
                 : isExpanded ? 'pt-2 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent' : 'pt-4 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent'
             }`}
             onTouchStart={handleTouchStart}
@@ -146,18 +163,18 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             }}
           >
             <div className={`w-12 h-1.5 rounded-full pointer-events-auto transition-all duration-300 ${title && !isHero ? 'mb-3' : ''} ${
-              isHero 
-                ? 'bg-white/90 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.5)]' 
+              isHero
+                ? 'bg-white/90 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.5)]'
                 : 'bg-gray-300 dark:bg-gray-600'
             } ${isExpanded ? 'opacity-0 h-0 mb-0 scale-y-0' : 'opacity-100 h-1.5'}`} />
-            
+
             {title && !isHero && (
               <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white px-6 text-center w-full truncate pb-2 pointer-events-auto">
                 {title}
               </h3>
             )}
           </div>
-          
+
           {onBack && (
             <div className={`absolute left-4 z-50 ${isHero ? 'top-4' : 'top-3'}`}>
               <IconButton
@@ -171,12 +188,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     ? 'bg-black/20 backdrop-blur-md text-white hover:bg-black/30'
                     : 'bg-gray-100 dark:bg-inmo-darkcard text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
+                aria-label="Volver al panel anterior"
                 icon={<ArrowLeft className="w-5 h-5" strokeWidth={2.5} />}
               />
             </div>
           )}
 
-          {isExpanded && !hideCloseButton && (
+          {onClose && !hideCloseButton && (
             <div className={`absolute right-4 z-50 ${isHero ? 'top-4' : 'top-3'} animate-in fade-in zoom-in duration-300`}>
               <IconButton
                 onClick={(e) => {
@@ -189,6 +207,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     ? 'bg-black/20 backdrop-blur-md text-white hover:bg-black/30'
                     : 'bg-gray-100 dark:bg-inmo-darkcard text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
+                aria-label="Cerrar detalle"
                 icon={<X className="w-5 h-5" strokeWidth={2.5} />}
               />
             </div>

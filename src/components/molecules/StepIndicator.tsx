@@ -68,7 +68,7 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                   item.number
                 )}
               </div>
-              
+
               {/* Spacer for label height to maintain layout stability */}
               <div className="h-6 mt-2 relative w-full flex justify-center">
                 {item.type === 'current' && item.label && (

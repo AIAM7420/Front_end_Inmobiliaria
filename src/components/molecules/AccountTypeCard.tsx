@@ -4,7 +4,7 @@ import { Button } from '../atoms/Button';
 export interface AccountTypeCardProps {
   icon: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -40,7 +40,7 @@ export const AccountTypeCard: React.FC<AccountTypeCardProps> = ({
             {icon}
           </div>
         </div>
-        
+
         <div className="flex flex-col items-center gap-1 w-full">
           <span className="text-subtitle text-center !whitespace-normal break-words">{title}</span>
           <span className="text-body text-center text-xs leading-relaxed !whitespace-normal break-words">{description}</span>
@@ -48,8 +48,8 @@ export const AccountTypeCard: React.FC<AccountTypeCardProps> = ({
 
         {/* Selection indicator */}
         <div className={`w-5 h-5 rounded-atom border-2 flex items-center justify-center transition-all ${
-          isSelected 
-            ? 'border-inmo-accent bg-inmo-accent' 
+          isSelected
+            ? 'border-inmo-accent bg-inmo-accent'
             : 'border-gray-300 dark:border-inmo-darktertiary'
         }`}>
           {isSelected && (

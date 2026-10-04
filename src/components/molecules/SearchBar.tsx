@@ -1,6 +1,5 @@
-// Force Vite HMR rebuild
 import React from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 export interface SearchBarProps {
   placeholder?: string;
@@ -29,22 +28,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onSubmit,
 }) => {
   const [isFocused, setIsFocused] = React.useState(false);
-  const [localValue, setLocalValue] = React.useState(value || '');
-
-  React.useEffect(() => {
-    if (value !== undefined) {
-      setLocalValue(value);
-    }
-  }, [value]);
+  const [draftValue, setLocalValue] = React.useState(value || '');
+  const localValue = value === undefined ? draftValue : value;
 
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (autoFocus && inputRef.current) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 300); // 300ms matches the transition duration
-      return () => clearTimeout(timer);
+      inputRef.current.focus();
     }
   }, [autoFocus]);
 
@@ -67,9 +58,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const h = size === 'xl' ? 'h-[72px]' : size === 'slim' ? 'h-[44px]' : 'h-[64px]';
   const textSize = size === 'xl' ? 'text-lg' : size === 'slim' ? 'text-sm' : 'text-base';
   const iconSize = size === 'xl' ? 'w-6 h-6' : size === 'slim' ? 'w-4 h-4' : 'w-5 h-5';
-  
-  // Padding base
-  const px = size === 'xl' ? 'px-8' : size === 'slim' ? 'px-4' : 'px-6';
 
   // Liquid glass effect
   const glassStyles = "bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
@@ -92,6 +80,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         {/* Icon (Clickable if onSubmit provided) */}
         <button
           type="button"
+          aria-label="Buscar"
+          tabIndex={onSubmit ? 0 : -1}
           onClick={(e) => {
             if (onSubmit) {
               e.stopPropagation();
@@ -110,13 +100,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         {/* Input Wrapper */}
         <div className={`relative flex items-center h-full ml-2 transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] min-w-0 ${isActive ? 'flex-1' : 'flex-none'}`}>
           {/* Ghost span ensures the input wrapper is exactly as wide as the text when inactive */}
-          <span 
+          <span
             className={`opacity-0 pointer-events-none whitespace-nowrap font-inter font-normal ${textSize}`}
             aria-hidden="true"
           >
             {localValue || placeholder}
           </span>
-          
+
           <input
             ref={inputRef}
             type="text"
@@ -134,6 +124,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <div className={`flex items-center justify-center transition-all duration-300 overflow-hidden ${localValue.length > 0 ? 'w-8 opacity-100 ml-1' : 'w-0 opacity-0'}`}>
           <button
             type="button"
+            aria-label="Limpiar búsqueda"
+            tabIndex={localValue.length > 0 ? 0 : -1}
             onClick={(e) => {
               e.stopPropagation();
               setLocalValue('');
