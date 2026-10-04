@@ -1,10 +1,10 @@
 import React from 'react';
-import { Tag, Key, Sparkles, CheckCircle2, AlertTriangle, Circle, Award } from 'lucide-react';
+import { Tag, Sparkles, CheckCircle2, AlertTriangle, Circle, Award } from 'lucide-react';
 
 export interface BadgeProps {
   text?: string;
   children?: React.ReactNode;
-  variant?: 'venta' | 'renta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' | 'verified' | 'verified-lg';
+  variant?: 'venta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' | 'verified' | 'verified-lg';
   className?: string;
   responsiveText?: boolean;
 }
@@ -17,10 +17,9 @@ export const Badge: React.FC<BadgeProps> = ({
   responsiveText = true
 }) => {
   const baseStyles = `flex items-center justify-center gap-1.5 px-3 @xs:px-4 py-1.5 @xs:py-2 rounded-atom text-xs @xs:text-sm font-inter font-medium shadow-sm tracking-wide whitespace-nowrap transition-all`;
-  
+
   const variants = {
     venta: { classes: "bg-inmo-accent text-white", Icon: Tag },
-    renta: { classes: "bg-inmo-tertiary text-inmo-secondary dark:bg-inmo-darktertiary dark:text-white", Icon: Key },
     nuevo: { classes: "bg-gray-100 dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white", Icon: Sparkles },
     primary: { classes: "bg-inmo-accent text-white", Icon: Tag },
     secondary: { classes: "bg-gray-100 dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white", Icon: Circle },
@@ -35,8 +34,8 @@ export const Badge: React.FC<BadgeProps> = ({
 
   // Custom size/stroke logic for specific variants
   const isLg = variant === 'verified-lg';
-  const iconClasses = isLg 
-    ? "w-4 h-4 @xs:w-5 @xs:h-5 shrink-0" 
+  const iconClasses = isLg
+    ? "w-4 h-4 @xs:w-5 @xs:h-5 shrink-0"
     : "w-3.5 h-3.5 @xs:w-4 @xs:h-4 shrink-0";
   const strokeW = isLg ? 2 : 1.5;
 

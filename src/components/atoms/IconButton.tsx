@@ -18,7 +18,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   ...props
 }) => {
   const baseStyles = "flex items-center justify-center transition-all active:scale-95 shrink-0";
-  
+
   const variants = {
     accent: "bg-inmo-accent shadow-glow text-white hover:bg-red-600 hover:scale-110",
     tertiary: "bg-inmo-tertiary dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110",
@@ -43,7 +43,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   }
 
   return (
-    <button 
+    <button
       disabled={disabled || isLoading}
       className={`${baseStyles} ${currentStyles} ${sizes[size]} ${className}`}
       {...props}

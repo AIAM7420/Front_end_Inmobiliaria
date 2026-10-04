@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Heart, MapPin, Bed, Bath, Maximize, Eye, MessageCircle } from 'lucide-react';
 import { Badge } from '../atoms/Badge';
 import { IconButton } from '../atoms/IconButton';
 
 export interface PropertyCardProps {
-  image: string;
+  image?: string;
+  imageLoading?: boolean;
   title: string;
   location: string;
   price: number;
-  beds: number;
-  baths: number;
-  sqft: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
   badgeText?: string;
   badgeVariant?: any;
-  tags?: { text: string; variant: 'venta' | 'renta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' }[];
+  tags?: { text: string; variant: 'venta' | 'nuevo' | 'primary' | 'secondary' | 'success' | 'warning' }[];
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  favoritePending?: boolean;
   onClick?: () => void;
   variant?: 'standard' | 'asesor';
   hideFeaturesText?: boolean;
@@ -25,6 +27,7 @@ export interface PropertyCardProps {
 
 export const PropertyCard = React.memo(({
   image,
+  imageLoading = false,
   title,
   location,
   price,
@@ -36,30 +39,32 @@ export const PropertyCard = React.memo(({
   tags,
   isFavorite = false,
   onToggleFavorite,
+  favoritePending = false,
   onClick,
   variant = 'standard',
   hideFeaturesText = false,
-  views = 0,
-  messages = 0
+  views,
+  messages
 }: PropertyCardProps) => {
-  const [favorite, setFavorite] = useState(isFavorite);
+  const favorite = isFavorite;
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFavorite(!favorite);
     if (onToggleFavorite) onToggleFavorite();
   };
 
-  const isRenta = tags?.some(t => t.text.toLowerCase() === 'renta') || badgeText?.toLowerCase() === 'renta';
 
   return (
-    <div 
+    <div
       className="@container h-full bg-white dark:bg-inmo-darkcard rounded-card p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-inmo-darktertiary/40 cursor-pointer transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.02] flex flex-col w-full"
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={e => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onClick?.(); } }}
       onClick={onClick}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] shrink-0">
-        <img src={image} alt={title} className="object-cover w-full h-full transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
-        
+        {image ? <img src={image} alt={title} className="object-cover w-full h-full transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" /> : <div className="w-full h-full bg-inmo-tertiary dark:bg-inmo-darktertiary flex items-center justify-center text-sm text-gray-500">{imageLoading ? "Cargando fotografía…" : "Sin fotografía"}</div>}
+
         {/* TAGS */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
           {tags && tags.length > 0 ? (
@@ -72,15 +77,18 @@ export const PropertyCard = React.memo(({
         </div>
 
         {/* FAVORITE */}
-        {variant === 'standard' && (
+        {variant === 'standard' && onToggleFavorite && (
           <div className="absolute top-3 right-3 z-10">
-            <IconButton 
+            <IconButton
+              aria-label={favorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+              aria-pressed={favorite}
+              disabled={favoritePending}
               onClick={handleFavoriteClick}
               icon={<Heart className={`w-[20px] h-[20px] ${favorite ? 'fill-inmo-accent text-inmo-accent' : 'text-gray-700 dark:text-gray-300'}`} strokeWidth={2.5} />}
               variant="secondary"
               className={`!w-[40px] !h-[40px] !rounded-full shadow-sm ${
-                favorite 
-                  ? '!bg-white dark:!bg-inmo-darkcard' 
+                favorite
+                  ? '!bg-white dark:!bg-inmo-darkcard'
                   : '!bg-white/80 dark:!bg-inmo-darkcard/80 backdrop-blur-md hover:!bg-white dark:hover:!bg-inmo-darkcard'
               }`}
             />
@@ -107,31 +115,28 @@ export const PropertyCard = React.memo(({
                 {price.toLocaleString('es-MX')}
               </span>
             </div>
-            {isRenta && (
-              <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400 mt-1">/Mes</span>
-            )}
           </div>
         </div>
-        
+
         {/* ROW 3: FEATURES PILLS */}
-        {variant === 'standard' ? (
+        {variant === 'standard' || (views === undefined && messages === undefined) ? (
           <div className="flex flex-wrap gap-2 mt-auto pt-2">
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Bed className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
               <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
-                {beds} {!hideFeaturesText && <span className="hidden @[250px]:inline">Beds</span>}
+                {beds ?? "—"} {!hideFeaturesText && <span className="hidden @[250px]:inline">rec.</span>}
               </span>
             </div>
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Bath className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
               <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
-                {baths} {!hideFeaturesText && <span className="hidden @[250px]:inline">Baths</span>}
+                {baths ?? "—"} {!hideFeaturesText && <span className="hidden @[250px]:inline">baños</span>}
               </span>
             </div>
             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-inmo-darkbg px-2 @[250px]:px-3 py-1.5 rounded-xl border border-gray-100 dark:border-inmo-darktertiary">
               <Maximize className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />
               <span className="text-[13px] font-medium text-inmo-secondary dark:text-gray-300">
-                {sqft} {!hideFeaturesText && <span className="hidden @[250px]:inline">m²</span>}
+                {sqft ?? "—"} {!hideFeaturesText && <span className="hidden @[250px]:inline">m²</span>}
               </span>
             </div>
           </div>

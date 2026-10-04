@@ -10,6 +10,7 @@ interface PeriodDropdownProps {
   onChange: (period: PeriodOption) => void;
   className?: string;
   iconOnly?: boolean;
+  ariaLabel?: string;
 }
 
 export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
@@ -18,6 +19,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
   onChange,
   className = '',
   iconOnly = false,
+  ariaLabel = 'Seleccionar periodo',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,6 +37,8 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
   return (
     <div className={`relative ${iconOnly ? 'w-[44px]' : 'w-[110px]'} ${className}`} ref={dropdownRef}>
       <Button
+        aria-label={ariaLabel}
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         variant="secondary"
         className={`w-full !h-[44px] flex items-center ${iconOnly ? 'justify-center !px-0 !rounded-full !gap-0' : 'justify-between px-4 !rounded-[14px] !gap-2'} !text-xs shadow-soft transition-all`}
@@ -45,7 +49,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
         )}
       </Button>
 
-      <div 
+      <div
         className={`absolute top-full right-0 mt-2 w-44 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-xl shadow-xl z-50 overflow-hidden transition-all duration-200 origin-top-right ${
           isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto visible' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none invisible'
         }`}

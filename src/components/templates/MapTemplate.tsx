@@ -1,537 +1,232 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { Globe, Ghost, SlidersHorizontal, Search, MapPin } from 'lucide-react';
-import { APIProvider, Map, Marker, useApiLoadingStatus, APILoadingStatus } from '@vis.gl/react-google-maps';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Globe } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import type { CriteriosBusqueda, PropiedadPublica } from '../../integrations/backend/types';
+import { chatbotCriteria } from '../../integrations/backend/chatbotCriteria';
+import { approximateZoneCenter } from '../../integrations/backend/zoneGeometry';
+import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
+import { useGetCatalog } from '../../integrations/backend/hooks/useProperties';
+import { useSearchInfinite } from '../../integrations/backend/hooks/useSearch';
+import { useAppContext } from '../../context/AppContext';
 import { SearchBar } from '../molecules/SearchBar';
 import { FloatingFilterButton } from '../atoms/FloatingFilterButton';
-import { IconButton } from '../atoms/IconButton';
 import { Button } from '../atoms/Button';
-import { PropertyCard } from '../molecules/PropertyCard';
+import { Skeleton } from '../atoms/Skeleton';
 import { CategoryPills } from '../molecules/CategoryPills';
 import type { PropertyCategory } from '../molecules/CategoryPills';
-import { FilterDropdown, type FilterState } from '../molecules/FilterDropdown';
+import { FilterDropdown } from '../molecules/FilterDropdown';
 import { BottomSheet } from '../organisms/BottomSheet';
 import { SidePanel } from '../organisms/SidePanel';
 import { PropertyDetailView } from '../organisms/PropertyDetailView';
+import { ConnectedPropertyCard } from '../organisms/ConnectedPropertyCard';
 import { PropertyCardSkeleton } from '../molecules/PropertyCardSkeleton';
-import { AsesorChat } from '../organisms/AsesorChat';
-import { useAppContext } from '../../context/AppContext';
-import { MOCK_PROPERTIES } from '../../data/mockProperties';
-import { LocationTag } from '../molecules/LocationTag';
-import { createSvgIcon, mapStyles } from '../../utils/mapStyles';
-
-
-import { useMap } from '@vis.gl/react-google-maps';
 
 export interface MapTemplateProps {}
 
-const CustomOverlay = ({ position, children, zIndex = 0 }: { position: google.maps.LatLngLiteral, children: React.ReactNode, zIndex?: number }) => {
-  const map = useMap();
-  const [container] = useState(() => {
-    const div = document.createElement('div');
-    div.style.position = 'absolute';
-    return div;
-  });
-
-  useEffect(() => {
-    if (!map || !window.google) return;
-    let overlay: any;
-    
-    class HTMLOverlay extends window.google.maps.OverlayView {
-      onAdd() {
-        const panes = this.getPanes();
-        if (panes) {
-          panes.overlayMouseTarget.appendChild(container);
-          container.style.zIndex = String(zIndex);
-        }
-      }
-      draw() {
-        const projection = this.getProjection();
-        if (projection) {
-          const pos = projection.fromLatLngToDivPixel(new window.google.maps.LatLng(position));
-          if (pos) {
-            container.style.left = pos.x + 'px';
-            container.style.top = pos.y + 'px';
-            container.style.transform = 'translate(-50%, -100%)';
-          }
-        }
-      }
-      onRemove() {
-        if (container.parentNode) {
-          container.parentNode.removeChild(container);
-        }
-      }
-    }
-    
-    overlay = new HTMLOverlay();
-    overlay.setMap(map);
-    return () => overlay.setMap(null);
-  }, [map, position.lat, position.lng, zIndex, container]);
-
-  return createPortal(
-    <div onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-      {children}
-    </div>, 
-    container
-  );
+const markerLabel = (price: string) => {
+  const amount = Number(price);
+  const label = amount >= 1_000_000
+    ? `$${(amount / 1_000_000).toFixed(1)}M`
+    : amount >= 1_000
+      ? `$${(amount / 1_000).toFixed(0)}k`
+      : `$${amount}`;
+  return label;
 };
 
-const InnerMap = React.memo(({ properties, onMarkerClick, isDarkMode, isWireframeMode }: { properties: typeof MOCK_PROPERTIES, onMarkerClick: (id: number) => void, isDarkMode?: boolean, isWireframeMode?: boolean }) => {
-  const status = useApiLoadingStatus();
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const [zoom, setZoom] = useState(() => window.innerWidth < 768 ? 14 : 13);
+function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
+  properties: PropiedadPublica[];
+  onMarkerClick: (id: string) => void;
+  isDarkMode: boolean;
+  token: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const markerProperties = useMemo(() => properties.flatMap((property) => {
+    const position = approximateZoneCenter(property.zona_geojson);
+    return position ? [{ property, position }] : [];
+  }), [properties]);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    if (!containerRef.current) return;
+    setStatus('loading');
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      accessToken: token,
+      style: isDarkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
+      center: [-101.680, 21.135],
+      zoom: 12,
+      attributionControl: true,
+    });
+    mapRef.current = map;
+    map.on('load', () => setStatus('ready'));
+    map.on('error', () => setStatus('error'));
+    return () => {
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+      mapRef.current = null;
+      map.remove();
+    };
+  }, [token, isDarkMode]);
 
-  if (status === APILoadingStatus.AUTH_FAILURE || status === APILoadingStatus.FAILED) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-200 dark:bg-inmo-darkbg p-6 text-center pt-24 relative z-0">
-        <Globe className="w-16 h-16 text-inmo-accent mb-4 opacity-50" />
-        <h2 className="text-subtitle mb-2">Falta API Key</h2>
-        <p className="text-gray-500 dark:text-gray-400 max-w-md">
-          Añade tu <b>Maps Demo Key</b> en el archivo <code>.env</code> como <code>VITE_GOOGLE_MAPS_API_KEY</code> para visualizar el mapa interactivo.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || status !== 'ready') return;
+    const areas = {
+      type: 'FeatureCollection' as const,
+      features: properties.flatMap((property) => property.zona_geojson?.type === 'Polygon'
+        ? [{ type: 'Feature' as const, properties: { id: property.id }, geometry: property.zona_geojson }]
+        : []),
+    } as Parameters<mapboxgl.GeoJSONSource['setData']>[0];
+    const source = map.getSource('approximate-property-areas') as mapboxgl.GeoJSONSource | undefined;
+    if (source) source.setData(areas);
+    else {
+      map.addSource('approximate-property-areas', { type: 'geojson', data: areas });
+      map.addLayer({
+        id: 'approximate-property-areas-fill', type: 'fill', source: 'approximate-property-areas',
+        paint: { 'fill-color': '#fe0a52', 'fill-opacity': 0.14 },
+      });
+      map.addLayer({
+        id: 'approximate-property-areas-outline', type: 'line', source: 'approximate-property-areas',
+        paint: { 'line-color': '#fe0a52', 'line-width': 1.5 },
+      });
+    }
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = markerProperties.map(({ property, position }) => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.className = 'rounded-full bg-inmo-accent px-3 py-1 text-sm font-bold text-white shadow-lg';
+      element.textContent = markerLabel(property.precio);
+      element.title = `${property.titulo} · zona aproximada`;
+      element.setAttribute('aria-label', element.title);
+      element.addEventListener('click', () => onMarkerClick(property.id));
+      return new mapboxgl.Marker({ element })
+        .setLngLat([position.lng, position.lat])
+        .addTo(map);
+    });
+    return () => {
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+    };
+  }, [markerProperties, onMarkerClick, properties, status]);
 
-  const showOverlay = status !== APILoadingStatus.LOADED || isWireframeMode;
+  return <div className="relative w-full h-full bg-gray-100 dark:bg-inmo-darkbg">
+    <div ref={containerRef} className="w-full h-full" />
+    {status === 'loading' && <Skeleton className="absolute inset-0" />}
+    {status === 'error' && <div role="alert" className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-inmo-darkbg p-6 text-center pt-24">
+      <Globe className="w-14 h-14 text-inmo-accent mb-4" strokeWidth={1.5} />
+      <p className="font-inter text-sm text-gray-600 dark:text-gray-300">No pudimos cargar el mapa. Los resultados siguen disponibles en la lista.</p>
+    </div>}
+    {status === 'ready' && markerProperties.length === 0 && properties.length > 0 &&
+      <p className="absolute bottom-28 left-4 right-4 bg-white/90 dark:bg-inmo-darkcard/90 rounded-2xl p-3 text-xs font-inter text-inmo-secondary dark:text-white text-center shadow-soft">
+        Estas propiedades no tienen una zona cartográfica pública; consúltalas en la lista.
+      </p>}
+  </div>;
+}
 
-  
+export function MapTemplate(_props: MapTemplateProps) {
+  const { isDarkMode } = useAppContext();
+  const [activeFilter, setActiveFilter] = useState<PropertyCategory | null>(null);
+  const [extraCriteria, setExtraCriteria] = useState<CriteriosBusqueda>({});
+  const [searchMode, setSearchMode] = useState<'filters' | 'text'>('filters');
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const types = useGetCatalog('tipos');
+  const typeId = activeFilter === null
+    ? undefined
+    : types.data?.find((item) => item.codigo.toLowerCase() === activeFilter)?.id;
+  const criteria: CriteriosBusqueda = {
+    ...extraCriteria,
+    ...(typeId ? { tipo_id: typeId } : {}),
+  };
+  const search = useSearchInfinite(criteria, searchMode === 'filters');
+  const chatbot = useChatbotQuery();
+  const textSearch = useSearchInfinite(chatbotCriteria(chatbot.data), searchMode === 'text' && chatbot.data?.estado === 'RESULTADOS' && !chatbot.isPending);
+  const resultSearch = searchMode === 'text' ? textSearch : search;
+  const properties = searchMode === 'text' ? textSearch.data?.pages.flatMap(page => page.items) ?? chatbot.data?.resultados ?? [] : search.data?.pages.flatMap(page => page.items) ?? [];
+  const isLoading = searchMode === 'text' ? chatbot.isPending || textSearch.isLoading : search.isLoading || types.isLoading;
+  const isError = searchMode === 'text' ? chatbot.isError || textSearch.isError : search.isError || types.isError;
+  const selected = properties.find((item) => item.id === selectedPropertyId);
+  const mapboxToken: string | undefined = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
 
-  
+  const handleFilterChange = (category: PropertyCategory | null) => {
+    setActiveFilter(category);
+    setSearchMode('filters');
+    setSelectedPropertyId(null);
+  };
+  const applyFilters = (value: CriteriosBusqueda) => {
+    setExtraCriteria(value);
+    setSearchMode('filters');
+    setSelectedPropertyId(null);
+    setIsFiltersOpen(false);
+  };
+  const handleTextSearch = (texto: string) => {
+    setSelectedPropertyId(null);
+    if (!texto.trim()) { setSearchMode('filters'); return; }
+    setSearchMode('text');
+    chatbot.mutate(texto);
+  };
+  const showResults = () => {
+    setSelectedPropertyId(null);
+    setIsSheetOpen(true);
+  };
+  const showDetail = (id: string) => {
+    setSelectedPropertyId(id);
+    setIsSheetOpen(true);
+  };
+  const sheetContent = selectedPropertyId && selected
+    ? <PropertyDetailView propertyId={selectedPropertyId} preview={selected} />
+    : <div className="grid gap-4 grid-cols-1">
+        {isLoading ? Array.from({ length: 4 }).map((_, index) => <PropertyCardSkeleton key={index} />)
+          : properties.map((property) => <ConnectedPropertyCard
+            key={property.id} property={property} onClick={() => showDetail(property.id)}
+          />)}
+        {!isLoading && isError && <p role="alert" className="font-inter text-sm text-inmo-danger p-4 text-center">No pudimos cargar las propiedades.</p>}
+        {!isLoading && !isError && properties.length === 0 && <p className="font-inter text-sm text-gray-500 dark:text-gray-400 p-4 text-center">No encontramos propiedades con esos criterios.</p>}
+        {resultSearch.hasNextPage && <Button variant="secondary" isLoading={resultSearch.isFetchingNextPage} onClick={() => void resultSearch.fetchNextPage()}>Cargar más propiedades</Button>}
+        {resultSearch.isFetchNextPageError && <p role="alert" className="text-inmo-danger text-sm">No pudimos consultar más resultados. Reintenta cargar la siguiente página.</p>}
+      </div>;
 
-  return (
-    <div className="relative w-full h-full bg-gray-100 dark:bg-inmo-darkbg">
-      {status === APILoadingStatus.LOADED && (
-        <Map
-          defaultCenter={{ lat: 21.135, lng: -101.680 }}
-          defaultZoom={isMobile ? 14 : 13}
-          onCameraChanged={(ev: any) => setZoom(ev.detail.zoom)}
-          disableDefaultUI={true}
-          gestureHandling="greedy"
-          styles={isDarkMode ? mapStyles.dark : mapStyles.light}
-          padding={{ bottom: 100 }}
-          className="w-full h-full"
-        >
-          {properties.map(p => {
-            const minicardThreshold = isMobile ? 14 : 13;
-            if (zoom >= minicardThreshold) {
-              return (
-                <CustomOverlay 
-                  key={`custom-${p.id}`} 
-                  position={{ lat: p.lat, lng: p.lng }} 
-                  zIndex={10}
-                >
-                  <div 
-                    onClick={() => onMarkerClick(p.id)}
-                    className="bg-white dark:bg-inmo-darkcard p-1.5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 flex flex-row w-[170px] items-center gap-2 hover:scale-105 transition-transform cursor-pointer relative"
-                  >
-                    <img src={p.image} alt={p.title} className="w-14 h-14 object-cover rounded-[10px] shrink-0" />
-                    <div className="flex-1 flex flex-col gap-0.5 justify-center pr-1 min-w-0">
-                      <p className="text-[10px] font-bold text-inmo-secondary dark:text-white line-clamp-2 leading-tight text-left font-inter">
-                        {p.title}
-                      </p>
-                      <div className="flex justify-start items-baseline gap-0.5 mt-0.5">
-                        <span className="text-[9px] font-bold text-inmo-accent">$</span>
-                        <span className="text-xs font-black text-inmo-secondary dark:text-white tracking-tight truncate">{p.price.toLocaleString('es-MX')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CustomOverlay>
-              );
-            }
-            return (
-              <Marker 
-                key={p.id} 
-                position={{ lat: p.lat, lng: p.lng }} 
-                onClick={() => onMarkerClick(p.id)}
-                icon={{ url: createSvgIcon(p.type, zoom) }}
-              />
-            );
-          })}
-        </Map>
-      )}
+  return <>
+    <div className="absolute inset-0 z-0 pointer-events-auto">
+      {mapboxToken ? <InnerMap properties={properties} onMarkerClick={showDetail} isDarkMode={isDarkMode} token={mapboxToken} /> : <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-inmo-darkbg p-6 text-center pt-24">
+        <Globe className="w-14 h-14 text-inmo-accent mb-4" strokeWidth={1.5} />
+        <p className="font-inter text-sm text-gray-600 dark:text-gray-300">El mapa no está configurado. Puedes consultar las propiedades en la lista.</p>
+      </div>}
+    </div>
 
-      {/* OVERLAY DE CARGA */}
-      <div 
-        className={`absolute inset-0 z-50 bg-gray-100 dark:bg-inmo-darkbg flex flex-col items-center justify-center pt-24 transition-opacity duration-700 pointer-events-none ${showOverlay ? 'opacity-100' : 'opacity-0'}`}
-      >
-        <style>{`
-          @keyframes slideLoading {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-          }
-        `}</style>
-        <img
-          src={isDarkMode ? "/inmo white.png" : "/inmo.png"}
-          alt="INMO"
-          className="h-12 mb-8 object-contain animate-pulse"
-        />
-        <div className="w-48 h-1 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden relative">
-          <div 
-            className="absolute top-0 bottom-0 w-1/2 bg-inmo-accent rounded-full"
-            style={{ animation: 'slideLoading 1.5s ease-in-out infinite' }}
-          ></div>
+    <div className="absolute top-4 left-4 right-4 md:top-28 md:left-6 md:right-auto md:w-[350px] z-50 flex flex-col items-center md:items-start gap-3 pointer-events-none">
+      <div className="w-full flex flex-col gap-3 pointer-events-auto">
+        <div className="flex items-stretch gap-2 w-full max-w-md">
+          <CategoryPills activeFilter={activeFilter} onSelectFilter={handleFilterChange} className="flex-1 m-0" />
+          <FloatingFilterButton onClick={() => setIsFiltersOpen(!isFiltersOpen)} size="small" />
         </div>
+        <FilterDropdown isOpen={isFiltersOpen && !isSheetOpen} onApply={applyFilters} className="max-w-md md:origin-top-left" />
+        {isError && <p role="alert" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-inmo-danger shadow-soft">No pudimos cargar las propiedades.</p>}
+        {searchMode === 'text' && chatbot.data?.aclaracion && <p role="status" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-gray-600 dark:text-gray-300 shadow-soft">{chatbot.data.aclaracion}</p>}
       </div>
     </div>
-  );
-});
 
-InnerMap.displayName = 'InnerMap';
+    <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 px-6 pointer-events-none">
+      <div className="w-full pointer-events-auto"><SearchBar placeholder="Busca propiedades en León..." onSubmit={handleTextSearch} size="xl" glass className="w-full shadow-2xl" /></div>
+    </div>
 
-export const MapTemplate: React.FC<MapTemplateProps> = () => {
-  const { isDarkMode } = useAppContext();
-  
-  const [isWireframeMode, setIsWireframeMode] = useState(true);
+    <div className="absolute bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
+      <Button onClick={showResults} className={`px-6 py-2.5 !text-xs !shadow-lg pointer-events-auto ${isSheetOpen ? 'opacity-0 pointer-events-none' : ''}`}>
+        {isLoading ? 'Cargando propiedades...' : `Ver ${properties.length}${resultSearch.hasNextPage ? '+' : ''} resultado${properties.length === 1 ? '' : 's'}`}
+      </Button>
+    </div>
 
-  useEffect(() => {
-    // La animaciÃ³n de la barra dura 1.5s, asÃ­ que le damos tiempo de terminar
-    // para que la espera se sienta "Ãºtil"
-    const timer = setTimeout(() => setIsWireframeMode(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<PropertyCategory | null>(null);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  
-  const searchContainerRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
-        setIsMobileSearchOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('touchstart', handleOutsideClick, { passive: true });
-    
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('touchstart', handleOutsideClick);
-    };
-  }, []);
-  
-  const [isViewingProfile, setIsViewingProfile] = useState(false);
-  const [isChatting, setIsChatting] = useState(false);
-
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  
-  const { globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters } = useAppContext();
-
-  const filteredProperties = MOCK_PROPERTIES.filter(p => {
-    // 1. Tipo de propiedad
-    if (activeFilter !== null && p.type !== activeFilter) return false;
-    
-    // 2. Búsqueda por texto (título, ubicación)
-    if (globalSearchQuery) {
-      const q = globalSearchQuery.toLowerCase();
-      if (!p.title.toLowerCase().includes(q) && !p.location.toLowerCase().includes(q)) {
-        return false;
-      }
-    }
-
-    // 3. Filtros avanzados
-    if (globalFilters) {
-      if (globalFilters.location && !p.location.toLowerCase().includes(globalFilters.location.toLowerCase())) {
-        return false;
-      }
-      
-      if (globalFilters.priceRange) {
-        // Lógica súper básica para mock (convertir price string a num)
-        const priceNum = parseInt(p.price.replace(/\D/g, '')) || 0;
-        if (globalFilters.priceRange === '0-1M' && priceNum > 1000000) return false;
-        if (globalFilters.priceRange === '1M-3M' && (priceNum < 1000000 || priceNum > 3000000)) return false;
-        if (globalFilters.priceRange === '3M+' && priceNum < 3000000) return false;
-      }
-    }
-
-    return true;
-  });
-
-  // Ordenamiento
-  if (globalFilters?.sortBy) {
-    filteredProperties.sort((a, b) => {
-      const pA = parseInt(a.price.replace(/\D/g, '')) || 0;
-      const pB = parseInt(b.price.replace(/\D/g, '')) || 0;
-      if (globalFilters.sortBy === 'price-asc') return pA - pB;
-      if (globalFilters.sortBy === 'price-desc') return pB - pA;
-      return 0; // recent/relevance mock
-    });
-  }
-
-  const displayedProperties = selectedPropertyId ? filteredProperties.filter(p => p.id === selectedPropertyId) : filteredProperties;
-
-  // Mostrar estado vacío automáticamente si no hay propiedades tras el filtrado
-  useEffect(() => {
-    if (!isWireframeMode && filteredProperties.length === 0) {
-      setIsSheetOpen(true);
-      setSelectedPropertyId(null);
-    }
-  }, [filteredProperties.length, isWireframeMode]);
-
-  const handleFilterChange = (newFilter: PropertyCategory | null) => {
-    setActiveFilter(newFilter);
-    if (selectedPropertyId) {
-      setSelectedPropertyId(null);
-      setIsViewingProfile(false);
-      setIsChatting(false);
-    }
-  };
-
-  const handleMarkerClick = (id: number) => {
-    setSelectedPropertyId(id);
-    setIsViewingProfile(false);
-    setIsChatting(false);
-    setIsSheetOpen(true);
-  };
-
-  const handleCoincidenciasClick = () => {
-    setSelectedPropertyId(null);
-    setIsViewingProfile(false);
-    setIsChatting(false);
-    setIsSheetOpen(true);
-  };
-
-  const renderSheetContent = () => (
-    selectedPropertyId ? (
-      isChatting ? (
-        <div className="w-full h-full bg-white dark:bg-inmo-darkcard overflow-hidden">
-          <AsesorChat hideHeader={true} asesorName="Daniel Ayomide" initialMessage="¡Hola! Veo que te interesa la propiedad, ¿en qué te puedo ayudar?" />
-        </div>
-      ) : (
-        <div className="w-full h-full overflow-hidden flex flex-col">
-          <PropertyDetailView 
-            property={displayedProperties[0]} 
-            layout="vertical"
-            showAsesorProfile={isViewingProfile}
-            onShowAsesorProfileChange={setIsViewingProfile}
-            onContactClick={() => setIsChatting(true)}
-          />
-        </div>
-      )
-    ) : (
-      <>
-        <div className={`transition-all duration-500 ${
-          displayedProperties.length === 0 && !isWireframeMode
-            ? 'flex flex-col items-center justify-center py-10 pb-12 w-full'
-            : 'grid gap-4 grid-cols-1'
-        }`}>
-          {isWireframeMode ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <PropertyCardSkeleton key={i} />
-            ))
-          ) : displayedProperties.length > 0 ? (
-            displayedProperties.map((p, i) => (
-              <div key={p.id} className="animate-in fade-in zoom-in-95" style={{ animationDelay: `${i * 50}ms` }}>
-                <PropertyCard
-                  image={p.image}
-                  title={p.title}
-                  location={p.location}
-                  price={p.price}
-                  beds={p.beds}
-                  baths={p.baths}
-                  sqft={p.sqft}
-                  tags={(p as any).tags}
-                  onClick={() => setSelectedPropertyId(p.id)}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500 max-w-sm mx-auto px-4 mt-10">
-              <div className="w-20 h-20 mb-5 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center shadow-sm">
-                <Ghost className="w-8 h-8 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
-              </div>
-              <h3 className="text-lg font-bold text-inmo-secondary dark:text-white mb-2">Sin resultados</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Prueba explorando otra área del mapa o modificando tus filtros actuales.</p>
-            </div>
-          )}
-        </div>
-      </>
-    )
-  );
-
-  return (
-    <>
-      {/* INTERACTIVE MAP BACKGROUND */}
-      <div className="absolute inset-0 z-0 pointer-events-auto [&_.gm-style]:!font-inter">
-        {!apiKey ? (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-200 dark:bg-inmo-darkbg p-6 text-center pt-24 relative z-0">
-            <Globe className="w-16 h-16 text-inmo-accent mb-4 opacity-50" />
-            <h2 className="text-subtitle mb-2">No API Key Found</h2>
-          </div>
-        ) : (
-          <APIProvider apiKey={apiKey}>
-            <InnerMap properties={filteredProperties} onMarkerClick={handleMarkerClick} isDarkMode={isDarkMode} isWireframeMode={isWireframeMode} />
-          </APIProvider>
-        )}
-      </div>
-
-      {/* TOP OVERLAYS (ALL SCREENS) */}
-      <div className="fixed top-4 left-4 right-4 md:top-28 md:left-6 md:right-auto md:w-[350px] z-50 flex flex-col items-center md:items-start gap-3 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
-        <div className="w-full flex flex-col items-center md:items-start gap-3 pointer-events-auto">
-          
-          {/* Fila principal (Filtros / Buscador) */}
-          <div ref={searchContainerRef} className="relative flex items-stretch gap-2 w-full max-w-md transition-all duration-300">
-            
-            {/* Contenido en Móvil cuando NO hay búsqueda, y SIEMPRE en Desktop */}
-            <div className={`flex items-stretch gap-2 w-full transition-all duration-300 ${isMobileSearchOpen ? 'opacity-0 scale-95 pointer-events-none absolute inset-0' : 'opacity-100 scale-100 relative'}`}>
-              <CategoryPills 
-                activeFilter={activeFilter} 
-                onSelectFilter={handleFilterChange} 
-                className="flex-1 m-0"
-              />
-
-
-
-              {/* Botón de Búsqueda (Solo Móvil) */}
-              <div className="relative md:hidden flex items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-full w-[52px] shrink-0">
-                <IconButton 
-                  onClick={() => setIsMobileSearchOpen(true)}
-                  icon={<Search className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={2.5} />}
-                  variant="ghost"
-                  className="w-full h-full hover:!bg-transparent !rounded-full"
-                />
-              </div>
-            </div>
-
-            {/* Barra de Búsqueda (Solo Móvil) */}
-            <div className={`md:hidden flex items-stretch gap-2 w-full transition-all duration-300 ${isMobileSearchOpen ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-95 pointer-events-none absolute inset-0'}`}>
-               <div className="flex-1 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-[32px] p-1.5 transition-all duration-300 h-[52px]">
-                 <SearchBar 
-                   value={globalSearchQuery}
-                   onSubmit={setGlobalSearchQuery}
-                   autoFocus={isMobileSearchOpen} 
-                   placeholder="Buscar..." 
-                   size="slim" 
-                   glass={false} 
-                   className="w-full !h-[40px] !shadow-none !border-none !bg-transparent dark:!bg-transparent" 
-                 />
-               </div>
-               
-               <div className="relative shrink-0">
-                 <IconButton 
-                   onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                   icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
-                   variant="secondary"
-                   className={`w-[52px] h-[52px] !bg-white/60 dark:!bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full ${isFiltersOpen ? 'text-inmo-accent' : 'text-gray-500 dark:text-gray-400'}`}
-                 />
-                 <div className="absolute right-0 top-full mt-2 z-50">
-                   <FilterDropdown 
-                     isOpen={isFiltersOpen && isMobileSearchOpen && !isSheetOpen} 
-                     onApply={(filters) => {
-                       if (filters) setGlobalFilters(filters);
-                       setIsFiltersOpen(false);
-                     }}
-                     onClose={() => setIsFiltersOpen(false)} 
-                   />
-                 </div>
-               </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* LOCATION TAG (TOP RIGHT DESKTOP) */}
-      <div className="hidden md:flex fixed top-28 right-6 z-40 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
-        <div className="pointer-events-auto flex flex-col justify-center w-[250px] shrink-0">
-          <LocationTag city="León" state="Guanajuato, México" />
-        </div>
-      </div>
-
-      {/* DESKTOP SEARCH BAR (HUGE) - EN LA PARTE INFERIOR */}
-      <div className="hidden md:flex fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 px-6 pointer-events-none">
-         <div className="w-full pointer-events-auto flex gap-4 items-center">
-           <SearchBar 
-              value={globalSearchQuery}
-              onSubmit={setGlobalSearchQuery}
-              placeholder="Encuentra propiedades en cualquier ubicacion..." 
-              size="xl" 
-              glass 
-              className="flex-1 shadow-2xl" 
-            />
-            <div className="relative shrink-0">
-               <FloatingFilterButton 
-                  onClick={() => setIsFiltersOpen(!isFiltersOpen)} 
-                  size="large"
-                />
-               <FilterDropdown 
-                  isOpen={isFiltersOpen && !isSheetOpen && !isMobileSearchOpen} 
-                  onApply={(filters) => {
-                    if (filters) setGlobalFilters(filters);
-                    setIsFiltersOpen(false);
-                  }}
-                  onClose={() => setIsFiltersOpen(false)}
-                  className="!top-auto !bottom-full !mb-4 !mt-0 !origin-bottom-right"
-                />
-            </div>
-         </div>
-      </div>
-
-      {/* BOTTOM OVERLAYS */}
-      <div className="fixed bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
-        {/* Results Pill */}
-        <div className="flex justify-center w-full pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300">
-          <Button 
-            onClick={filteredProperties.length === 0 ? undefined : handleCoincidenciasClick}
-            disabled={filteredProperties.length === 0}
-            className={`px-6 py-2.5 !text-xs !shadow-lg transition-all duration-300 ${filteredProperties.length === 0 ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 border-none' : ''}`}
-          >
-            {filteredProperties.length === 0 ? 'Sin resultados' : `Ver ${filteredProperties.length} coincidencia${filteredProperties.length !== 1 ? 's' : ''}`}
-          </Button>
-        </div>
-      </div>
-
-      {/* BOTTOM SHEET (Results) */}
-      <div className="md:hidden">
-        <BottomSheet 
-          isOpen={isSheetOpen} 
-          onClose={(isViewingProfile || isChatting) ? undefined : () => setIsSheetOpen(false)}
-          onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
-          title={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : selectedPropertyId 
-            ? undefined 
-            : filteredProperties.length === 0 ? undefined : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
-          }
-          noPadding={!!selectedPropertyId || isChatting}
-          isHero={!!selectedPropertyId && !isViewingProfile && !isChatting}
-          fullHeight={!!selectedPropertyId}
-        >
-          {renderSheetContent()}
-        </BottomSheet>
-      </div>
-
-      {/* DESKTOP SIDE PANEL */}
-      <SidePanel 
-        isOpen={isSheetOpen} 
-        onClose={(isViewingProfile || isChatting) ? undefined : () => setIsSheetOpen(false)}
-        onBack={isChatting ? () => setIsChatting(false) : isViewingProfile ? () => setIsViewingProfile(false) : undefined}
-        title={isChatting ? "Chat con Asesor" : isViewingProfile ? "Perfil del Asesor" : selectedPropertyId 
-          ? undefined 
-          : filteredProperties.length === 0 ? undefined : `${filteredProperties.length} Coincidencia${filteredProperties.length !== 1 ? 's' : ''}`
-        }
-        noPadding={!!selectedPropertyId || isChatting}
-        compact={filteredProperties.length === 0 && !selectedPropertyId}
-      >
-        {renderSheetContent()}
-      </SidePanel>
-    </>
-  );
-};
-
-
-
-
-
-
-
+    <div className="md:hidden"><BottomSheet
+      isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)}
+      title={selectedPropertyId ? 'Detalle de Propiedad' : `${properties.length} resultados`}
+      noPadding={Boolean(selectedPropertyId)} isHero={Boolean(selectedPropertyId)}
+    >{sheetContent}</BottomSheet></div>
+    <SidePanel isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} title={selectedPropertyId ? 'Detalle de Propiedad' : `${properties.length} resultados`}>
+      {sheetContent}
+    </SidePanel>
+  </>;
+}

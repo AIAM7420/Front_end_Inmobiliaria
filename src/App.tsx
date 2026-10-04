@@ -1,25 +1,31 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAppContext } from './context/AppContext';
-import { Button } from './components/atoms/Button';
 import { MainLayout } from './components/templates/MainLayout';
 import { NotFoundView } from './components/views/NotFoundView';
 
 const AuthTemplate = lazy(() => import('./components/templates/AuthTemplate').then(m => ({ default: m.AuthTemplate })));
+const ConfirmEmail = lazy(() => import('./components/templates/auth/ConfirmEmailView').then(m => ({ default: m.ConfirmEmailView })));
+const NewPassword = lazy(() => import('./components/templates/auth/NewPasswordView').then(m => ({ default: m.NewPasswordView })));
 const MapTemplate = lazy(() => import('./components/templates/MapTemplate').then(m => ({ default: m.MapTemplate })));
 const FavoritesTemplate = lazy(() => import('./components/templates/FavoritesTemplate').then(m => ({ default: m.FavoritesTemplate })));
 const MessagesTemplate = lazy(() => import('./components/templates/MessagesTemplate').then(m => ({ default: m.MessagesTemplate })));
 const UIKitTemplate = lazy(() => import('./components/templates/UiKitTemplate').then(m => ({ default: m.UIKitTemplate })));
 const AsesorDashboard = lazy(() => import('./components/views/asesor/AsesorOverview').then(m => ({ default: m.AsesorOverview })));
-const AsesorInventory = lazy(() => import('./components/views/asesor/AsesorInventoryView').then(m => ({ default: m.AsesorInventoryView })));
+const AdvisorValidation = lazy(() => import('./components/views/asesor/AdvisorVerificationPanel').then(m => ({ default: m.AdvisorValidationView })));
+const AdvisorSubscription = lazy(() => import('./components/views/asesor/AdvisorSubscriptionView').then(m => ({ default: m.AdvisorSubscriptionView })));
+const AdvisorProperties = lazy(() => import('./components/views/asesor/AsesorInventoryView').then(m => ({ default: m.AsesorInventoryView })));
+const PaymentReturn = lazy(() => import('./components/views/asesor/PaymentReturnView').then(m => ({ default: m.PaymentReturnView })));
 const AdminDashboard = lazy(() => import('./components/views/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
+const AdminApplications = lazy(() => import('./components/views/admin/AdminApplicationsView').then(m => ({ default: m.AdminApplicationsView })));
+const AdminAccounts = lazy(() => import('./components/views/admin/AdminUsersView').then(m => ({ default: m.AdminUsersView })));
+const AdminProperties = lazy(() => import('./components/views/admin/AdminPublicationsView').then(m => ({ default: m.AdminPublicationsView })));
+const AdminReports = lazy(() => import('./components/views/admin/AdminReportsView').then(m => ({ default: m.AdminReportsView })));
+const AdminFinance = lazy(() => import('./components/views/admin/AdminFinanceView').then(m => ({ default: m.AdminFinanceView })));
 const SplitLandingTemplate = lazy(() => import('./components/templates/SplitLandingTemplate').then(m => ({ default: m.SplitLandingTemplate })));
-const PublicProfile = lazy(() => import('./components/templates/PublicProfileTemplate').then(m => ({ default: m.PublicProfileTemplate })));
-const AsesorProfile = lazy(() => import('./components/templates/AsesorProfileTemplate').then(m => ({ default: m.AsesorProfileTemplate })));
+const Profile = lazy(() => import('./components/templates/ProfileTemplate').then(m => ({ default: m.ProfileTemplate })));
+const PublicAdvisor = lazy(() => import('./components/templates/AsesorPublicProfileTemplate').then(m => ({ default: m.AsesorPublicProfileTemplate })));
 const AdminProfile = lazy(() => import('./components/templates/AdminProfileTemplate').then(m => ({ default: m.AdminProfileTemplate })));
-const AsesorPublicProfile = lazy(() => import('./components/templates/AsesorPublicProfileTemplate').then(m => ({ default: m.AsesorPublicProfileTemplate })));
-const AdminUsersView = lazy(() => import('./components/views/admin/AdminUsersView').then(m => ({ default: m.AdminUsersView })));
-const AdminPublicationsView = lazy(() => import('./components/views/admin/AdminPublicationsView').then(m => ({ default: m.AdminPublicationsView })));
 
 // Guardia para proteger rutas según el rol
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -29,37 +35,12 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
     // Si no tiene permiso, redirigimos a home o a su dashboard respectivo
     return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
-};
-
-// Componente para el Botón Flotante Global (UI Kit)
-const FloatingGlobalButton = () => {
-  const location = useLocation();
-  const isUIKit = location.pathname === '/ui-kit';
-
-  return (
-    <Button
-      // Si estamos en ui-kit usamos navigate(-1) (o navigate('/')) desde un wrapper,
-      // pero como es global, podemos usar un enlace normal o Link.
-      // Por simplicidad en este botón, usaremos window.history para ir atrás.
-      onClick={() => {
-        if (isUIKit) {
-          window.history.back();
-        } else {
-          window.location.href = '/ui-kit';
-        }
-      }}
-      variant="secondary"
-      className="fixed bottom-24 right-4 z-[100] !bg-inmo-secondary dark:!bg-inmo-darkcard !text-white !px-4 !py-2 !rounded-full !shadow-lg !font-inter !font-bold !text-sm hover:scale-105 active:scale-95 transition-all !w-auto !h-auto"
-    >
-      {isUIKit ? 'Ver App' : 'Ver UI Kit'}
-    </Button>
-  );
 };
 
 // Loader de página completo para Suspense
@@ -78,44 +59,29 @@ function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Rutas Públicas */}
-          <Route 
-            path="/login" 
-            element={<AuthTemplate onLogin={(role) => { 
-              login(role || 'public'); 
-              if (role === 'asesor') {
+          <Route
+            path="/login"
+            element={<AuthTemplate onLogin={(account) => {
+              login(account);
+              if (account.rol === 'ASESOR') {
                 navigate('/asesor', { replace: true });
-              } else if (role === 'admin') {
+              } else if (account.rol === 'SUPERADMINISTRADOR') {
                 navigate('/admin', { replace: true });
               } else {
-                navigate('/', { replace: true }); 
+                navigate('/', { replace: true });
               }
-            }} />} 
+            }} />}
           />
-          <Route path="/ui-kit" element={<UIKitTemplate onNavigate={() => {}} />} />
-
-          {/* RUTAS DE PERFIL (PANTALLA COMPLETA) */}
-          <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={['public', 'asesor', 'admin']}>
-              <PublicProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/asesor/profile" element={
-            <ProtectedRoute allowedRoles={['asesor']}>
-              <AsesorProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/profile" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminProfile />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/asesores/:id" element={<AsesorPublicProfile />} />
+          {import.meta.env.DEV && <Route path="/ui-kit" element={<UIKitTemplate onNavigate={() => {}} />} />}
+          <Route path="/confirmar-correo" element={<ConfirmEmail />} />
+          <Route path="/restablecer-contrasena" element={<NewPassword onNavigate={() => navigate('/login')} />} />
 
           {/* RUTAS PUBLICAS (CON LAYOUT) */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<SplitLandingTemplate />} />
+            <Route path="/inmuebles" element={<ProtectedRoute allowedRoles={['asesor', 'admin']}><SplitLandingTemplate /></ProtectedRoute>} />
             <Route path="/map" element={<MapTemplate />} />
+            <Route path="/asesores/:id" element={<PublicAdvisor />} />
             <Route path="/favorites" element={<FavoritesTemplate />} />
             <Route path="/messages" element={
               <ProtectedRoute allowedRoles={['public', 'asesor']}>
@@ -123,48 +89,50 @@ function AppRoutes() {
               </ProtectedRoute>
             } />
 
-            {/* DASHBOARD ASESOR (AHORA USA MAIN LAYOUT) */}
+            <Route path="/asesor/mensajes" element={
+              <ProtectedRoute allowedRoles={['asesor']}><MessagesTemplate /></ProtectedRoute>
+            } />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/asesor/profile" element={<ProtectedRoute allowedRoles={['asesor']}><Profile /></ProtectedRoute>} />
+            <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfile /></ProtectedRoute>} />
+            <Route path="/admin/asesores" element={<ProtectedRoute allowedRoles={['admin']}><AdminAccounts /></ProtectedRoute>} />
+            <Route path="/admin/moderacion" element={<ProtectedRoute allowedRoles={['admin']}><AdminProperties /></ProtectedRoute>} />
+            <Route path="/asesor/validacion" element={
+              <ProtectedRoute allowedRoles={['asesor']}><AdvisorValidation /></ProtectedRoute>
+            } />
+            <Route path="/asesor/suscripcion" element={
+              <ProtectedRoute allowedRoles={['asesor']}><AdvisorSubscription /></ProtectedRoute>
+            } />
+            <Route path="/pagos/exito" element={<ProtectedRoute allowedRoles={['asesor']}><PaymentReturn /></ProtectedRoute>} />
+            <Route path="/pagos/cancelado" element={<ProtectedRoute allowedRoles={['asesor']}><PaymentReturn /></ProtectedRoute>} />
+            <Route path="/asesor/propiedades" element={
+              <ProtectedRoute allowedRoles={['asesor']}><AdvisorProperties /></ProtectedRoute>
+            } />
             <Route path="/asesor" element={
-              <ProtectedRoute allowedRoles={['asesor', 'admin']}>
+              <ProtectedRoute allowedRoles={['asesor']}>
                 <AsesorDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/asesor/propiedades" element={
-              <ProtectedRoute allowedRoles={['asesor', 'admin']}>
-                <AsesorInventory />
-              </ProtectedRoute>
-            } />
-            <Route path="/asesor/mensajes" element={
-              <ProtectedRoute allowedRoles={['asesor', 'admin']}>
-                <MessagesTemplate />
-              </ProtectedRoute>
-            } />
 
-            {/* DASHBOARD ADMIN (AHORA USA MAIN LAYOUT) */}
+            <Route path="/admin/solicitudes" element={
+              <ProtectedRoute allowedRoles={['admin']}><AdminApplications /></ProtectedRoute>
+            } />
+            <Route path="/admin/cuentas" element={<Navigate to="/admin/asesores" replace />} />
+            <Route path="/admin/propiedades" element={<Navigate to="/admin/moderacion" replace />} />
+            <Route path="/admin/reportes" element={
+              <ProtectedRoute allowedRoles={['admin']}><AdminReports /></ProtectedRoute>
+            } />
+            <Route path="/admin/finanzas" element={
+              <ProtectedRoute allowedRoles={['admin']}><AdminFinance /></ProtectedRoute>
+            } />
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/admin/asesores" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminUsersView />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/moderacion" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminPublicationsView />
-              </ProtectedRoute>
-            } />
-            
-            {/* 404 dentro del Layout para mantener la navegación */}
-            <Route path="*" element={
-              <div className="pt-24 flex-1 h-full">
-                <NotFoundView />
-              </div>
-            } />
           </Route>
-          
+
+          <Route path="*" element={<div className="min-h-screen bg-gray-50 dark:bg-inmo-darkbg flex flex-col"><NotFoundView /></div>} />
         </Routes>
       </Suspense>
     </>

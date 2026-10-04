@@ -72,7 +72,7 @@ export const TagDropdown: React.FC<TagDropdownProps> = ({
         <span className="truncate">{getButtonText()}</span>
       </Button>
 
-      <div 
+      <div
         className={`absolute top-full left-0 mt-2 min-w-[180px] bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary rounded-xl shadow-xl z-50 overflow-hidden transition-all duration-200 origin-top-left ${
           isOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto visible' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none invisible'
         }`}
@@ -86,14 +86,14 @@ export const TagDropdown: React.FC<TagDropdownProps> = ({
                 variant="ghost"
                 onClick={() => handleSelect(option)}
                 className={`w-full !justify-start !px-4 !py-2.5 !h-auto !rounded-none !text-xs font-medium transition-colors ${
-                  active 
-                    ? 'text-inmo-accent bg-inmo-accent/5 dark:bg-inmo-accent/10' 
+                  active
+                    ? 'text-inmo-accent bg-inmo-accent/5 dark:bg-inmo-accent/10'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
                 }`}
                 icon={
                   <div className={`w-4 h-4 rounded-sm flex items-center justify-center shrink-0 border transition-colors ${
-                    active 
-                      ? 'bg-inmo-accent border-inmo-accent text-white' 
+                    active
+                      ? 'bg-inmo-accent border-inmo-accent text-white'
                       : multiple ? 'border-gray-300 dark:border-gray-600' : 'border-transparent'
                   }`}>
                     {active && <Check className="w-3 h-3" strokeWidth={3} />}

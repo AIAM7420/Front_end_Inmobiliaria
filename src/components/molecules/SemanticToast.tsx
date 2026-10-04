@@ -35,7 +35,7 @@ export const SemanticToast: React.FC<ToastProps> = ({ type, title, message, onCl
         <span className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-0.5">{message}</span>
       </div>
       {onClose && (
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors"
         >

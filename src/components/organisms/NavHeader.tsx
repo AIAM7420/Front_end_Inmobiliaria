@@ -6,6 +6,7 @@ import { IconButton } from '../atoms/IconButton';
 import { SearchBar } from '../molecules/SearchBar';
 import { FilterDropdown } from '../molecules/FilterDropdown';
 import { useAppContext } from '../../context/AppContext';
+import { navigation } from '../../navigation';
 
 export interface NavHeaderProps {
   isDarkMode?: boolean;
@@ -26,20 +27,21 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
   onToggleTheme,
   onNavigate,
   onLogout,
-  userName = 'Ana López',
+  userName = 'Mi cuenta',
   userRole = 'Usuario',
-  userInitials = 'AL',
+  userInitials: _userInitials = 'IN',
   activeRoute = 'home',
   role = 'public',
   isAuthenticated = false,
   subscriptionPlan = null
 }) => {
   const { globalSearchQuery, setGlobalSearchQuery, setGlobalFilters } = useAppContext();
-  
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchDraft, setSearchDraft] = useState(globalSearchQuery);
 
   const scrollToTop = () => {
     const scrollContainer = document.getElementById('main-scroll-container');
@@ -75,7 +77,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 150);
     };
-    
+
     const handleCustomScroll = (e: Event) => {
       const customEvent = e as CustomEvent<{ scrollY: number }>;
       setIsScrolled(customEvent.detail.scrollY > 150);
@@ -92,7 +94,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement;
-      
+
       // Si el usuario hace clic en el backdrop del filtro, no queremos cerrar el buscador.
       // El backdrop del filtro tiene la clase "fixed inset-0 z-40" en FilterDropdown.tsx
       // Pero para ser más seguros, podemos revisar si target.closest('.filter-dropdown-content') o algo similar.
@@ -102,7 +104,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
       }
 
       if (
-        headerRef.current && 
+        headerRef.current &&
         !headerRef.current.contains(target) &&
         searchPopoverRef.current &&
         !searchPopoverRef.current.contains(target)
@@ -111,41 +113,21 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
         setIsMobileSearchOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('touchstart', handleOutsideClick, { passive: true });
-    
+
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick);
     };
   }, []);
 
-  const navItems = {
-    public: [
-      { id: 'home', label: 'Inicio' },
-      { id: 'map', label: 'Mapa' },
-      { id: 'favorites', label: 'Favoritos' },
-      { id: 'messages', label: 'Mensajes' },
-    ],
-    asesor: [
-      { id: 'asesor', label: 'Inicio' },
-      { id: 'asesor/propiedades', label: 'Inmuebles' },
-      { id: 'asesor/mensajes', label: 'Mensajes' },
-    ],
-    admin: [
-      { id: 'admin', label: 'Inicio' },
-      { id: 'admin/asesores', label: 'Usuarios' },
-      { id: 'admin/moderacion', label: 'Publicaciones' },
-      { id: 'admin/catalogos', label: 'Catálogos' },
-    ]
-  };
-
-  const currentNavItems = navItems[role || 'public'];
+  const currentNavItems = navigation[role || 'public'];
 
   return (
     <div ref={headerRef} className="fixed md:sticky top-3 md:top-6 z-50 md:z-30 px-6 w-full md:mb-6 pointer-events-none">
-      
+
       {/* Backdrops & Modals (Portaled to body to completely escape all stacking contexts) */}
       {typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-40 flex items-start justify-center pt-24 px-4 pointer-events-none">
@@ -158,29 +140,29 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
           >
             {/* Search Bar */}
             <div className="flex-1 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-[32px] p-1.5 h-[52px]">
-              <SearchBar 
-                value={globalSearchQuery}
+              <SearchBar
+                value={searchDraft}
+                onChange={setSearchDraft}
                 onSubmit={handleSearchSubmit}
-                autoFocus={isMobileSearchOpen} 
-                placeholder="Buscar..." 
-                size="slim" 
-                glass={false} 
+                autoFocus={isMobileSearchOpen}
+                placeholder="Buscar..."
+                size="slim"
+                glass={false}
                 className="w-full !h-10 !shadow-none !border-none !bg-transparent dark:!bg-transparent"
               />
             </div>
-            
+
             {/* Filter Button */}
             <div className="relative shrink-0">
-              <IconButton 
+              <IconButton
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                 icon={<SlidersHorizontal className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2} />}
                 variant="secondary"
                 className={`w-[52px] h-[52px] !bg-white/60 dark:!bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full ${isFiltersOpen ? 'text-inmo-accent' : 'text-gray-500 dark:text-gray-400'}`}
               />
-              <FilterDropdown 
-                isOpen={isFiltersOpen && isMobileSearchOpen} 
-                onApply={handleFilterApply} 
-                onClose={() => setIsFiltersOpen(false)} 
+              <FilterDropdown
+                isOpen={isFiltersOpen && isMobileSearchOpen}
+                onApply={handleFilterApply}
               />
             </div>
           </div>
@@ -189,11 +171,12 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
       )}
 
       <header className="relative z-50 flex justify-between items-center py-1.5 md:py-2 px-4 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full pointer-events-auto">
-        
+
         {/* Toggle Dark Mode & Logotipo (Mobile & Desktop) */}
-        <div className="flex items-center gap-4">
-          <IconButton 
-            onClick={onToggleTheme} 
+        <div className="flex items-center gap-4 min-w-0 md:max-w-[calc(50%-2rem)]">
+          <IconButton
+            onClick={onToggleTheme}
+            aria-label={isDarkMode ? 'Usar modo claro' : 'Usar modo oscuro'}
             icon={isDarkMode ? (
               <Sun className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={2.5} />
             ) : (
@@ -204,18 +187,19 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
           />
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-1 ml-6">
-            {currentNavItems.map((item: { id: string, label: string }) => {
+          <nav aria-label="Navegación principal de escritorio" className="hidden md:flex items-center gap-1 ml-3 min-w-0 overflow-x-auto">
+            {(role === 'admin' ? currentNavItems.slice(0, 3) : currentNavItems).map((item: { id: string, label: string }) => {
               const isActive = activeRoute === item.id;
               return (
                 <button
                   key={item.id}
+                  aria-label={item.label}
                   onClick={() => onNavigate?.(item.id)}
                   className={`
-                    relative px-6 py-3 font-inter font-bold text-sm rounded-full
+                    relative px-6 py-3 font-inter font-bold text-sm rounded-full shrink-0 whitespace-nowrap
                     transition-colors duration-300 group outline-none
-                    ${isActive 
-                      ? 'bg-gray-100 dark:bg-white/10 text-inmo-secondary dark:text-white' 
+                    ${isActive
+                      ? 'bg-gray-100 dark:bg-white/10 text-inmo-secondary dark:text-white'
                       : 'bg-transparent text-inmo-secondary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
                     }
                   `}
@@ -235,6 +219,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
               );
             })}
           </nav>
+          {role === 'admin' && <details className="hidden md:block shrink-0 relative"><summary aria-label="Más opciones administrativas de escritorio" className="cursor-pointer list-none px-4 py-3 font-inter font-bold text-sm rounded-full hover:bg-gray-100 dark:hover:bg-white/10">Más</summary><div className="absolute top-full left-0 mt-3 p-2 w-56 max-h-[60vh] overflow-y-auto bg-white dark:bg-inmo-darkcard rounded-2xl border border-gray-100 dark:border-inmo-darktertiary shadow-xl">{currentNavItems.slice(3).map(item => <button key={item.id} className="block w-full text-left rounded-xl px-4 py-3 text-sm font-bold hover:bg-gray-100 dark:hover:bg-white/10" onClick={event => { onNavigate?.(item.id); event.currentTarget.closest('details')?.removeAttribute('open'); }}>{item.label}</button>)}</div></details>}
         </div>
 
         {/* Logotipo Centrado (Mobile) / Izquierda-ish en Desktop? */}
@@ -250,31 +235,31 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
         />
 
         {/* User Menu Dropdown & Actions */}
-        <div className="relative z-20 flex gap-2 md:gap-3 items-center">
-          
+        <div className="relative z-20 flex gap-2 md:gap-3 items-center min-w-0 md:max-w-[calc(50%-2rem)]">
+
           {/* Desktop Floating Search Wrapper */}
           <div className={`hidden md:flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] origin-right ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'opacity-100 scale-100 mr-2 pointer-events-auto' : 'opacity-0 scale-95 mr-0 pointer-events-none'}`}>
-            <div className={`transition-all duration-500 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-80' : 'w-0'}`}>
-              <SearchBar 
-                value={globalSearchQuery}
+            <div className={`transition-all duration-500 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-40 xl:w-80' : 'w-0'}`}>
+              <SearchBar
+                value={searchDraft}
+                onChange={setSearchDraft}
                 onSubmit={handleSearchSubmit}
-                placeholder="Buscar en cualquier lugar..." 
-                size="slim" 
-                glass 
-                className="w-full !shadow-none border border-gray-200 dark:border-white/10" 
+                placeholder="Buscar en cualquier lugar..."
+                size="slim"
+                glass
+                className="w-full !shadow-none border border-gray-200 dark:border-white/10"
               />
             </div>
             <div className={`relative shrink-0 transition-all duration-500 ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
-              <IconButton 
+              <IconButton
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                 icon={<SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />}
                 variant="secondary"
                 className={`w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/50 dark:hover:!bg-black/30 !rounded-full ${isFiltersOpen ? 'text-inmo-accent' : 'text-gray-500 dark:text-gray-400'}`}
               />
-              <FilterDropdown 
-                isOpen={isFiltersOpen && !isMobileSearchOpen} 
-                onApply={handleFilterApply} 
-                onClose={() => setIsFiltersOpen(false)} 
+              <FilterDropdown
+                isOpen={isFiltersOpen && !isMobileSearchOpen}
+                onApply={handleFilterApply}
               />
             </div>
           </div>
@@ -282,7 +267,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
           {/* Mobile Search Button */}
           <div className="relative md:hidden flex items-center">
             <div className={`transition-all duration-300 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home') && !isMobileSearchOpen) ? 'opacity-100 scale-100 w-10' : 'opacity-0 scale-50 w-0 pointer-events-none'}`}>
-              <IconButton 
+              <IconButton
                 onClick={() => {
                   setIsMobileSearchOpen(!isMobileSearchOpen);
                   setIsUserMenuOpen(false); // Close other menu
@@ -294,17 +279,21 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
             </div>
           </div>
 
-          <IconButton 
+          <IconButton
             onClick={() => {
               setIsUserMenuOpen(!isUserMenuOpen);
               setIsMobileSearchOpen(false); // Close other menu
-            }} 
+            }}
+            aria-label="Abrir menú de usuario"
+            aria-expanded={isUserMenuOpen}
             icon={<MoreVertical className="w-5 h-5 text-inmo-secondary dark:text-white" strokeWidth={2.5} />}
             variant="ghost"
             className="hover:!bg-white/50 dark:hover:!bg-white/10 !rounded-full shrink-0"
           />
-          
-          <div 
+
+          <div
+            inert={!isUserMenuOpen}
+            aria-hidden={!isUserMenuOpen}
             className={`absolute right-0 top-full mt-4 w-56 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-xl border border-gray-100 dark:border-inmo-darktertiary z-20 overflow-hidden transition-all duration-200 origin-top-right ${
               isUserMenuOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
             }`}
@@ -318,10 +307,10 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 <span className="text-xs font-inter capitalize text-gray-500 dark:text-gray-400">{userRole}</span>
               </div>
             </div>
-            
+
             <div className="p-2 flex flex-col gap-1">
               {!isAuthenticated ? (
-                <Button 
+                <Button
                   onClick={() => {
                     onNavigate?.('login');
                     setIsUserMenuOpen(false);
@@ -334,7 +323,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
               ) : (
                 <>
                   {subscriptionPlan && role === 'asesor' && (
-                    <Button 
+                    <Button
                       onClick={() => {
                         onNavigate?.('asesor/profile?view=plan');
                         setIsUserMenuOpen(false);
@@ -342,15 +331,15 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                       variant="text"
                       icon={<Crown className="w-4 h-4" />}
                       className={`w-full !justify-start px-4 py-3 !text-sm !font-bold !rounded-xl transition-colors !shadow-none border ${
-                        subscriptionPlan === 'basic' 
-                        ? 'border-transparent !text-gray-600 dark:!text-gray-300 hover:!bg-gray-100 dark:hover:!bg-white/10' 
+                        subscriptionPlan === 'basic'
+                        ? 'border-transparent !text-gray-600 dark:!text-gray-300 hover:!bg-gray-100 dark:hover:!bg-white/10'
                         : 'border-inmo-accent/20 !text-inmo-accent bg-inmo-accent/5 hover:!bg-inmo-accent/10'
                       }`}
                     >
                       Plan {subscriptionPlan}
                     </Button>
                   )}
-                  <Button 
+                  <Button
                     onClick={() => {
                       onNavigate?.(role === 'asesor' ? 'asesor/profile' : role === 'admin' ? 'admin/profile' : 'profile');
                       setIsUserMenuOpen(false);
@@ -360,7 +349,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                   >
                     Ver perfil
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => {
                       onLogout?.();
                       setIsUserMenuOpen(false);

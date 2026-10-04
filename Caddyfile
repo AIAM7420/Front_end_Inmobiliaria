@@ -1,0 +1,10 @@
+:{$PORT:8080} {
+  root * /srv
+  encode gzip zstd
+  header Referrer-Policy "strict-origin-when-cross-origin"
+  header X-Content-Type-Options "nosniff"
+  @serviceWorker path /sw.js /registerSW.js /manifest.webmanifest
+  header @serviceWorker Cache-Control "no-cache"
+  try_files {path} /index.html
+  file_server
+}

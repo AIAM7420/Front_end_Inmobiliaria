@@ -1,43 +1,47 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { FilterState } from '../components/molecules/FilterDropdown';
+import { useQueryClient } from '@tanstack/react-query';
+import { getAccessToken, setAccessToken, setUnauthorizedHandler } from '../integrations/backend/axios.config';
+import type { CriteriosBusqueda } from '../integrations/backend/types';
+import type { Cuenta } from '../integrations/backend/types';
+import { getPreferences, savePreferences } from '../integrations/backend/operations.service';
+import { operationError } from '../integrations/backend/versioning';
 
 export type UserRole = 'public' | 'asesor' | 'admin' | null;
 
 interface AppContextType {
+  globalSearchQuery: string;
+  setGlobalSearchQuery: (value: string) => void;
+  globalFilters: CriteriosBusqueda | null;
+  setGlobalFilters: (value: CriteriosBusqueda | null) => void;
   // Theme
   isDarkMode: boolean;
   toggleTheme: () => void;
+  applyTheme: (theme: 'CLARO' | 'OSCURO' | 'SISTEMA') => void;
+  themeError: string | null;
   // Auth
   isAuthenticated: boolean;
   role: UserRole;
-  login: (role: UserRole) => void;
+  login: (account: Cuenta) => void;
   logout: () => void;
-  // Global Search State
-  globalSearchQuery: string;
-  setGlobalSearchQuery: (query: string) => void;
-  globalFilters: FilterState | null;
-  setGlobalFilters: (filters: FilterState | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Inicializamos leyendo de localStorage
+  const queryClient = useQueryClient();
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [globalFilters, setGlobalFilters] = useState<CriteriosBusqueda | null>(null);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('inmo_theme');
     return saved === 'dark';
   });
 
-  const [role, setRole] = useState<UserRole>(() => {
-    const saved = localStorage.getItem('inmo_role');
-    return (saved as UserRole) || null;
-  });
+  const [role, setRole] = useState<UserRole>(null);
+  const [themeError, setThemeError] = useState<string | null>(null);
+  const [themePreference, setThemePreference] = useState<'CLARO' | 'OSCURO' | 'SISTEMA' | null>(null);
 
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
-  const [globalFilters, setGlobalFilters] = useState<FilterState | null>(null);
-
-  const isAuthenticated = role !== null;
+  const isAuthenticated = role !== null && getAccessToken() !== null;
 
   useEffect(() => {
     if (isDarkMode) {
@@ -50,26 +54,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [isDarkMode]);
 
   useEffect(() => {
-    if (role) {
-      localStorage.setItem('inmo_role', role);
-    } else {
-      localStorage.removeItem('inmo_role');
-    }
-  }, [role]);
+    setUnauthorizedHandler(() => { setRole(null); queryClient.clear(); });
+    return () => setUnauthorizedHandler(null);
+  }, [queryClient]);
 
-  const toggleTheme = () => setIsDarkMode(prev => !prev);
-  
-  const login = (newRole: UserRole) => setRole(newRole);
-  
-  const logout = () => setRole(null);
+  const applyTheme = (theme: 'CLARO' | 'OSCURO' | 'SISTEMA') => {
+    setThemePreference(theme); setThemeError(null);
+    setIsDarkMode(theme === 'OSCURO' || theme === 'SISTEMA' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  };
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let current = true;
+    void queryClient.fetchQuery({ queryKey: ['account', 'preferences'], queryFn: getPreferences }).then(value => { if (current) applyTheme(value.tema); }).catch(error => { if (current) setThemeError(operationError(error)); });
+    return () => { current = false; };
+  }, [isAuthenticated, queryClient]);
+  useEffect(() => {
+    if (themePreference !== 'SISTEMA') return;
+    const media = window.matchMedia('(prefers-color-scheme: dark)'), update = () => setIsDarkMode(media.matches);
+    media.addEventListener('change', update); return () => media.removeEventListener('change', update);
+  }, [themePreference]);
+  const toggleTheme = () => {
+    const next = isDarkMode ? 'CLARO' : 'OSCURO';
+    if (!isAuthenticated) { applyTheme(next); return; }
+    setThemeError(null);
+    void queryClient.fetchQuery({ queryKey: ['account', 'preferences'], queryFn: getPreferences }).then(value => savePreferences({ tema: next, alertas_correo: value.alertas_correo }, value.version)).then(value => { queryClient.setQueryData(['account', 'preferences'], value); applyTheme(value.tema); }).catch(error => setThemeError(operationError(error)));
+  };
 
-  const contextValue = React.useMemo(() => ({ 
-    isDarkMode, toggleTheme, isAuthenticated, role, login, logout,
-    globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters
-  }), [isDarkMode, isAuthenticated, role, globalSearchQuery, globalFilters]);
+  const login = (account: Cuenta) => setRole(account.rol === 'ASESOR' ? 'asesor' : account.rol === 'SUPERADMINISTRADOR' ? 'admin' : 'public');
+
+  const logout = () => { setAccessToken(null); setRole(null); queryClient.clear(); };
 
   return (
-    <AppContext.Provider value={contextValue}>
+    <AppContext.Provider value={{ globalSearchQuery, setGlobalSearchQuery, globalFilters, setGlobalFilters, isDarkMode, toggleTheme, applyTheme, themeError, isAuthenticated, role, login, logout }}>
       {children}
     </AppContext.Provider>
   );

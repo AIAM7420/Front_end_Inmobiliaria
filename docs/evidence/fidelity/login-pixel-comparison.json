@@ -1,0 +1,246 @@
+{
+  "source": "01295bee792791081933a936c51d820f0b6877d3",
+  "scope": "Only the explicitly captured common regions, not the whole application",
+  "results": [
+    {
+      "size": "desktop",
+      "dark": false,
+      "part": "logo",
+      "reference": {
+        "x": 592.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "integrated": {
+        "x": 592.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "desktop",
+      "dark": false,
+      "part": "password",
+      "reference": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "desktop",
+      "dark": true,
+      "part": "logo",
+      "reference": {
+        "x": 592.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "integrated": {
+        "x": 592.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "desktop",
+      "dark": true,
+      "part": "password",
+      "reference": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 528,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": false,
+      "part": "logo",
+      "reference": {
+        "x": 282.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "integrated": {
+        "x": 282.125,
+        "y": 108,
+        "width": 255.734375,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": false,
+      "part": "password",
+      "reference": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": true,
+      "part": "logo",
+      "reference": {
+        "x": 282.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "integrated": {
+        "x": 282.234375,
+        "y": 108,
+        "width": 255.53125,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "tablet",
+      "dark": true,
+      "part": "password",
+      "reference": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "integrated": {
+        "x": 218,
+        "y": 472,
+        "width": 384,
+        "height": 56
+      },
+      "pixels": 21504,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": false,
+      "part": "logo",
+      "reference": {
+        "x": 67.125,
+        "y": 76,
+        "width": 255.734375,
+        "height": 256
+      },
+      "integrated": {
+        "x": 67.125,
+        "y": 76,
+        "width": 255.734375,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": false,
+      "part": "password",
+      "reference": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "integrated": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "pixels": 19152,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": true,
+      "part": "logo",
+      "reference": {
+        "x": 67.234375,
+        "y": 76,
+        "width": 255.53125,
+        "height": 256
+      },
+      "integrated": {
+        "x": 67.234375,
+        "y": 76,
+        "width": 255.53125,
+        "height": 256
+      },
+      "pixels": 65536,
+      "changed": 0,
+      "percent": 0
+    },
+    {
+      "size": "mobile",
+      "dark": true,
+      "part": "password",
+      "reference": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "integrated": {
+        "x": 24,
+        "y": 440,
+        "width": 342,
+        "height": 56
+      },
+      "pixels": 19152,
+      "changed": 0,
+      "percent": 0
+    }
+  ]
+}

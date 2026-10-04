@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Moon, Sun, Home, Heart, Bot, Globe, 
+import {
+  Moon, Sun, Home, Heart, Bot, Globe,
   Mail, Search, Check, Shield, Wifi, Dumbbell, Smartphone, Monitor, Palette, Component, Layers, Box, LayoutTemplate
 } from 'lucide-react';
 
@@ -89,7 +89,7 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
             <span className="text-inmo-secondary dark:text-white font-inter font-bold text-lg">Tertiary</span>
             <span className="text-gray-500 text-xs font-mono mt-1">#E6E6E6 / #474747</span>
           </div>
-          
+
           {/* Status Colors */}
           <div className="bg-inmo-success rounded-atom shadow-soft p-6 aspect-square flex flex-col justify-end">
             <span className="text-white font-inter font-bold text-lg">Success</span>
@@ -157,19 +157,19 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
         <div className="flex flex-wrap gap-6 items-end">
           <div className="space-y-4">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">lg</h4>
-            <IconButton variant="accent" size="lg" isLoading={globalLoading} disabled={globalDisabled} icon={<Globe className="w-8 h-8 text-white" />} />
+            <IconButton variant="accent" isLoading={globalLoading} disabled={globalDisabled} icon={<Globe className="w-8 h-8 text-white" />} />
           </div>
           <div className="space-y-4">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">md</h4>
-            <IconButton variant="secondary" size="md" isLoading={globalLoading} disabled={globalDisabled} icon={<Home className="w-5 h-5" />} />
+            <IconButton variant="secondary" isLoading={globalLoading} disabled={globalDisabled} icon={<Home className="w-5 h-5" />} />
           </div>
           <div className="space-y-4">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">sm</h4>
-            <IconButton variant="tertiary" size="sm" isLoading={globalLoading} disabled={globalDisabled} icon={<Heart className="w-4 h-4" />} />
+            <IconButton variant="tertiary" isLoading={globalLoading} disabled={globalDisabled} icon={<Heart className="w-4 h-4" />} />
           </div>
           <div className="space-y-4">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Ghost</h4>
-            <IconButton variant="ghost" size="lg" isLoading={globalLoading} disabled={globalDisabled} icon={<Bot className="w-10 h-10 text-inmo-secondary dark:text-white" />} />
+            <IconButton variant="ghost" isLoading={globalLoading} disabled={globalDisabled} icon={<Bot className="w-10 h-10 text-inmo-secondary dark:text-white" />} />
           </div>
         </div>
       </Section>
@@ -178,8 +178,8 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Input Text</h4>
-            <Input 
-              placeholder="Tu correo electrónico" 
+            <Input
+              placeholder="Tu correo electrónico"
               leftIcon={<Mail className={`w-6 h-6 ${globalError ? 'text-inmo-danger' : 'text-gray-400'}`} />}
               error={globalError ? "Formato de correo inválido" : undefined}
               disabled={globalDisabled}
@@ -188,12 +188,12 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
           <div className="space-y-6">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Number Field</h4>
             <div className="bg-white dark:bg-inmo-darkcard p-4 rounded-card shadow-soft border border-gray-100 dark:border-inmo-darktertiary">
-              <NumberField 
-                label="Habitaciones" 
-                value={numValue} 
+              <NumberField
+                label="Habitaciones"
+                value={numValue}
                 onChange={setNumValue}
-                min={1} 
-                max={10} 
+                min={1}
+                max={10}
               />
             </div>
           </div>
@@ -206,13 +206,12 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Badges</h4>
             <div className="flex flex-wrap gap-4">
               <Badge variant="venta">Venta</Badge>
-              <Badge variant="renta">Renta</Badge>
               <Badge variant="nuevo">Nuevo</Badge>
               <Badge variant="success">Destacado</Badge>
               <Badge variant="warning">Urgente</Badge>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tags Interactivos</h4>
             <div className="flex flex-wrap gap-4">
@@ -254,7 +253,7 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Property Card</h4>
-            <PropertyCard 
+            <PropertyCard
               image="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800"
               title="Residencia de Lujo"
               location="Polanco, CDMX"
@@ -280,16 +279,14 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Semantic Toasts</h4>
               <div className="flex gap-2">
-                <Button 
-                  variant="tertiary" 
-                  size="sm" 
+                <Button
+                  variant="tertiary"
                   onClick={() => addToast('success', 'Toast Automático', 'Se cerrará solo en 4 seg.')}
                 >
                   Auto
                 </Button>
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
+                <Button
+                  variant="secondary"
                   onClick={() => addToast('info', 'Toast Manual', 'Este requiere que lo cierres.', false)}
                 >
                   Manual
@@ -346,14 +343,13 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
 
   return (
     <div className="bg-gray-50 dark:bg-[#121212] min-h-screen w-full flex flex-col font-inter transition-colors duration-300 overflow-hidden">
-      
+
       {/* Header Toolbar */}
       <header className="bg-white dark:bg-inmo-darkcard border-b border-gray-200 dark:border-white/10 h-16 flex items-center justify-between px-6 shrink-0 z-20">
         <div className="flex items-center gap-4">
-          <IconButton 
-            variant="ghost" 
-            size="sm" 
-            className="text-gray-600 dark:text-gray-300" 
+          <IconButton
+            variant="ghost"
+            className="text-gray-600 dark:text-gray-300"
             icon={<Home className="w-5 h-5" />}
             onClick={() => {
               if (onNavigate) onNavigate('landing');
@@ -385,9 +381,9 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
                <Smartphone className="w-4 h-4" /> <span className="hidden sm:inline">Mobile</span>
              </Button>
           </div>
-          
-          <Button 
-            onClick={toggleTheme} 
+
+          <Button
+            onClick={toggleTheme}
             variant="secondary"
             className="!px-3 !py-2 !h-auto !rounded-xl !bg-gray-100 dark:!bg-inmo-darkbg hover:!bg-gray-200 dark:hover:!bg-white/10 !border-none flex items-center gap-2"
           >
@@ -397,7 +393,7 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
-        
+
         {/* Sidebar Navigation */}
         <aside className="w-64 bg-white dark:bg-inmo-darkcard border-r border-gray-200 dark:border-white/10 flex-col py-6 shrink-0 overflow-y-auto hidden md:flex z-10">
           <div className="px-6 mb-6">
@@ -409,8 +405,8 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
-                  activeTab === tab.id 
-                    ? 'bg-inmo-accent/10 text-inmo-accent font-bold' 
+                  activeTab === tab.id
+                    ? 'bg-inmo-accent/10 text-inmo-accent font-bold'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-inmo-secondary dark:hover:text-white'
                 }`}
               >
@@ -446,8 +442,8 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex flex-col items-center justify-center gap-1 px-4 py-3 min-w-[100px] border-b-2 transition-colors ${
-                activeTab === tab.id 
-                  ? 'border-inmo-accent text-inmo-accent' 
+                activeTab === tab.id
+                  ? 'border-inmo-accent text-inmo-accent'
                   : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
@@ -459,7 +455,7 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
 
         {/* Main Canvas Area */}
         <main className="flex-1 overflow-y-auto relative bg-gray-50 dark:bg-[#121212] pt-[72px] md:pt-0">
-          
+
           {isMobileSimulated ? (
             <div className="min-h-full flex items-center justify-center p-4 md:p-8">
               <div className="w-[375px] h-[812px] bg-white dark:bg-inmo-darkbg rounded-[40px] border-[14px] border-gray-900 shadow-2xl relative overflow-hidden flex flex-col ring-1 ring-white/10 shrink-0 transform scale-[0.85] md:scale-100 origin-center transition-transform">
@@ -467,7 +463,7 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
                 <div className="absolute top-0 inset-x-0 h-6 bg-transparent flex justify-center z-[60]">
                   <div className="w-32 h-6 bg-gray-900 rounded-b-2xl"></div>
                 </div>
-                
+
                 {/* Simulated Content Area */}
                 <div className="flex-1 overflow-y-auto p-4 pt-10 pb-12 custom-scrollbar relative">
                   {renderContent()}
@@ -482,11 +478,11 @@ export const UIKitTemplate: React.FC<UIKitTemplateProps> = ({ onNavigate }) => {
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400">Explora los componentes y su comportamiento interactivo.</p>
               </div>
-              
+
               {renderContent()}
             </div>
           )}
-          
+
         </main>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Home, Building2, Trees } from 'lucide-react';
+import { Home, Building2, Trees } from 'lucide-react';
 
 export type PropertyCategory = 'casa' | 'departamento' | 'terreno';
 
@@ -18,17 +18,17 @@ interface FilterButtonProps {
   onClick: () => void;
 }
 
-const FilterButton: React.FC<FilterButtonProps> = ({ id, label, Icon, isActive, onClick }) => {
+const FilterButton: React.FC<FilterButtonProps> = ({ Icon, isActive, onClick }) => {
   return (
-    <button 
+    <button
       onClick={onClick}
       className={`relative flex flex-col items-center justify-center flex-1 h-full px-1 bg-transparent border-none outline-none cursor-pointer group transition-transform ${isActive ? 'scale-105' : 'hover:scale-105'}`}
     >
       <div className={`relative flex flex-col items-center justify-center transition-all duration-300 ${isActive ? 'text-inmo-accent' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200'}`}>
         <div className={`relative transition-transform duration-300 ${isActive ? '-translate-y-0.5' : 'translate-y-0'}`}>
-          <Icon 
-            className="w-5 h-5 md:w-6 md:h-6" 
-            strokeWidth={isActive ? 2.5 : 2} 
+          <Icon
+            className="w-5 h-5 md:w-6 md:h-6"
+            strokeWidth={isActive ? 2.5 : 2}
           />
         </div>
       </div>

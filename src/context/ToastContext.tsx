@@ -53,10 +53,10 @@ const ToastItem: React.FC<{ toast: ToastData, onRemove: (id: string) => void }> 
         isEntering ? 'opacity-0 translate-x-full' : isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
       }`}
     >
-      <SemanticToast 
-        type={toast.type} 
-        title={toast.title} 
-        message={toast.message} 
+      <SemanticToast
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
         onClose={toast.autoClose === false ? handleClose : undefined}
       />
     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 export interface TagProps {
   label: string;
@@ -9,7 +9,7 @@ export interface TagProps {
 
 export function Tag({ label, variant = 'outline', selected = false, onClick }: TagProps) {
   const baseClasses = "px-4 py-1.5 rounded-atom text-sm font-inter font-bold transition-all duration-200 cursor-pointer inline-block active:scale-95 hover:-translate-y-0.5";
-  
+
   let variantClasses = "";
   if (selected) {
     variantClasses = "bg-inmo-secondary text-white border-inmo-secondary shadow-sm dark:bg-white dark:text-inmo-secondary";
