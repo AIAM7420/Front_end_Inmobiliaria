@@ -12,6 +12,7 @@ Todos los endpoints pertenecen a `/api/v1`. `UI` refiere a Playwright contra Fas
 | Desbordamiento administrativo móvil/escritorio | Usuarios, Publicaciones, Finanzas, Autorizaciones, Reportes y Sistema; sin colisión con el logotipo | UI `inmo-screens`; menú móvil operado con botones accesibles |
 | Login | Correo/contraseña reales, `POST /sesiones`, `GET /me`, JWT sólo en memoria; un botón autorizado | UI `real-api`; unitarias `auth`; regiones estáticas en `reference-audit.json` |
 | Registro / tipo de cuenta | Cliente `POST /cuentas`, asesor `POST /asesores`; confirmación requerida | UI `real-api`; SQL identidad y asesores |
+| Alta profesional `/registro-asesor` | Datos → documentos → autorización → plan/Checkout → periodo confirmado; guarda del panel, reanudación y rechazo con expediente nuevo | UI `advisor-onboarding`, escritorio claro/móvil oscuro, `412` real y enlaces directos; [contratos y capturas](Alta_asesor_verificacion.md) |
 | Confirmación / recuperación / nueva contraseña | `/auth/correo/confirmar`, `/auth/password/recuperar`, `/auth/password/restablecer`; tokens reales y mensajes seguros | SQL identidad; unitarias de autenticación. Entrega de correo externa a cargo del usuario |
 | Landing `/`, catálogo `/inmuebles` | Hero con inmueble real o estado vacío; tarjetas, fotos, tipos, filtros, paginación: `/propiedades`, `/busquedas`, `/catalogos/*` | UI `real-api`, `interface-review`, `integrated-flows`; SQL engagement |
 | Búsqueda libre / chatbot | `/chatbot/consultas` → criterios estructurados → búsqueda paginada completa; no resultados ficticios ni Renta | UI `real-api`; unitarias `chatbotCriteria` |
@@ -66,7 +67,9 @@ Las capturas de referencia incluyen exclusivamente datos del prototipo para comp
 
 ## Comprobaciones y límites reales
 
-2026-10-04: **24 pruebas unitarias** en 12 archivos; lint sin errores, ocho advertencias de efectos/Fast Refresh; TypeScript/Vite/PWA aprobados. **39 pruebas de navegador** aprobadas conjuntamente contra API real y MySQL aislado. Backend: **297 aprobadas, 3 omitidas, cobertura 93,15 %**, Ruff/mypy/arquitectura aprobados. Contratos y migraciones en `docs/Integracion_total_INMO.md` del backend.
+Entrega base del 2026-10-04: **24 pruebas unitarias** en 12 archivos; lint sin errores, ocho advertencias de efectos/Fast Refresh; TypeScript/Vite/PWA aprobados. **39 pruebas de navegador** aprobadas conjuntamente contra API real y MySQL aislado. Backend: **297 aprobadas, 3 omitidas, cobertura 93,15 %**, Ruff/mypy/arquitectura aprobados. Contratos y migraciones en `docs/Integracion_total_INMO.md` del backend.
+
+Corrección posterior del alta de asesores, 2026-10-04: **32 unitarias y 42 pruebas de navegador aprobadas en cada frontend**, lint/build/PWA aprobados; **245 unitarias del backend** y Ruff del arnés aprobados. [Recorrido, contratos iniciales y nueva evidencia](Alta_asesor_verificacion.md). Las capturas de fidelidad de la entrega base se conservan como evidencia histórica; las seis nuevas capturas documentan documentos, revisión y planes del alta real.
 
 Las pruebas de medios redirigen únicamente el transporte externo `objects.test` al almacenamiento del arnés local; autorización, hashes, confirmación, permisos, versiones, publicación, conversación y persistencia utilizan el backend real. Se comprobó explícitamente que no se manda JWT al PUT de objetos. El arnés no se registra en la aplicación productiva.
 

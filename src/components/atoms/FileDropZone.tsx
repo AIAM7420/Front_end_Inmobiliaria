@@ -10,6 +10,7 @@ export interface FileDropZoneProps {
   label?: string;
   hint?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export const FileDropZone: React.FC<FileDropZoneProps> = ({
@@ -20,6 +21,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
   label = 'Arrastra tu archivo aquí',
   hint = 'o haz clic para seleccionar',
   className = '',
+  disabled = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -28,6 +30,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
+    if (disabled) return;
     setError(null);
 
     if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
@@ -45,7 +48,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
     } else {
       setPreview(null);
     }
-  }, [maxSizeMB, onFileSelect]);
+  }, [disabled, maxSizeMB, onFileSelect]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -68,7 +71,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
     if (file) handleFile(file);
   }, [handleFile]);
 
-  const handleClick = () => inputRef.current?.click();
+  const handleClick = () => { if (!disabled) inputRef.current?.click(); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,6 +101,11 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
     <div className={`flex flex-col gap-2 w-full ${className}`}>
       <div
         onClick={handleClick}
+        role="button"
+        aria-label={label}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); handleClick(); } }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -106,6 +114,8 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
         <input
           ref={inputRef}
           type="file"
+          disabled={disabled}
+          aria-label={label}
           accept={accept}
           onChange={handleInputChange}
           className="hidden"
@@ -126,6 +136,8 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
             </div>
             <IconButton
               onClick={handleRemove}
+              disabled={disabled}
+              aria-label={'Quitar ' + selectedFile.name}
               icon={<X className="w-4 h-4" strokeWidth={2} />}
               variant="ghost"
               className="absolute -top-2 -right-2 !bg-inmo-danger !text-white !p-1 !shadow-soft hover:scale-110 transition-transform !w-auto !h-auto !min-w-0 !min-h-0"
@@ -139,6 +151,8 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
             </span>
             <IconButton
               onClick={handleRemove}
+              disabled={disabled}
+              aria-label={'Quitar ' + selectedFile.name}
               icon={<X className="w-4 h-4" strokeWidth={2} />}
               variant="ghost"
               className="absolute -top-2 -right-2 !bg-inmo-danger !text-white !p-1 !shadow-soft hover:scale-110 transition-transform !w-auto !h-auto !min-w-0 !min-h-0"

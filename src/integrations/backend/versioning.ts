@@ -2,8 +2,8 @@ import axios from 'axios';
 import type { Versioned } from './auth.service';
 
 /** V1 uses a quoted application version, never a random or weak transport ETag. */
-export function versioned<T extends { version: number }>(value: T): Versioned<T> {
-  if (!Number.isSafeInteger(value.version) || value.version < 1) {
+export function versioned<T extends { version: number }>(value: T, { allowInitialZero = false }: { allowInitialZero?: boolean } = {}): Versioned<T> {
+  if (!Number.isSafeInteger(value.version) || value.version < (allowInitialZero ? 0 : 1)) {
     throw new Error('La API no entregó una versión válida. Actualiza los datos antes de guardar.');
   }
   return { value, etag: '"v' + value.version + '"' };

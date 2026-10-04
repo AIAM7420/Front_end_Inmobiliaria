@@ -111,8 +111,8 @@ test('natural language search reaches chatbot and remains private', async ({ pag
 
 test('advisor dashboard loads own portfolio and notifications through the API', async ({ page }) => {
   await page.goto('/login');
-  await page.getByPlaceholder('Correo electrónico').fill('e2e-advisor@example.invalid');
-  await page.getByPlaceholder('Contraseña ...').fill('E2eTesting1!');
+  await page.getByPlaceholder('Correo electrónico').fill('phase4-advisor@example.com');
+  await page.getByPlaceholder('Contraseña ...').fill('Secure1!');
   const portfolio = page.waitForResponse((response) =>
     response.url().startsWith(`${api}/me/estadisticas?`));
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
