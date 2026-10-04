@@ -81,6 +81,7 @@ Instalar dependencias con `npm ci`. Preparar exclusivamente `TEST_DATABASE_URL`,
 ```powershell
 $env:E2E_API_URL='http://127.0.0.1:8002/api/v1'
 $env:E2E_FRONTEND_PORT='5180'
+$env:VITE_API_BASE_URL='http://127.0.0.1:8002/api/v1'
 npm run test:e2e
 npm test
 npm run lint
@@ -89,4 +90,4 @@ npm run build
 
 Para la comparación del login, ejecutar la referencia `01295be` aparte, sin variables privadas, y `node tools/compare-login.mjs --reference=http://127.0.0.1:5174 --integrated=http://localhost:5173`. Para las 96 capturas originales: `node tools/capture-reference.mjs --reference=http://127.0.0.1:5174`. Los JSON y capturas versionados delimitan exactamente las regiones verificadas.
 
-Backend compatible publicado y fusionado: [PR #4](https://github.com/AIAM7420/Back_end_Inmobiliaria/pull/4). Los dos frontends se publican después de ese contrato.
+Backend compatible publicado y fusionado: [PR #4](https://github.com/AIAM7420/Back_end_Inmobiliaria/pull/4). La integración del frontend propio se entrega en [PR #3](https://github.com/AIAM7420/Front_end_Inmobiliaria/pull/3); la misma aplicación se entrega también en `angggsoft/inmo`, después del backend. Las variables privadas locales no se copian: un checkout nuevo debe configurar `VITE_API_BASE_URL` para desarrollo, pruebas unitarias y build.
