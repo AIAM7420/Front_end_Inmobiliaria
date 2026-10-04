@@ -38,6 +38,12 @@ export interface Pago {
   confirmado_at: string | null;
 }
 
+/** The absent subscription is a real V1 snapshot: null ID and ETag "v0". */
+export function versionedSubscription(value: Suscripcion): Versioned<Suscripcion> {
+  if (value.id === null && value.version === 0) return { value, etag: '"v0"' };
+  return versioned(value);
+}
+
 export async function getPlans(): Promise<Plan[]> {
   const { data } = await api.get<Plan[]>('/planes');
   return data;
@@ -45,7 +51,7 @@ export async function getPlans(): Promise<Plan[]> {
 
 export async function getSubscription(): Promise<Versioned<Suscripcion>> {
   const response = await api.get<Suscripcion>('/me/suscripcion');
-  return versioned(response.data);
+  return versionedSubscription(response.data);
 }
 
 export async function selectPlan(versionPlanId: Id, etag: string): Promise<Versioned<Suscripcion>> {
@@ -53,7 +59,7 @@ export async function selectPlan(versionPlanId: Id, etag: string): Promise<Versi
     '/me/seleccion-plan', { version_plan_id: Number(versionPlanId) },
     { headers: { 'If-Match': etag } },
   );
-  return versioned(response.data);
+  return versionedSubscription(response.data);
 }
 
 export async function createPayment(versionPlanId: Id, requestId: string): Promise<Pago> {

@@ -7,7 +7,11 @@ import { GlobalChatbot } from '../organisms/GlobalChatbot';
 import { useGetMe, useLogout } from '../../integrations/backend/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../integrations/backend/axios.config';
+import { AdvisorAccessGate } from '../organisms/AdvisorAccessGate';
 export function MainLayout() {
+  return <AdvisorAccessGate><MainLayoutContent /></AdvisorAccessGate>;
+}
+function MainLayoutContent() {
   const { isDarkMode, toggleTheme, themeError, role, isAuthenticated } = useAppContext();
   const me = useGetMe();
   const logout = useLogout();

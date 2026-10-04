@@ -4,6 +4,8 @@ React, TypeScript y Vite. La capa de API y hooks vive en `src/integrations/backe
 
 Integración actual completa: [matriz de pantallas, contratos, procedencia, pruebas y capturas](./docs/Integracion_total_INMO.md). Misma aplicación integrada para `AIAM7420/Front_end_Inmobiliaria` y `angggsoft/inmo`, basada en `01295be`.
 
+Alta de asesores: [cuenta → correo → documentos → aprobación → suscripción → panel](./docs/Alta_asesor_verificacion.md). El expediente pendiente se completa desde `/registro-asesor` antes de acceder al panel profesional.
+
 ## Local
 
 Configura `VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1` en `.env.local`

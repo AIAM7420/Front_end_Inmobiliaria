@@ -6,8 +6,8 @@ export function useGetPlans() {
   return useQuery({ queryKey: ['plans'], queryFn: getPlans, staleTime: 60 * 60 * 1_000 });
 }
 
-export function useGetSubscription() {
-  return useQuery({ queryKey: ['subscription', 'own'], queryFn: getSubscription, staleTime: 10_000 });
+export function useGetSubscription(enabled = true) {
+  return useQuery({ queryKey: ['subscription', 'own'], queryFn: getSubscription, staleTime: 10_000, enabled });
 }
 
 export function useSelectPlan() {
