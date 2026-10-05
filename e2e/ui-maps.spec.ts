@@ -179,6 +179,25 @@ test('failed local style recovers explicitly without a blank page', async ({ pag
   await expect(page.getByRole('button', { name: 'Reintentar mapa', exact: true })).toHaveCount(0);
 });
 
+test('short mobile viewport scrolls filters, cycles keyboard focus and closes outside', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 320 });
+  await page.goto('/map');
+  const trigger = page.getByRole('button', { name: 'Abrir filtros', exact: true }).filter({ visible: true });
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Filtros de inmuebles' });
+  await expect(dialog).toBeVisible();
+  const box = await dialog.boundingBox();
+  expect(box!.y + box!.height).toBeLessThanOrEqual(320);
+  expect(await dialog.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.getByRole('button', { name: 'Buscar propiedades' })).toBeFocused();
+  expect(await dialog.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+  await page.keyboard.press('Tab');
+  await expect(dialog.getByRole('button', { name: 'Cerrar filtros' })).toBeFocused();
+  await page.mouse.click(385, 310);
+  await expect(dialog).toHaveCount(0);
+});
+
 test('published property without coordinates shows the general map and completion notice', async ({ page, request }) => {
   const headers = await authenticate(request, 'phase4-advisor@example.com', 'Secure1!');
   const current = await request.get(`${api}/me/propiedades/${fixture.id}`, { headers });

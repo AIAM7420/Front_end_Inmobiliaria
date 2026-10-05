@@ -32,10 +32,15 @@ export function ZoneDistributionMap({ data }: { data?: Estadisticas }) {
       button.setAttribute('role', 'button');
       return [marker];
     })) ?? [];
+    if (markers.length) {
+      const bounds = new mapboxgl.LngLatBounds();
+      markers.forEach(marker => bounds.extend(marker.getLngLat()));
+      map.fitBounds(bounds, { padding: { top: 80, bottom: 110, left: 30, right: 30 }, maxZoom: 12, duration: 0 });
+    }
     return () => { markers.forEach(marker => marker.remove()); };
   }, [data, map]);
   return <div aria-label="Distribución de inmuebles por sector" aria-busy={Boolean(token) && status === 'loading'} className="relative flex-1 min-h-[350px] md:min-h-0 md:h-full bg-gray-200 dark:bg-inmo-darkbg rounded-card border-4 border-white dark:border-inmo-darkcard shadow-soft overflow-hidden">
-    <div ref={container} className="absolute inset-0" />
+    <div ref={container} className="w-full h-full" style={{ position: 'absolute', inset: 0 }} />
     {token && status === 'loading' && <Skeleton className="absolute inset-0" />}
     {(!token || status === 'error') && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 pb-28 text-center font-inter text-sm text-gray-500">
       <p>{!token ? 'Configura Mapbox para consultar la distribución en el mapa.' : 'No pudimos cargar el mapa. Consulta los sectores en la lista.'}</p>
