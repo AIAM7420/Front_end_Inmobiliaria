@@ -66,7 +66,7 @@ export const createSvgIcon = (propertyType: string, zoom: number = 13) => {
 function PropertyMarker({ property, propertyType, position, map, onMarkerClick }: { property: PropiedadPublica, propertyType: string, position: { lat: number, lng: number }, map: mapboxgl.Map, onMarkerClick: (id: string) => void }) {
   const [element] = useState(() => {
     const el = document.createElement('div');
-    el.className = 'cursor-pointer hover:scale-105 transition-transform z-10';
+    el.className = 'cursor-pointer z-10';
     el.onclick = () => onMarkerClick(property.id);
     return el;
   });
@@ -91,8 +91,9 @@ function PropertyMarker({ property, propertyType, position, map, onMarkerClick }
   const priceFmt = Number(property.precio).toLocaleString('es-MX');
 
   return createPortal(
-    isZoomed ? (
-      <div className="bg-white dark:bg-inmo-darkcard p-1.5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 flex flex-row w-[170px] items-center gap-2 relative">
+    <div className="hover:scale-105 transition-transform origin-bottom">
+      {isZoomed ? (
+        <div className="bg-white dark:bg-inmo-darkcard p-1.5 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 flex flex-row w-[170px] items-center gap-2 relative">
         {publicCover.data?.url ? (
            <img src={publicCover.data.url} alt={property.titulo} className="w-14 h-14 object-cover rounded-[10px] shrink-0" />
         ) : (
