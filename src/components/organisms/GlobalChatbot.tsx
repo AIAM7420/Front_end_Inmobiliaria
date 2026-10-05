@@ -2,6 +2,7 @@ import React from 'react';
 import { Bot } from 'lucide-react';
 import { IconButton } from '../atoms/IconButton';
 import { ChatbotPanel } from './ChatBotPanel';
+import { useGetProperties } from '../../integrations/backend/hooks/useProperties';
 
 export interface GlobalChatbotProps {
   isOpen: boolean;
@@ -10,6 +11,9 @@ export interface GlobalChatbotProps {
 }
 
 export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, onClose }) => {
+  const publicCatalog = useGetProperties({ limit: 1 });
+  const isInvalidState = publicCatalog.isError || (publicCatalog.isSuccess && publicCatalog.data.items.length === 0);
+
   return (
     <>
       {/* DESKTOP CHATBOT BUTTON (PC ONLY) */}
@@ -48,6 +52,14 @@ export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, on
       {isOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/40 dark:bg-black/60 z-[50] transition-opacity backdrop-blur-md"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* INVISIBLE CLICK-OUTSIDE BACKDROP FOR DESKTOP IN ERROR/EMPTY STATE */}
+      {isOpen && isInvalidState && (
+        <div 
+          className="hidden md:block fixed inset-0 z-[50]" 
           onClick={onClose}
         />
       )}

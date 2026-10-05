@@ -6,7 +6,7 @@ import { IconButton } from '../atoms/IconButton';
 import { SearchBar } from '../molecules/SearchBar';
 import { FilterDropdown } from '../molecules/FilterDropdown';
 import { useAppContext } from '../../context/AppContext';
-import { navigation } from '../../navigation';
+import { navigationFor } from '../../navigation';
 
 export interface NavHeaderProps {
   isDarkMode?: boolean;
@@ -123,7 +123,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
     };
   }, []);
 
-  const currentNavItems = navigation[role || 'public'];
+  const currentNavItems = navigationFor(role || 'public', isAuthenticated);
 
   return (
     <div ref={headerRef} className="fixed md:sticky top-3 md:top-6 z-50 md:z-30 px-6 w-full md:mb-6 pointer-events-none">

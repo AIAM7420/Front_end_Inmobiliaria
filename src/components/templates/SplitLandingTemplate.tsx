@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, CloudOff, RefreshCw, SearchX, Ghost } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PromoBanner } from '../molecules/PromoBanner';
 import { SplitViewLayout } from './SplitViewLayout';
@@ -14,6 +14,7 @@ import { ConnectedHero } from '../organisms/ConnectedHero';
 import { PropertyDetailView } from '../organisms/PropertyDetailView';
 import { Footer } from '../organisms/Footer';
 import { PropertyCardSkeleton } from '../molecules/PropertyCardSkeleton';
+import { EmptyState } from '../molecules/EmptyState';
 import { FilterDropdown } from '../molecules/FilterDropdown';
 import { Button } from '../atoms/Button';
 import { IconButton } from '../atoms/IconButton';
@@ -44,12 +45,14 @@ export function SplitLandingTemplate() {
   const busy = textMode ? chatbot.isPending || textCatalog.isLoading : catalog.isLoading;
   const failed = textMode ? chatbot.isError || textCatalog.isError : catalog.isError;
   const selected = properties.find(property => property.id === selectedId);
+  const retry = () => { if (textMode && chatbot.isError) search(globalSearchQuery.trim()); else void catalog.refetch(); };
+  const clearSearch = () => { setGlobalFilters({}); setGlobalSearchQuery(''); setSearchDraft(''); };
   const catalogCards = <div className={`grid gap-6 transition-all duration-500 ${selectedId ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 md:grid-cols-3 lg:grid-cols-4'}`}>
     {busy ? Array.from({length:4},(_,i)=><PropertyCardSkeleton key={i} />)
       : properties.map(property => <ConnectedPropertyCard key={property.id} property={property} onClick={() => setSelectedId(property.id)} />)}
   </div>;
-  const content = <><main className="px-4 md:px-6 flex flex-col gap-5 md:gap-8 pt-[88px] md:pt-[100px] pb-[120px] md:pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all">
-    <ConnectedHero propertyId={properties[0]?.id} />
+  const content = <div className="flex flex-col min-h-full"><main className="flex-1 px-4 md:px-6 flex flex-col gap-5 md:gap-8 pt-[88px] md:pt-[100px] pb-[120px] md:pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500 transition-all">
+    <ConnectedHero propertyId={properties[0]?.id} catalogLoading={publicCatalog.isLoading} />
     <div className="flex flex-col items-center w-full"><div className="w-full md:w-[70%] flex flex-col"><div className="flex items-center gap-2 w-full scroll-mt-28">
       <SearchBar placeholder="Buscar propiedades..." value={searchDraft} onChange={setSearchDraft} onSubmit={setGlobalSearchQuery} glass size="slim" className="flex-1 shadow-lg" />
       <IconButton aria-label="Abrir filtros" icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />} onClick={() => setFiltersOpen(!filtersOpen)} variant="secondary"
@@ -70,15 +73,22 @@ export function SplitLandingTemplate() {
         <button aria-label="Propiedades siguientes" className="hidden md:flex absolute -right-5 top-[40%] -translate-y-1/2 z-10 bg-white/90 dark:bg-inmo-darkcard/90 backdrop-blur-sm shadow-md rounded-full w-10 h-10 items-center justify-center text-inmo-secondary dark:text-white border border-gray-100 dark:border-white/10 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100" onClick={() => row.current?.scrollBy({left:400,behavior:'smooth'})}><ChevronRight className="w-6 h-6" /></button>
       </div>
     </section>}
-    {!textMode && !hasFilters && !selectedId && <div className="my-4 md:my-10"><PromoBanner title="¿Buscas tu próximo hogar?" description="Explora las propiedades disponibles y encuentra la zona que se adapta a ti." buttonText="Explorar el mapa" onButtonClick={() => navigate('/map')} /></div>}
-    <section className="flex flex-col gap-4 mb-6 md:mb-12 mt-4 md:mt-8"><div className="flex justify-between items-center ml-4 md:ml-6"><h2 className="text-xl font-bold border-l-4 border-inmo-accent pl-3">Catálogo general</h2><Link to="/map" className="flex gap-2 text-inmo-accent font-inter text-sm"><MapPin className="w-4 h-4" />Ver mapa</Link></div>
-      {failed && <p role="alert">No pudimos cargar las propiedades. Intenta nuevamente.</p>}
+    {!textMode && !hasFilters && !selectedId && properties.length > 0 && <div className="my-4 md:my-10"><PromoBanner title="¿Buscas tu próximo hogar?" description="Explora las propiedades disponibles y encuentra la zona que se adapta a ti." buttonText="Explorar el mapa" onButtonClick={() => navigate('/map')} /></div>}
+    <section className="flex flex-1 flex-col gap-4 mb-6 md:mb-12 mt-4 md:mt-8"><div className="flex justify-between items-center ml-4 md:ml-6"><h2 className="text-xl font-bold border-l-4 border-inmo-accent pl-3">Catálogo general</h2><Link to="/map" className="flex gap-2 text-inmo-accent font-inter text-sm"><MapPin className="w-4 h-4" />Ver mapa</Link></div>
+      {failed && <EmptyState icon={<CloudOff />} title="No pudimos cargar las propiedades"
+        description="Tuvimos un problema al conectar con el catálogo. Revisa tu conexión e inténtalo de nuevo más tarde."
+        actions={<><Button icon={<RefreshCw className="w-4 h-4" />} onClick={retry}>Reintentar</Button><Button variant="secondary" icon={<MapPin className="w-4 h-4" />} onClick={() => navigate('/map')}>Ver mapa</Button></>} />}
       {textMode && chatbot.data?.aclaracion && <p role="status">{chatbot.data.aclaracion}</p>}
-      {catalogCards}
-      {!busy && !failed && !properties.length && <p role="status" className="rounded-card bg-white dark:bg-inmo-darkcard p-8 text-gray-500">No encontramos propiedades con esos criterios.</p>}
+      {!failed && catalogCards}
+      {!busy && !failed && !properties.length && (textMode || hasFilters
+        ? <EmptyState icon={<SearchX />} title="Sin coincidencias"
+            description={textMode ? <>No encontramos propiedades para «{globalSearchQuery.trim()}». Prueba con otras palabras, una zona distinta o un rango de precio más amplio.</> : 'Ninguna propiedad cumple con los filtros seleccionados. Ajusta los criterios o explora todo el catálogo.'}
+            actions={<><Button onClick={clearSearch}>Limpiar búsqueda</Button><Button variant="secondary" icon={<MapPin className="w-4 h-4" />} onClick={() => navigate('/map')}>Explorar el mapa</Button></>} />
+        : <EmptyState icon={<Ghost />} title="Aún no hay propiedades publicadas"
+            description="Nuestros asesores están preparando nuevas opciones en León. Vuelve pronto para descubrir tu próximo hogar." />)}
       {catalog.data?.next_cursor && <Button variant="secondary" onClick={() => setCursor(catalog.data?.next_cursor ?? undefined)}>Página siguiente</Button>}
       {cursor && <Button variant="text" onClick={() => setCursor(undefined)}>Volver al inicio</Button>}
     </section>
-  </main><Footer /></>;
+  </main><Footer /></div>;
   return <SplitViewLayout mainContent={content} sideContent={selected ? <PropertyDetailView propertyId={selected.id} preview={selected} /> : null} isOpen={Boolean(selected)} onClose={() => setSelectedId('')} sideTitle="Detalle de propiedad" desktopNoPadding />;
 }

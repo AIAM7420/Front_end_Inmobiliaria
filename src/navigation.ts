@@ -4,3 +4,10 @@ export const navigation = {
   asesor: [{ id: 'asesor', label: 'Inicio' }, { id: 'inmuebles', label: 'Inmuebles' }, { id: 'map', label: 'Mapa' }, { id: 'asesor/propiedades', label: 'Mi inventario' }, { id: 'asesor/mensajes', label: 'Mensajes' }],
   admin: [{ id: 'admin', label: 'Inicio' }, { id: 'inmuebles', label: 'Inmuebles' }, { id: 'map', label: 'Mapa' }, { id: 'admin/asesores', label: 'Usuarios' }, { id: 'admin/moderacion', label: 'Publicaciones' }, { id: 'admin/finanzas', label: 'Finanzas' }, { id: 'admin/solicitudes', label: 'Autorizaciones' }, { id: 'admin/reportes', label: 'Reportes' }, { id: 'admin/sistema', label: 'Sistema' }],
 };
+
+/** Secciones que sólo tienen sentido con una sesión iniciada. */
+const authenticatedOnly = new Set(['messages']);
+
+/** Navegación visible para el rol, ocultando a visitantes las secciones que requieren sesión. */
+export const navigationFor = (role: keyof typeof navigation, isAuthenticated: boolean) =>
+  isAuthenticated ? navigation[role] : navigation[role].filter(item => !authenticatedOnly.has(item.id));

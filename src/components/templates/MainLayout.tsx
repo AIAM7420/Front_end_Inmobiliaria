@@ -40,7 +40,7 @@ function MainLayoutContent() {
     <div className={full ? 'h-[100dvh] overflow-hidden' : 'pb-32'}><Outlet /></div>
     {publicNotice && <aside role="status" className="fixed bottom-28 md:bottom-6 left-4 right-4 md:left-auto md:max-w-md z-40 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft p-4 text-sm border border-inmo-accent/10">{publicNotice}</aside>}
     {themeError && <div role="alert" className="fixed bottom-28 left-4 right-4 md:left-auto md:max-w-md z-50 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft p-4 text-sm">{themeError}<button type="button" className="block mt-2 text-inmo-accent font-bold" onClick={() => navigate(role === 'asesor' ? '/asesor/profile?view=general' : role === 'admin' ? '/admin/profile?view=general' : '/profile?view=general')}>Revisar preferencias</button></div>}
-    <div className="md:hidden"><FloatingNavBar role={role ?? 'public'} activeRoute={activeRoute} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)} onOpenChatbot={() => setChatOpen(true)} hideChatbot={role === 'asesor' || role === 'admin'} /></div>
+    <div className="md:hidden"><FloatingNavBar role={role ?? 'public'} activeRoute={activeRoute} isAuthenticated={isAuthenticated} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)} onOpenChatbot={() => setChatOpen(true)} hideChatbot={role === 'asesor' || role === 'admin'} /></div>
     {role !== 'asesor' && role !== 'admin' && <GlobalChatbot isOpen={chatOpen} onOpen={() => setChatOpen(true)} onClose={() => setChatOpen(false)} />}
   </div>;
 }

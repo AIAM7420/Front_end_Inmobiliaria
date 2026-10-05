@@ -1,11 +1,13 @@
 // src/components/organisms/ChatBotPanel.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Bot, Send, User } from 'lucide-react';
+import { X, Bot, Send, User, CloudOff, Ghost } from 'lucide-react';
 import { Button } from '../atoms/Button';
 import { IconButton } from '../atoms/IconButton';
 import { Input } from '../atoms/Input';
 import { Skeleton } from '../atoms/Skeleton';
+import { EmptyState } from '../molecules/EmptyState';
 import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
+import { useGetProperties } from '../../integrations/backend/hooks/useProperties';
 
 interface ChatbotPanelProps {
   onClose: () => void;
@@ -24,6 +26,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose }) => {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const chatbot = useChatbotQuery();
+  const publicCatalog = useGetProperties({ limit: 1 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const hasStarted = messages.length > 1 || isTyping;
@@ -77,8 +80,20 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose }) => {
         />
       </div>
 
+      {/* ERROR OR EMPTY STATE */}
+      {(publicCatalog.isError || (publicCatalog.isSuccess && publicCatalog.data.items.length === 0)) && (
+        <div className="flex-1 flex flex-col p-6">
+          <EmptyState
+            className="w-full h-full"
+            icon={publicCatalog.isError ? <CloudOff /> : <Ghost />}
+            title={publicCatalog.isError ? "El asistente no está disponible" : "Aún no hay propiedades"}
+            description={publicCatalog.isError ? "No pudimos conectarnos al servidor. Inténtalo de nuevo más tarde." : "Nuestros asesores están preparando nuevas opciones en León. Vuelve pronto."}
+          />
+        </div>
+      )}
+
       {/* INITIAL STATE (Gemini-like) */}
-      {!hasStarted && (
+      {!publicCatalog.isError && !(publicCatalog.isSuccess && publicCatalog.data.items.length === 0) && !hasStarted && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 animate-in fade-in zoom-in-95 duration-500">
           <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-inmo-secondary dark:text-white mb-8 text-center">
             Hola, ¿qué quieres hacer?

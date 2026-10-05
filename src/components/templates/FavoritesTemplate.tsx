@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, HeartOff, LogIn, Compass, CloudOff, RefreshCw, SearchX, Map as MapIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../atoms/Button';
 import { Select } from '../atoms/Select';
@@ -10,6 +10,7 @@ import { useGetCatalog } from '../../integrations/backend/hooks/useProperties';
 import { ConnectedPropertyCard } from '../organisms/ConnectedPropertyCard';
 import { PropertyDetailView } from '../organisms/PropertyDetailView';
 import { PropertyCardSkeleton } from '../molecules/PropertyCardSkeleton';
+import { EmptyState } from '../molecules/EmptyState';
 import { ModuleLayout } from './ModuleLayout';
 import { SplitViewLayout } from './SplitViewLayout';
 
@@ -36,11 +37,21 @@ export function FavoritesTemplate() {
     <Select aria-label="Disponibilidad" value={availability} onChange={event => setAvailability(event.target.value)} wrapperClassName="!bg-gray-50/50 dark:!bg-inmo-darkbg/50 !h-12 !px-3" className="!text-xs"><option value="all">Cualquier estado</option><option value="available">Disponibles</option><option value="retired">Retiradas</option></Select>
   </div><div className="flex gap-2 mt-2 pt-4 border-t border-gray-100 dark:border-inmo-darktertiary"><Button variant="secondary" className="flex-1 !h-10 text-xs" onClick={() => { setType('all'); setAvailability('all'); setSearch(''); }}>Limpiar</Button><Button className="flex-1 !h-10 text-xs shadow-glow" onClick={() => setFiltersOpen(false)}>Aplicar filtros</Button></div></>;
   return <SplitViewLayout isOpen={selected !== null} onClose={() => setSelected(null)} sideTitle="Detalle de Propiedad" sidePanelWidthClass="w-[50%] lg:w-[50%] xl:w-[50%]" mainPanelWidthClass="md:w-[50%] lg:w-[50%] xl:w-[50%]" bottomSheetHeightMode="fixed-75" bottomSheetIsHero bottomSheetNoPadding bottomSheetFullHeight wrapperClassName="bg-transparent" mainPanelNoScroll
-    mainContent={<ModuleLayout title="Favoritos" subtitle={isAuthenticated ? `Tienes ${items.length}${query.hasNextPage ? '+' : ''} propiedades guardadas.` : 'Inicia sesión para guardar tus propiedades.'} isFullScreen searchPlaceholder="Buscar en favoritos..." searchValue={search} onSearchChange={setSearch} isFiltersOpen={filtersOpen} onToggleFilters={() => setFiltersOpen(!filtersOpen)} onCloseFilters={() => setFiltersOpen(false)} filtersContent={filters}>
-      {!isAuthenticated ? <Button onClick={() => navigate('/login')}>Iniciar sesión</Button> : query.isPending ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">{Array.from({ length: 4 }, (_, i) => <PropertyCardSkeleton key={i} />)}</div> : query.isError ? <div role="alert" className="space-y-4"><p>{operationError(query.error)}</p><Button onClick={() => void query.refetch()}>Reintentar</Button></div> : <>
+    mainContent={<ModuleLayout title="Favoritos" subtitle={!isAuthenticated ? 'Inicia sesión para guardar tus propiedades.' : query.isPending ? 'Cargando tus propiedades guardadas…' : items.length ? `Tienes ${items.length}${query.hasNextPage ? '+' : ''} ${items.length === 1 && !query.hasNextPage ? 'propiedad guardada' : 'propiedades guardadas'}.` : 'Tu lista de favoritos está vacía por ahora.'} isFullScreen searchPlaceholder="Buscar en favoritos..." searchValue={search} onSearchChange={setSearch} isFiltersOpen={filtersOpen} onToggleFilters={() => setFiltersOpen(!filtersOpen)} onCloseFilters={() => setFiltersOpen(false)} filtersContent={filters}>
+      {!isAuthenticated ? <EmptyState icon={<Heart />} title="Guarda las propiedades que más te gusten"
+          description="Inicia sesión para crear tu lista de favoritos, compararlas cuando quieras y retomarlas desde cualquier dispositivo."
+          actions={<><Button icon={<LogIn className="w-4 h-4" />} onClick={() => navigate('/login')}>Iniciar sesión</Button><Button variant="secondary" icon={<Compass className="w-4 h-4" />} onClick={() => navigate('/')}>Explorar propiedades</Button></>} />
+        : query.isPending ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">{Array.from({ length: 4 }, (_, i) => <PropertyCardSkeleton key={i} />)}</div>
+        : query.isError ? <EmptyState icon={<CloudOff />} title="No pudimos cargar tus favoritos" description={operationError(query.error)}
+          actions={<Button icon={<RefreshCw className="w-4 h-4" />} onClick={() => void query.refetch()}>Reintentar</Button>} />
+        : !items.length ? <EmptyState icon={<HeartOff />} title="Guarda las propiedades que más te gusten"
+          description="Toca el corazón en cualquier propiedad para guardarla aquí y encontrarla fácilmente después."
+          actions={<><Button icon={<Compass className="w-4 h-4" />} onClick={() => navigate('/')}>Explorar catálogo</Button><Button variant="secondary" icon={<MapIcon className="w-4 h-4" />} onClick={() => navigate('/map')}>Ver mapa</Button></>} />
+        : <>
         <div className={`grid gap-6 ${selected ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'} animate-in fade-in slide-in-from-bottom-2 duration-500`}>
           {filtered.map(item => item.propiedad ? <ConnectedPropertyCard key={item.propiedad_id} property={item.propiedad} onClick={() => setSelected(item.propiedad_id)} /> : <RetiredFavorite key={item.propiedad_id} id={item.propiedad_id} />)}
-        </div>{filtered.length === 0 && <p className="py-12 text-center text-gray-500">{items.length ? 'No hay coincidencias entre los favoritos cargados.' : 'Todavía no has guardado propiedades.'}</p>}
+        </div>{filtered.length === 0 && <EmptyState compact icon={<SearchX />} title="Sin coincidencias" description="Ninguno de tus favoritos coincide con la búsqueda o los filtros aplicados."
+          actions={<Button variant="secondary" onClick={() => { setType('all'); setAvailability('all'); setSearch(''); }}>Limpiar filtros</Button>} />}
         {query.hasNextPage && <Button variant="secondary" className="mt-6 mx-auto" isLoading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>Cargar más favoritos</Button>}
         {query.isFetchNextPageError && <p role="alert">No pudimos cargar la siguiente página. Puedes volver a intentarlo.</p>}
       </>}
