@@ -78,9 +78,9 @@ function PropertyMarker({ property, propertyType, position, map, onMarkerClick }
     return () => { marker.remove(); };
   }, [map, element, position]);
 
-  const [isZoomed, setIsZoomed] = useState(() => map.getZoom() >= 13);
+  const [isZoomed, setIsZoomed] = useState(() => map.getZoom() >= 10);
   useEffect(() => {
-    const handleZoom = () => setIsZoomed(map.getZoom() >= 13);
+    const handleZoom = () => setIsZoomed(map.getZoom() >= 10);
     map.on('zoom', handleZoom);
     return () => { map.off('zoom', handleZoom); };
   }, [map]);
@@ -167,14 +167,14 @@ function InnerMap({ properties, typesData, onMarkerClick, isDarkMode, token }: {
     if (source) source.setData(areas);
     else {
       map.addSource('approximate-property-areas', { type: 'geojson', data: areas });
-      map.addLayer({
+      /* /* map.addLayer({
         id: 'approximate-property-areas-fill', type: 'fill', source: 'approximate-property-areas',
         paint: { 'fill-color': '#fe0a52', 'fill-opacity': 0.14 },
-      });
+      }); */
       map.addLayer({
         id: 'approximate-property-areas-outline', type: 'line', source: 'approximate-property-areas',
         paint: { 'line-color': '#fe0a52', 'line-width': 1.5 },
-      });
+      }); */
     }
       }, [properties, status]);
 
