@@ -12,5 +12,5 @@ export function PropertyDetailView({ propertyId, preview, layout = 'vertical' }:
   useEffect(() => { if (query.data?.id) void registerVisit(query.data.id).catch(() => { /* Measurement failure does not block a public view. */ }); }, [query.data?.id]);
   if (query.isPending && !property) return <Skeleton className="w-full h-[300px]" />;
   if (query.isError || !property) return <div role="alert" className="p-8 text-center text-gray-600 dark:text-gray-300 font-inter">No pudimos cargar esta propiedad. Inténtalo de nuevo más tarde.</div>;
-  return <PropertyDetailContent key={property.id} property={{ ...preview, ...property }} layout={layout} bottomBar={<AdvisorContact propertyId={property.id} advisorId={property.asesor_id} />}><AsesorInlineProfile advisorId={property.asesor_id} /></PropertyDetailContent>;
+  return <PropertyDetailContent key={property.id} locationLoading={query.isPending && !property.zona_geojson} property={{ ...preview, ...property }} layout={layout} bottomBar={<AdvisorContact propertyId={property.id} advisorId={property.asesor_id} />}><AsesorInlineProfile advisorId={property.asesor_id} /></PropertyDetailContent>;
 }

@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { CriteriosBusqueda, PropiedadPublica } from '../../integrations/backend/types';
 import { chatbotCriteria } from '../../integrations/backend/chatbotCriteria';
+import { useThemedMap } from '../molecules/useThemedMap';
 import { approximateZoneCenter } from '../../integrations/backend/zoneGeometry';
 import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
 import { useGetCatalog } from '../../integrations/backend/hooks/useProperties';
@@ -41,39 +42,16 @@ function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
   token: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const { map, status, styleRevision, retry } = useThemedMap(containerRef, token, isDarkMode);
   const markerProperties = useMemo(() => properties.flatMap((property) => {
     const position = approximateZoneCenter(property.zona_geojson);
     return position ? [{ property, position }] : [];
   }), [properties]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    setStatus('loading');
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      accessToken: token,
-      style: isDarkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
-      center: [-101.680, 21.135],
-      zoom: 12,
-      attributionControl: true,
-    });
-    mapRef.current = map;
-    map.on('load', () => setStatus('ready'));
-    map.on('error', () => setStatus('error'));
-    return () => {
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
-      mapRef.current = null;
-      map.remove();
-    };
-  }, [token, isDarkMode]);
 
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || status !== 'ready') return;
+    if (!map || status !== 'ready' || !map.isStyleLoaded()) return;
     const areas = {
       type: 'FeatureCollection' as const,
       features: properties.flatMap((property) => property.zona_geojson?.type === 'Polygon'
@@ -102,22 +80,25 @@ function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
       element.title = `${property.titulo} · zona aproximada`;
       element.setAttribute('aria-label', element.title);
       element.addEventListener('click', () => onMarkerClick(property.id));
-      return new mapboxgl.Marker({ element })
+      const marker = new mapboxgl.Marker({ element })
         .setLngLat([position.lng, position.lat])
         .addTo(map);
+      // Mapbox assigns role=img; these interactive markers are keyboard buttons.
+      element.setAttribute('role', 'button');
+      return marker;
     });
     return () => {
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
     };
-  }, [markerProperties, onMarkerClick, properties, status]);
+  }, [markerProperties, onMarkerClick, properties, status, map, styleRevision]);
 
-  return <div className="relative w-full h-full bg-gray-100 dark:bg-inmo-darkbg">
+  return <div aria-label="Mapa de inmuebles" aria-busy={status === 'loading'} className="relative w-full h-full bg-gray-100 dark:bg-inmo-darkbg">
     <div ref={containerRef} className="w-full h-full" />
     {status === 'loading' && <Skeleton className="absolute inset-0" />}
     {status === 'error' && <div role="alert" className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-inmo-darkbg p-6 text-center pt-24">
       <Globe className="w-14 h-14 text-inmo-accent mb-4" strokeWidth={1.5} />
-      <p className="font-inter text-sm text-gray-600 dark:text-gray-300">No pudimos cargar el mapa. Los resultados siguen disponibles en la lista.</p>
+      <p className="font-inter text-sm text-gray-600 dark:text-gray-300">No pudimos cargar el mapa. Los resultados siguen disponibles en la lista.</p><Button variant="secondary" onClick={retry}>Reintentar mapa</Button>
     </div>}
     {status === 'ready' && markerProperties.length === 0 && properties.length > 0 &&
       <p className="absolute bottom-28 left-4 right-4 bg-white/90 dark:bg-inmo-darkcard/90 rounded-2xl p-3 text-xs font-inter text-inmo-secondary dark:text-white text-center shadow-soft">
@@ -127,21 +108,15 @@ function InnerMap({ properties, onMarkerClick, isDarkMode, token }: {
 }
 
 export function MapTemplate(_props: MapTemplateProps) {
-  const { isDarkMode } = useAppContext();
-  const [activeFilter, setActiveFilter] = useState<PropertyCategory | null>(null);
-  const [extraCriteria, setExtraCriteria] = useState<CriteriosBusqueda>({});
+  const { isDarkMode, globalFilters, setGlobalFilters, setGlobalSearchQuery } = useAppContext();
+
   const [searchMode, setSearchMode] = useState<'filters' | 'text'>('filters');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const types = useGetCatalog('tipos');
-  const typeId = activeFilter === null
-    ? undefined
-    : types.data?.find((item) => item.codigo.toLowerCase() === activeFilter)?.id;
-  const criteria: CriteriosBusqueda = {
-    ...extraCriteria,
-    ...(typeId ? { tipo_id: typeId } : {}),
-  };
+  const activeFilter = (types.data?.find(item => item.id === globalFilters?.tipo_id)?.codigo.toLowerCase() ?? null) as PropertyCategory | null;
+  const criteria = globalFilters ?? {};
   const search = useSearchInfinite(criteria, searchMode === 'filters');
   const chatbot = useChatbotQuery();
   const textSearch = useSearchInfinite(chatbotCriteria(chatbot.data), searchMode === 'text' && chatbot.data?.estado === 'RESULTADOS' && !chatbot.isPending);
@@ -153,12 +128,14 @@ export function MapTemplate(_props: MapTemplateProps) {
   const mapboxToken: string | undefined = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
 
   const handleFilterChange = (category: PropertyCategory | null) => {
-    setActiveFilter(category);
+    setGlobalFilters({ ...globalFilters, tipo_id: category === null ? undefined : types.data?.find(item => item.codigo.toLowerCase() === category)?.id });
+    setGlobalSearchQuery('');
     setSearchMode('filters');
     setSelectedPropertyId(null);
   };
   const applyFilters = (value: CriteriosBusqueda) => {
-    setExtraCriteria(value);
+    setGlobalFilters(value);
+    setGlobalSearchQuery('');
     setSearchMode('filters');
     setSelectedPropertyId(null);
     setIsFiltersOpen(false);
@@ -204,7 +181,7 @@ export function MapTemplate(_props: MapTemplateProps) {
           <CategoryPills activeFilter={activeFilter} onSelectFilter={handleFilterChange} className="flex-1 m-0" />
           <FloatingFilterButton onClick={() => setIsFiltersOpen(!isFiltersOpen)} size="small" />
         </div>
-        <FilterDropdown isOpen={isFiltersOpen && !isSheetOpen} onApply={applyFilters} className="max-w-md md:origin-top-left" />
+        <FilterDropdown onClose={() => setIsFiltersOpen(false)} isOpen={isFiltersOpen && !isSheetOpen} onApply={applyFilters} className="max-w-md md:origin-top-left" />
         {isError && <p role="alert" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-inmo-danger shadow-soft">No pudimos cargar las propiedades.</p>}
         {searchMode === 'text' && chatbot.data?.aclaracion && <p role="status" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-gray-600 dark:text-gray-300 shadow-soft">{chatbot.data.aclaracion}</p>}
       </div>

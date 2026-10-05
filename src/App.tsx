@@ -83,7 +83,7 @@ function AppRoutes() {
           {/* RUTAS PUBLICAS (CON LAYOUT) */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<SplitLandingTemplate />} />
-            <Route path="/inmuebles" element={<ProtectedRoute allowedRoles={['asesor', 'admin']}><SplitLandingTemplate /></ProtectedRoute>} />
+            <Route path="/inmuebles" element={<SplitLandingTemplate />} />
             <Route path="/map" element={<MapTemplate />} />
             <Route path="/asesores/:id" element={<PublicAdvisor />} />
             <Route path="/favorites" element={<FavoritesTemplate />} />

@@ -77,6 +77,7 @@ export interface PropiedadPublica {
   colonia?: string | null;
   codigo_postal?: string | null;
   zona_geojson?: Record<string, unknown> | null;
+  sector?: Sector | null;
 }
 
 export type PaginaPropiedadPublica = Pagina<PropiedadPublica>;
@@ -159,7 +160,10 @@ export interface AutorizacionFotografia {
   expira_at: string;
 }
 
+export type Sector = 'NORTE' | 'SUR' | 'ESTE' | 'OESTE';
+
 export interface CriteriosBusqueda {
+  sector?: Sector;
   tipo_id?: Id;
   operacion_id?: Id;
   zona_id?: Id;

@@ -61,12 +61,12 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
     setIsMobileSearchOpen(false);
   };
 
-  const handleFilterApply = (filters: any) => {
+  const handleFilterApply = (filters: import('../../integrations/backend/types').CriteriosBusqueda) => {
     setGlobalFilters(filters);
+    setGlobalSearchQuery('');
     setIsFiltersOpen(false);
-    if (activeRoute !== 'home' && onNavigate) {
-      onNavigate('home');
-    }
+    setIsMobileSearchOpen(false);
+    onNavigate?.('inmuebles');
     scrollToTop();
   };
 
@@ -134,7 +134,8 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
           {/* Mobile Search Popover Wrapper */}
           <div
             ref={searchPopoverRef}
-            className={`absolute top-20 w-[calc(100%-3rem)] flex gap-2 items-center z-50 transition-all duration-300 transform origin-top ${
+            inert={!isMobileSearchOpen} aria-hidden={!isMobileSearchOpen}
+            className={`absolute top-20 w-[calc(100%-3rem)] flex md:hidden gap-2 items-center z-50 transition-all duration-300 transform origin-top ${
               isMobileSearchOpen ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 -translate-y-4 scale-95 pointer-events-none'
             }`}
           >
@@ -155,6 +156,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
             {/* Filter Button */}
             <div className="relative shrink-0">
               <IconButton
+                aria-label="Abrir filtros" aria-expanded={isFiltersOpen}
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                 icon={<SlidersHorizontal className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2} />}
                 variant="secondary"
@@ -162,6 +164,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
               />
               <FilterDropdown
                 isOpen={isFiltersOpen && isMobileSearchOpen}
+                onClose={() => setIsFiltersOpen(false)}
                 onApply={handleFilterApply}
               />
             </div>
@@ -250,8 +253,9 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 className="w-full !shadow-none border border-gray-200 dark:border-white/10"
               />
             </div>
-            <div className={`relative shrink-0 transition-all duration-500 ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
+            <div inert={activeRoute === 'map' || !isScrolled && activeRoute === 'home'} aria-hidden={activeRoute === 'map' || !isScrolled && activeRoute === 'home'} className={`relative shrink-0 transition-all duration-500 ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
               <IconButton
+                aria-label="Abrir filtros" aria-expanded={isFiltersOpen}
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                 icon={<SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />}
                 variant="secondary"
@@ -259,6 +263,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
               />
               <FilterDropdown
                 isOpen={isFiltersOpen && !isMobileSearchOpen}
+                onClose={() => setIsFiltersOpen(false)}
                 onApply={handleFilterApply}
               />
             </div>
@@ -268,6 +273,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
           <div className="relative md:hidden flex items-center">
             <div className={`transition-all duration-300 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home') && !isMobileSearchOpen) ? 'opacity-100 scale-100 w-10' : 'opacity-0 scale-50 w-0 pointer-events-none'}`}>
               <IconButton
+                aria-label="Abrir búsqueda"
                 onClick={() => {
                   setIsMobileSearchOpen(!isMobileSearchOpen);
                   setIsUserMenuOpen(false); // Close other menu

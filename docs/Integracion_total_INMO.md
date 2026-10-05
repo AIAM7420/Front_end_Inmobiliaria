@@ -72,6 +72,8 @@ Entrega base del 2026-10-04: **24 pruebas unitarias** en 12 archivos; lint sin e
 
 Corrección posterior del alta de asesores, 2026-10-04: **32 unitarias y 42 pruebas de navegador aprobadas en cada frontend**, lint/build/PWA aprobados; **245 unitarias del backend** y Ruff del arnés aprobados. [Recorrido, contratos iniciales y nueva evidencia](Alta_asesor_verificacion.md). Las capturas de fidelidad de la entrega base se conservan como evidencia histórica; las seis nuevas capturas documentan documentos, revisión y planes del alta real.
 
+Corrección de filtros, sectores, mapas, chat y galería, 2026-10-05: [contratos, evidencia y resultados](Correcciones_filtros_mapas_chat_galeria.md). Esta actualización se entrega sólo en el frontend propio por indicación del usuario; la interfaz nueva de INMO copia se fusionará en una etapa posterior.
+
 Las pruebas de medios redirigen únicamente el transporte externo `objects.test` al almacenamiento del arnés local; autorización, hashes, confirmación, permisos, versiones, publicación, conversación y persistencia utilizan el backend real. Se comprobó explícitamente que no se manda JWT al PUT de objetos. El arnés no se registra en la aplicación productiva.
 
 Advertencias visibles: chunk Mapbox de aproximadamente 1,84 MB minificado, cargado por vistas de mapa; Recharts puede avisar tamaño cero al cerrar/montar un panel oculto en móvil. No hubo excepciones de página en la matriz de pantallas y los flujos de inventario comprueban ausencia de errores de consola. Los rechazos HTTP previstos por pruebas negativas no son fallos de aceptación.
