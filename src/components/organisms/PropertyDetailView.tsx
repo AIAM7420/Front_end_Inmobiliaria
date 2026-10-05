@@ -13,8 +13,10 @@ export interface PropertyDetailViewProps {
   /** Prototype flow: when controlled, the advisor profile replaces the detail inside the same panel. */
   showAsesorProfile?: boolean;
   onShowAsesorProfileChange?: (value: boolean) => void;
+  /** Skip the inline advisor profile (e.g. when the detail is shown on the advisor's own page). */
+  hideAdvisorProfile?: boolean;
 }
-export function PropertyDetailView({ propertyId, preview, layout = 'vertical', showAsesorProfile = false, onShowAsesorProfileChange }: PropertyDetailViewProps) {
+export function PropertyDetailView({ propertyId, preview, layout = 'vertical', showAsesorProfile = false, onShowAsesorProfileChange, hideAdvisorProfile = false }: PropertyDetailViewProps) {
   const query = useGetProperty(propertyId), property = query.data ?? preview;
   useEffect(() => { if (query.data?.id) void registerVisit(query.data.id).catch(() => { /* Measurement failure does not block a public view. */ }); }, [query.data?.id]);
   if (query.isPending && !property) return <Skeleton className="w-full h-[300px]" />;
@@ -26,6 +28,6 @@ export function PropertyDetailView({ propertyId, preview, layout = 'vertical', s
     <div className="shrink-0 px-4 pb-4 pt-2 flex justify-center">{contact}</div>
   </div>;
   return <PropertyDetailContent key={property.id} property={{ ...preview, ...property }} layout={layout} bottomBar={contact}>
-    {!controlled && <AsesorInlineProfile advisorId={property.asesor_id} />}
+    {!controlled && !hideAdvisorProfile && <AsesorInlineProfile advisorId={property.asesor_id} />}
   </PropertyDetailContent>;
 }
