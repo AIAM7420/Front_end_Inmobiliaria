@@ -84,7 +84,13 @@ export const AsesorPublicProfileTemplate = () => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const properties = useMemo(() => portfolio.data?.pages.flatMap(page => page.items) ?? [], [portfolio.data]);
-  const typeId = category ? types.data?.find(item => item.codigo.toLowerCase() === category)?.id : undefined;
+  const typeId = category
+    ? types.data?.find(item => {
+        const itemCode = item.codigo.toLowerCase().replace(/[-_ ]/g, '');
+        const filterCode = category.toLowerCase().replace(/[-_ ]/g, '');
+        return itemCode === filterCode || item.codigo.toLowerCase() === category.toLowerCase();
+      })?.id
+    : undefined;
   const hasFilters = query.trim() !== '' || category !== null || Object.values(criteria).some(Boolean);
   const visible = useMemo(() => properties.filter(property => matchesFilters(property, query, typeId, criteria)), [properties, query, typeId, criteria]);
   const selectedProperty = properties.find(property => property.id === selectedPropertyId);
