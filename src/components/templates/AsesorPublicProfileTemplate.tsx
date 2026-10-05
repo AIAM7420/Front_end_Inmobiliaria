@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, CheckCircle2, Share2, MapPin, Grid, List, SearchX, User, MessageCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Share2, MapPin, Grid, List, SearchX, User, MessageCircle, SlidersHorizontal } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { useCreateConversation } from '../../integrations/backend/hooks/useChat';
 import { useGetOwnAdvisor } from '../../integrations/backend/hooks/useAdvisors';
 import { IconButton } from '../atoms/IconButton';
 import { Button } from '../atoms/Button';
-import { FloatingFilterButton } from '../atoms/FloatingFilterButton';
 import { SearchBar } from '../molecules/SearchBar';
 import { CategoryPills } from '../molecules/CategoryPills';
 import type { PropertyCategory } from '../molecules/CategoryPills';
@@ -114,20 +113,78 @@ export const AsesorPublicProfileTemplate = () => {
     }
   };
 
-  const toolbar = (
-    <div className="shrink-0 flex flex-col gap-3 pb-4 w-full">
-      <div className="flex items-center gap-3 w-full">
-        <SearchBar value={query} onChange={setQuery} placeholder="Buscar en este portafolio..." size="slim" glass={false} className="flex-1 min-w-0" />
-        <FloatingFilterButton onClick={() => setIsFiltersOpen(open => !open)} size="small" />
+  const catalogHeader = (
+    <div className="w-full shrink-0 flex justify-between items-start md:items-center mb-4 md:mb-5">
+      <div className="flex flex-col">
+        <h1 className="font-montserrat font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white border-l-4 border-inmo-accent pl-3">
+          Portafolio
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 font-inter text-xs md:text-sm mt-1 pl-4">
+          {advisor.data?.nombre_comercial ? `Propiedades disponibles de ${advisor.data.nombre_comercial}` : 'Propiedades disponibles en este catálogo'}
+        </p>
       </div>
-      <div className="flex items-center justify-between gap-3 w-full">
-        <CategoryPills activeFilter={category} onSelectFilter={setCategory} className="flex-1 m-0 min-w-0" />
-        <div className="hidden md:flex gap-2 shrink-0">
-          <IconButton aria-label="Ver cuadrícula" onClick={() => setDisplay('grid')} icon={<Grid className={`w-4 h-4 ${display === 'grid' ? 'text-inmo-accent' : 'text-gray-400'}`} />} variant="ghost" className={`!p-1.5 !rounded-md ${display === 'grid' ? '!bg-inmo-accent/10' : 'hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary'}`} />
-          <IconButton aria-label="Ver lista" onClick={() => setDisplay('list')} icon={<List className={`w-4 h-4 ${display === 'list' ? 'text-inmo-accent' : 'text-gray-400'}`} />} variant="ghost" className={`!p-1.5 !rounded-md ${display === 'list' ? '!bg-inmo-accent/10' : 'hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary'}`} />
+
+      <div className="flex items-center gap-2 md:gap-3">
+        {!portfolio.isPending && !portfolio.isError && (
+          <span className="font-inter text-xs md:text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-gray-200/60 dark:border-white/10 whitespace-nowrap">
+            {hasFilters ? `${visible.length} de ${properties.length}` : properties.length}
+            {properties.length === 1 ? ' propiedad' : ' propiedades'}
+          </span>
+        )}
+
+        <div className="hidden md:flex items-center gap-1 bg-gray-100 dark:bg-white/5 p-1 rounded-xl border border-gray-200/60 dark:border-white/10">
+          <IconButton
+            aria-label="Ver cuadrícula"
+            onClick={() => setDisplay('grid')}
+            icon={<Grid className={`w-4 h-4 ${display === 'grid' ? 'text-inmo-accent' : 'text-gray-400'}`} />}
+            variant="ghost"
+            className={`!w-8 !h-8 !p-0 !rounded-lg transition-colors ${display === 'grid' ? '!bg-white dark:!bg-inmo-darkcard shadow-sm text-inmo-accent' : 'hover:!bg-white/50 text-gray-400'}`}
+          />
+          <IconButton
+            aria-label="Ver lista"
+            onClick={() => setDisplay('list')}
+            icon={<List className={`w-4 h-4 ${display === 'list' ? 'text-inmo-accent' : 'text-gray-400'}`} />}
+            variant="ghost"
+            className={`!w-8 !h-8 !p-0 !rounded-lg transition-colors ${display === 'list' ? '!bg-white dark:!bg-inmo-darkcard shadow-sm text-inmo-accent' : 'hover:!bg-white/50 text-gray-400'}`}
+          />
         </div>
       </div>
-      <FilterDropdown isOpen={isFiltersOpen} onApply={value => { setCriteria(value); setIsFiltersOpen(false); }} className="md:origin-top-left" />
+    </div>
+  );
+
+  const toolbar = (
+    <div className="w-full shrink-0 flex flex-col gap-3 mb-5">
+      <div className="flex items-center gap-3 w-full">
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar por título, colonia o palabras clave..."
+          size="slim"
+          glass={false}
+          className="flex-1 shadow-sm"
+        />
+        <IconButton
+          aria-label="Filtrar propiedades"
+          onClick={() => setIsFiltersOpen(open => !open)}
+          icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
+          variant="secondary"
+          className={`w-[44px] h-[44px] !rounded-[14px] border !shadow-sm transition-all shrink-0 ${
+            isFiltersOpen || Object.values(criteria).some(Boolean)
+              ? '!bg-inmo-accent !text-white border-transparent shadow-glow'
+              : '!bg-white dark:!bg-inmo-darkcard border-gray-100 dark:border-white/10 hover:!bg-gray-50 dark:hover:!bg-inmo-darktertiary text-inmo-secondary dark:text-white'
+          }`}
+        />
+      </div>
+
+      <div className="bg-gray-100/80 dark:bg-white/5 rounded-2xl p-2.5 md:p-3 flex items-center justify-between gap-3">
+        <CategoryPills activeFilter={category} onSelectFilter={setCategory} className="flex-1 m-0 min-w-0" />
+      </div>
+
+      <FilterDropdown
+        isOpen={isFiltersOpen}
+        onApply={value => { setCriteria(value); setIsFiltersOpen(false); }}
+        className="origin-top"
+      />
     </div>
   );
 
@@ -156,18 +213,11 @@ export const AsesorPublicProfileTemplate = () => {
     </>
   );
 
-  const catalogHeader = (
-    <div className="shrink-0 flex items-end justify-between mb-4">
-      <h2 className="font-montserrat font-bold text-xl md:text-2xl text-inmo-secondary dark:text-white">Portafolio</h2>
-      {!portfolio.isPending && !portfolio.isError && <span className="font-inter text-sm text-gray-500 dark:text-gray-400">{hasFilters ? `${visible.length} de ${properties.length}` : properties.length}{properties.length === 1 ? ' propiedad' : ' propiedades'}</span>}
-    </div>
-  );
-
   return (
-    <div className="h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden bg-gray-50 dark:bg-inmo-darkbg relative">
+    <div className="h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden bg-gray-50 dark:bg-inmo-darkbg relative pt-3 md:pt-[100px] pb-4 px-3 md:px-6 gap-4 md:gap-6">
 
       {/* Columna Izquierda: Split Card del Asesor (Visualmente consistente con el SplitViewLayout) */}
-      <aside className="w-full md:w-[32%] lg:w-[30%] xl:w-[30%] h-full min-h-0 flex flex-col shrink-0 pt-3 md:pt-[100px] pb-4 px-3 md:px-4 md:pl-6 relative z-20">
+      <aside className="w-full md:w-[32%] lg:w-[30%] xl:w-[28%] 2xl:w-[26%] h-full min-h-0 flex flex-col shrink-0 relative z-20">
         <div className="w-full h-full rounded-card overflow-hidden flex flex-col relative bg-white dark:bg-inmo-darkcard shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-inmo-darktertiary">
           
           {/* Header con Controles del Split */}
@@ -331,11 +381,18 @@ export const AsesorPublicProfileTemplate = () => {
         </div>
       </aside>
 
-      {/* Right: portfolio (desktop). Extended to fill full width smoothly without excessive blank margins. */}
-      <section className="hidden md:flex flex-1 min-w-0 h-full flex-col pt-[100px] pb-4 pr-4 md:pr-6 pl-2">
+      {/* Right: portfolio (desktop). Organizado con la estructura consistente del main layout */}
+      <section className="hidden md:flex flex-1 min-w-0 h-full flex-col">
         {selectedProperty ? (
-          <div className="flex flex-col h-full min-h-0 gap-2">
-            <Button variant="ghost" icon={<ArrowLeft className="w-4 h-4" />} className="self-start shrink-0" onClick={() => setSelectedPropertyId(null)}>Volver al portafolio</Button>
+          <div className="flex flex-col h-full min-h-0 gap-3">
+            <Button
+              variant="ghost"
+              icon={<ArrowLeft className="w-4 h-4 text-current" />}
+              className="self-start shrink-0 !rounded-full text-inmo-secondary dark:text-white hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary"
+              onClick={() => setSelectedPropertyId(null)}
+            >
+              Volver al portafolio
+            </Button>
             <div className="flex-1 min-h-0 rounded-card overflow-hidden bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)]">
               <PropertyDetailView propertyId={selectedProperty.id} preview={selectedProperty} layout="horizontal" hideAdvisorProfile />
             </div>
@@ -344,7 +401,9 @@ export const AsesorPublicProfileTemplate = () => {
           <div className="w-full h-full flex flex-col min-h-0">
             {catalogHeader}
             {toolbar}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar pb-6 pr-1">{results}</div>
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar pb-6 pr-1">
+              {results}
+            </div>
           </div>
         )}
       </section>
@@ -356,11 +415,21 @@ export const AsesorPublicProfileTemplate = () => {
           onClose={() => { setIsCatalogOpen(false); setSelectedPropertyId(null); }}
           onBack={selectedProperty ? () => setSelectedPropertyId(null) : undefined}
           title={selectedProperty ? undefined : 'Portafolio'}
-          noPadding={Boolean(selectedProperty)} isHero={Boolean(selectedProperty)} fullHeight={Boolean(selectedProperty)}
+          noPadding={Boolean(selectedProperty)}
+          isHero={Boolean(selectedProperty)}
+          fullHeight={Boolean(selectedProperty)}
         >
-          {selectedProperty
-            ? <div className="w-full h-full overflow-hidden flex flex-col"><PropertyDetailView propertyId={selectedProperty.id} preview={selectedProperty} layout="vertical" hideAdvisorProfile /></div>
-            : <div className="px-5 pb-8">{catalogHeader}{toolbar}{results}</div>}
+          {selectedProperty ? (
+            <div className="w-full h-full overflow-hidden flex flex-col">
+              <PropertyDetailView propertyId={selectedProperty.id} preview={selectedProperty} layout="vertical" hideAdvisorProfile />
+            </div>
+          ) : (
+            <div className="px-4 pb-8 flex flex-col gap-4">
+              {catalogHeader}
+              {toolbar}
+              {results}
+            </div>
+          )}
         </BottomSheet>
       </div>
     </div>
