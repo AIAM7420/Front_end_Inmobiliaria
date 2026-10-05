@@ -40,7 +40,6 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [searchDraft, setSearchDraft] = useState(globalSearchQuery);
 
   const scrollToTop = () => {
@@ -73,23 +72,62 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
   const headerRef = React.useRef<HTMLDivElement>(null);
   const searchPopoverRef = React.useRef<HTMLDivElement>(null);
 
+  const [hasInPageSearch, setHasInPageSearch] = useState(false);
+
   useEffect(() => {
+    const checkInPageSearch = () => {
+      // Find search inputs in the page that are NOT inside the header or mobile search popover
+      const allSearchInputs = Array.from(
+        document.querySelectorAll<HTMLInputElement>('input[type="text"], input[type="search"]')
+      ).filter(input => {
+        if (headerRef.current?.contains(input)) return false;
+        if (searchPopoverRef.current?.contains(input)) return false;
+        const ph = (input.placeholder || '').toLowerCase();
+        const aria = (input.getAttribute('aria-label') || '').toLowerCase();
+        return ph.includes('buscar') || aria.includes('buscar') || input.closest('[data-search-bar]') !== null || input.type === 'search';
+      });
+
+      if (allSearchInputs.length === 0) {
+        setHasInPageSearch(false);
+        return;
+      }
+
+      // Check if any in-page search bar is currently visible in viewport
+      const isAnyVisible = allSearchInputs.some(el => {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
+        const isDisplayed = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        const inViewport = rect.bottom > 80 && rect.top < window.innerHeight && rect.width > 0 && rect.height > 0;
+        return isDisplayed && inViewport;
+      });
+
+      setHasInPageSearch(isAnyVisible);
+    };
+
+    checkInPageSearch();
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 150);
+      checkInPageSearch();
     };
 
-    const handleCustomScroll = (e: Event) => {
-      const customEvent = e as CustomEvent<{ scrollY: number }>;
-      setIsScrolled(customEvent.detail.scrollY > 150);
+    const handleCustomScroll = () => {
+      checkInPageSearch();
     };
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('app-scroll', handleCustomScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('app-scroll', handleCustomScroll, { passive: true });
+    window.addEventListener('resize', checkInPageSearch, { passive: true });
+
+    const observer = new MutationObserver(checkInPageSearch);
+    observer.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('app-scroll', handleCustomScroll);
+      window.removeEventListener('resize', checkInPageSearch);
+      observer.disconnect();
     };
-  }, []);
+  }, [activeRoute]);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
@@ -124,6 +162,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
   }, []);
 
   const currentNavItems = navigationFor(role || 'public', isAuthenticated);
+  const showSearchInHeader = activeRoute !== 'map' && !hasInPageSearch;
 
   return (
     <div ref={headerRef} className="fixed md:sticky top-3 md:top-6 z-50 md:z-30 px-6 w-full md:mb-6 pointer-events-none">
@@ -238,8 +277,8 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
         <div className="relative z-20 flex gap-2 md:gap-3 items-center min-w-0 md:max-w-[calc(50%-2rem)]">
 
           {/* Desktop Floating Search Wrapper */}
-          <div className={`hidden md:flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] origin-right ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'opacity-100 scale-100 mr-2 pointer-events-auto' : 'opacity-0 scale-95 mr-0 pointer-events-none'}`}>
-            <div className={`transition-all duration-500 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-40 xl:w-80' : 'w-0'}`}>
+          <div className={`hidden md:flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] origin-right ${showSearchInHeader ? 'opacity-100 scale-100 mr-2 pointer-events-auto' : 'opacity-0 scale-95 mr-0 pointer-events-none'}`}>
+            <div className={`transition-all duration-500 overflow-hidden ${showSearchInHeader ? 'w-40 xl:w-80' : 'w-0'}`}>
               <SearchBar
                 value={searchDraft}
                 onChange={setSearchDraft}
@@ -250,7 +289,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 className="w-full !shadow-none border border-gray-200 dark:border-white/10"
               />
             </div>
-            <div className={`relative shrink-0 transition-all duration-500 ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home')) ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
+            <div className={`relative shrink-0 transition-all duration-500 ${showSearchInHeader ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
               <IconButton
                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                 icon={<SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />}
@@ -266,7 +305,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
 
           {/* Mobile Search Button */}
           <div className="relative md:hidden flex items-center">
-            <div className={`transition-all duration-300 overflow-hidden ${(activeRoute !== 'map' && (isScrolled || activeRoute !== 'home') && !isMobileSearchOpen) ? 'opacity-100 scale-100 w-10' : 'opacity-0 scale-50 w-0 pointer-events-none'}`}>
+            <div className={`transition-all duration-300 overflow-hidden ${(showSearchInHeader && !isMobileSearchOpen) ? 'opacity-100 scale-100 w-10' : 'opacity-0 scale-50 w-0 pointer-events-none'}`}>
               <IconButton
                 onClick={() => {
                   setIsMobileSearchOpen(!isMobileSearchOpen);

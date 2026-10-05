@@ -155,14 +155,14 @@ export const AsesorPublicProfileTemplate = () => {
   const toolbar = (
     <div className="w-full shrink-0 flex flex-col gap-3 mb-5">
       <div className="flex flex-wrap lg:flex-nowrap items-center gap-2.5 md:gap-3 w-full">
-        {/* Buscador con tamaño reducido */}
+        {/* Buscador extendido */}
         <SearchBar
           value={query}
           onChange={setQuery}
           placeholder="Buscar en este portafolio..."
           size="slim"
           glass={false}
-          className="w-full sm:w-[240px] md:w-[260px] lg:w-[280px] xl:w-[300px] shrink-0 shadow-sm"
+          className="flex-1 min-w-[200px] shadow-sm"
         />
 
         {/* Botón de filtros avanzados */}
