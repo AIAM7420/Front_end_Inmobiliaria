@@ -167,14 +167,6 @@ function InnerMap({ properties, typesData, onMarkerClick, isDarkMode, token }: {
     if (source) source.setData(areas);
     else {
       map.addSource('approximate-property-areas', { type: 'geojson', data: areas });
-      /* /* map.addLayer({
-        id: 'approximate-property-areas-fill', type: 'fill', source: 'approximate-property-areas',
-        paint: { 'fill-color': '#fe0a52', 'fill-opacity': 0.14 },
-      }); */
-      map.addLayer({
-        id: 'approximate-property-areas-outline', type: 'line', source: 'approximate-property-areas',
-        paint: { 'line-color': '#fe0a52', 'line-width': 1.5 },
-      }); */
     }
       }, [properties, status]);
 
