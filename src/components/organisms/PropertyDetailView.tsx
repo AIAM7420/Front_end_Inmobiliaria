@@ -24,10 +24,9 @@ export function PropertyDetailView({ propertyId, preview, layout = 'vertical', s
   const controlled = Boolean(onShowAsesorProfileChange);
   const contact = <AdvisorContact propertyId={property.id} advisorId={property.asesor_id} onProfileClick={controlled ? () => onShowAsesorProfileChange?.(true) : undefined} />;
   if (controlled && showAsesorProfile) return <div className="flex flex-col h-full w-full bg-white dark:bg-inmo-darkcard overflow-hidden">
-    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-6 pt-4"><AsesorInlineProfile advisorId={property.asesor_id} /></div>
-    <div className="shrink-0 px-4 pb-4 pt-2 flex justify-center">{contact}</div>
+    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 sm:p-6"><AsesorInlineProfile advisorId={property.asesor_id} propertyId={property.id} /></div>
   </div>;
   return <PropertyDetailContent key={property.id} property={{ ...preview, ...property }} layout={layout} bottomBar={contact}>
-    {!controlled && !hideAdvisorProfile && <AsesorInlineProfile advisorId={property.asesor_id} />}
+    {!controlled && !hideAdvisorProfile && <AsesorInlineProfile advisorId={property.asesor_id} propertyId={property.id} />}
   </PropertyDetailContent>;
 }

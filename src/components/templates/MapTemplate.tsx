@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { Globe, CloudOff, RefreshCw, MapPinOff } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
@@ -192,14 +193,25 @@ function InnerMap({ properties, typesData, onMarkerClick, isDarkMode, token }: {
 
 export function MapTemplate(_props: MapTemplateProps) {
   const { isDarkMode } = useAppContext();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const paramPropiedad = searchParams.get('propiedad');
+
   const [activeFilter, setActiveFilter] = useState<PropertyCategory | null>(null);
   const [extraCriteria, setExtraCriteria] = useState<CriteriosBusqueda>({});
   const [searchMode, setSearchMode] = useState<'filters' | 'text'>('filters');
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(paramPropiedad);
+  const [isSheetOpen, setIsSheetOpen] = useState(Boolean(paramPropiedad));
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isViewingProfile, setIsViewingProfile] = useState(false);
   const [lastText, setLastText] = useState('');
+
+  useEffect(() => {
+    if (paramPropiedad) {
+      setSelectedPropertyId(paramPropiedad);
+      setIsViewingProfile(false);
+      setIsSheetOpen(true);
+    }
+  }, [paramPropiedad]);
   const types = useGetCatalog('tipos');
   const typeId = activeFilter === null
     ? undefined
@@ -252,17 +264,36 @@ export function MapTemplate(_props: MapTemplateProps) {
     setSelectedPropertyId(null);
     setIsViewingProfile(false);
     setIsSheetOpen(true);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('propiedad');
+      return next;
+    }, { replace: true });
   };
   const showDetail = (id: string) => {
     setSelectedPropertyId(id);
     setIsViewingProfile(false);
     setIsSheetOpen(true);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('propiedad', id);
+      return next;
+    }, { replace: true });
+  };
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setIsViewingProfile(false);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('propiedad');
+      return next;
+    }, { replace: true });
   };
   const panelTitle = isViewingProfile ? 'Perfil del Asesor'
     : selectedPropertyId ? undefined
     : properties.length === 0 ? undefined
     : `${properties.length}${resultSearch.hasNextPage ? '+' : ''} Coincidencia${properties.length === 1 ? '' : 's'}`;
-  const sheetContent = selectedPropertyId && selected
+  const sheetContent = selectedPropertyId
     ? <div className="w-full h-full overflow-hidden flex flex-col"><PropertyDetailView propertyId={selectedPropertyId} preview={selected} layout="vertical" showAsesorProfile={isViewingProfile} onShowAsesorProfileChange={setIsViewingProfile} /></div>
     : <div className="grid gap-4 grid-cols-1">
         {isLoading ? Array.from({ length: 4 }).map((_, index) => <PropertyCardSkeleton key={index} />)
@@ -321,14 +352,14 @@ export function MapTemplate(_props: MapTemplateProps) {
     </div>
 
     <div className="md:hidden"><BottomSheet
-      isOpen={isSheetOpen} onClose={isViewingProfile ? undefined : () => setIsSheetOpen(false)}
+      isOpen={isSheetOpen} onClose={isViewingProfile ? undefined : handleCloseSheet}
       onBack={isViewingProfile ? () => setIsViewingProfile(false) : undefined}
       title={panelTitle}
       noPadding={Boolean(selectedPropertyId)} isHero={Boolean(selectedPropertyId) && !isViewingProfile}
       fullHeight={Boolean(selectedPropertyId)}
     >{sheetContent}</BottomSheet></div>
     <SidePanel
-      isOpen={isSheetOpen} onClose={isViewingProfile ? undefined : () => setIsSheetOpen(false)}
+      isOpen={isSheetOpen} onClose={isViewingProfile ? undefined : handleCloseSheet}
       onBack={isViewingProfile ? () => setIsViewingProfile(false) : undefined}
       title={panelTitle}
       noPadding={Boolean(selectedPropertyId)}
