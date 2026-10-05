@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const api = process.env.E2E_API_URL ?? 'http://127.0.0.1:8000/api/v1';
-const base = `http://127.0.0.1:${process.env.E2E_FRONTEND_PORT ?? '5173'}`;
+const base = `http://127.0.0.1:${process.env.E2E_FRONTEND_PORT ?? '5180'}`;
 
 test.beforeAll(async ({ request }) => {
   const response = await request.get(api.replace(/\/api\/v1$/, '') + '/health/ready');
