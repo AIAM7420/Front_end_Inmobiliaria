@@ -64,7 +64,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images, title = "Enc
   const realSlideIndex = getRealSlideIndex();
 
   return (
-    <div className="relative w-full h-[180px] md:h-[220px] rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm mt-1 md:mt-2">
+    <div className="relative w-full h-[180px] md:h-[220px] rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm mt-1 md:mt-2 bg-gradient-to-br from-inmo-secondary via-inmo-secondary to-inmo-accent/70">
       {/* Track del carrusel */}
       <div
         className={`flex h-full transform-gpu will-change-transform ${
@@ -83,12 +83,13 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images, title = "Enc
           >
             <img
               src={img}
-              alt="Propiedad"
+              alt=""
               className="absolute inset-0 w-full h-full object-cover"
               draggable={false}
               fetchPriority={idx === 1 ? 'high' : 'auto'}
               loading={idx === 1 ? 'eager' : 'lazy'}
               decoding={idx === 1 ? 'sync' : 'async'}
+              onError={event => { event.currentTarget.style.visibility = 'hidden'; }}
             />
           </div>
         ))}
