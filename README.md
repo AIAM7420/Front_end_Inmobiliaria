@@ -6,6 +6,8 @@ Integración actual completa: [matriz de pantallas, contratos, procedencia, prue
 
 Alta de asesores: [cuenta → correo → documentos → aprobación → suscripción → panel](./docs/Alta_asesor_verificacion.md). El expediente pendiente se completa desde `/registro-asesor` antes de acceder al panel profesional.
 
+Si la PWA conserva una pantalla anterior, consulta [actualización del frontend y prueba con build productivo](./docs/Actualizacion_PWA_alta.md).
+
 ## Local
 
 Configura `VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1` en `.env.local`

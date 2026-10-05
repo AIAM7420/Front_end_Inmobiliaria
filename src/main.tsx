@@ -6,12 +6,13 @@ import App from './App';
 import { ToastProvider } from './context/ToastContext';
 import { AppProvider } from './context/AppContext';
 import { queryClient } from './integrations/backend/queryClient';
+import { ApplicationUpdateNotice } from './components/organisms/ApplicationUpdateNotice';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <ToastProvider><App /></ToastProvider>
+        <ToastProvider><App /><ApplicationUpdateNotice /></ToastProvider>
       </AppProvider>
     </QueryClientProvider>
   </StrictMode>

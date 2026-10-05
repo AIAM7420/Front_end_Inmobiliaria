@@ -4,7 +4,7 @@ const api = process.env.E2E_API_URL ?? 'http://127.0.0.1:8000/api/v1';
 
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: '**/local-pilot.spec.ts',
+  testIgnore: ['**/local-pilot.spec.ts', '**/pwa-release.spec.ts'],
   workers: 1,
   retries: 0,
   reporter: 'list',

@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test": "vitest run src --environment jsdom",
     "test:e2e": "playwright test",
+    "test:pwa": "playwright test --config playwright.production.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {

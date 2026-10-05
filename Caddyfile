@@ -5,6 +5,8 @@
   header X-Content-Type-Options "nosniff"
   @serviceWorker path /sw.js /registerSW.js /manifest.webmanifest
   header @serviceWorker Cache-Control "no-cache"
+  @appShell not path /assets/* /inmo.png /icon.svg /pwa-192x192.png /pwa-512x512.png
+  header @appShell Cache-Control "no-cache"
   try_files {path} /index.html
   file_server
 }
