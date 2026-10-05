@@ -8,6 +8,8 @@ Alta de asesores: [cuenta → correo → documentos → aprobación → suscripc
 
 Si la PWA conserva una pantalla anterior, consulta [actualización del frontend y prueba con build productivo](./docs/Actualizacion_PWA_alta.md).
 
+Correcciones actuales: [filtros, sectores, mapas, chat y galería](./docs/Correcciones_filtros_mapas_chat_galeria.md).
+
 ## Local
 
 Configura `VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1` en `.env.local`

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { PropertyDetailContent } from './PropertyDetailContent';
 import type { PropiedadPublica } from '../../integrations/backend/types';
@@ -32,4 +32,21 @@ it('only professionals see commission even if injected into a public response', 
   context.role = 'asesor';
   result.rerender(<PropertyDetailContent property={shared} />);
   expect(screen.getByText('Comisión compartida: 2.5%')).toBeTruthy();
+});
+
+for (const count of [0, 1, 3]) it(`gallery with ${count} photos stays above property facts`, () => {
+  vi.mocked(useGetPhotos).mockReturnValueOnce({ data: Array.from({ length: count }, (_, index) => ({ id: String(index + 1), posicion: index, mime: 'image/jpeg', tamano_bytes: 42 })), isLoading: false } as unknown as ReturnType<typeof useGetPhotos>);
+  render(<PropertyDetailContent property={property} />);
+  const gallery = screen.getByLabelText('Galería de fotografías');
+  expect(gallery.compareDocumentPosition(screen.getByRole('heading', { name: property.titulo }))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  expect(screen.queryAllByRole('button', { name: /Mostrar fotografía/ })).toHaveLength(count);
+});
+
+it('selects another gallery image without moving the gallery below the description', () => {
+  const photos = { data: [{ id: '1', posicion: 0 }, { id: '2', posicion: 1 }], isLoading: false };
+  vi.mocked(useGetPhotos).mockReturnValue(photos as unknown as ReturnType<typeof useGetPhotos>);
+  render(<PropertyDetailContent property={property} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Mostrar fotografía 2' }));
+  expect(screen.getByRole('button', { name: 'Mostrar fotografía 2' }).getAttribute('aria-pressed')).toBe('true');
+  vi.mocked(useGetPhotos).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useGetPhotos>);
 });
