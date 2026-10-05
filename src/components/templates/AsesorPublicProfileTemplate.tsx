@@ -49,8 +49,10 @@ export const AsesorPublicProfileTemplate = () => {
   const handleBack = () => {
     if (fromProperty) {
       navigate(`${fromPath}?propiedad=${encodeURIComponent(fromProperty)}`);
-    } else {
+    } else if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
+    } else {
+      navigate('/');
     }
   };
   const advisor = usePublicAdvisor(id), portfolio = usePortfolio(id), types = useGetCatalog('tipos');
@@ -87,6 +89,7 @@ export const AsesorPublicProfileTemplate = () => {
   const hasFilters = query.trim() !== '' || category !== null || Object.values(criteria).some(Boolean);
   const visible = useMemo(() => properties.filter(property => matchesFilters(property, query, typeId, criteria)), [properties, query, typeId, criteria]);
   const selectedProperty = properties.find(property => property.id === selectedPropertyId);
+  const year = advisor.data?.incorporado_at ? new Date(advisor.data.incorporado_at).getFullYear() : null;
 
   // With an active filter, pull the remaining pages so results are not limited to what was loaded so far.
   const { hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = portfolio;
@@ -161,130 +164,179 @@ export const AsesorPublicProfileTemplate = () => {
   );
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden bg-white dark:bg-inmo-darkbg relative">
+    <div className="h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden bg-gray-50 dark:bg-inmo-darkbg relative">
 
-      {/* Left: advisor profile (occupies vertical space with expanding hero photo and bottom-anchored info). */}
-      <aside className="w-full md:w-[32%] lg:w-[28%] xl:w-[25%] md:min-w-[340px] md:max-w-[420px] h-full min-h-0 flex flex-col shrink-0 pt-3 md:pt-[88px] md:pl-6 md:pr-4 border-r border-gray-100 dark:border-inmo-darktertiary/40 relative z-20">
-        <div className="shrink-0 px-4 md:px-0 pb-3 flex items-center justify-between gap-2">
-          <IconButton aria-label="Volver" icon={<ArrowLeft className="w-5 h-5 text-inmo-secondary dark:text-white" />} onClick={handleBack} variant="ghost" className="!p-2 !rounded-full !bg-white/50 dark:!bg-black/20 hover:!bg-white/70 dark:hover:!bg-black/40 backdrop-blur-md" />
-          <span className="font-montserrat font-semibold text-lg text-inmo-secondary dark:text-white">Perfil del Asesor</span>
-          <IconButton aria-label="Compartir perfil" onClick={() => void share()} icon={<Share2 className="w-5 h-5 text-inmo-secondary dark:text-white" />} variant="ghost" className="!p-2 !rounded-full !bg-white/50 dark:!bg-black/20 hover:!bg-white/70 dark:hover:!bg-black/40 backdrop-blur-md" />
-        </div>
-
-        {(advisor.isPending || isWireframeMode) ? (
-          <div className="flex-1 min-h-0 flex flex-col justify-between px-4 md:px-0 pb-6 overflow-y-auto custom-scrollbar animate-pulse">
-            <Skeleton className="w-full flex-1 min-h-[220px] max-h-[46vh] rounded-[28px]" variant="rectangular" />
-            <div className="shrink-0 space-y-4 pt-4">
-              <div className="space-y-2">
-                <Skeleton className="w-44 h-7 rounded-lg" variant="text" />
-                <Skeleton className="w-28 h-4 rounded-md" variant="text" />
-              </div>
-              <div className="space-y-1.5">
-                <Skeleton className="w-full h-4" variant="text" />
-                <Skeleton className="w-4/5 h-4" variant="text" />
-              </div>
-              <div className="flex gap-4">
-                <Skeleton className="w-24 h-6 rounded-md" variant="text" />
-                <Skeleton className="w-24 h-6 rounded-md" variant="text" />
-              </div>
-              <Skeleton className="w-full h-12 rounded-full mt-2" variant="rectangular" />
-            </div>
+      {/* Columna Izquierda: Split Card del Asesor (Visualmente consistente con el SplitViewLayout) */}
+      <aside className="w-full md:w-[32%] lg:w-[30%] xl:w-[30%] h-full min-h-0 flex flex-col shrink-0 pt-3 md:pt-[100px] pb-4 px-3 md:px-4 md:pl-6 relative z-20">
+        <div className="w-full h-full rounded-card overflow-hidden flex flex-col relative bg-white dark:bg-inmo-darkcard shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-inmo-darktertiary">
+          
+          {/* Header con Controles del Split */}
+          <div className="shrink-0 px-4 py-3 flex items-center justify-between border-b border-gray-100 dark:border-inmo-darktertiary/40">
+            <IconButton
+              aria-label="Volver"
+              icon={<ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.5} />}
+              onClick={handleBack}
+              variant="secondary"
+              className="!w-10 !h-10 !p-0 !bg-white/90 dark:!bg-inmo-darkcard/90 backdrop-blur-md hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary !shadow-sm !rounded-full transition-colors border border-gray-100 dark:border-white/10"
+            />
+            <span className="font-montserrat font-semibold text-base md:text-lg text-inmo-secondary dark:text-white">
+              Perfil del Asesor
+            </span>
+            <IconButton
+              aria-label="Compartir perfil"
+              onClick={() => void share()}
+              icon={<Share2 className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.5} />}
+              variant="secondary"
+              className="!w-10 !h-10 !p-0 !bg-white/90 dark:!bg-inmo-darkcard/90 backdrop-blur-md hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary !shadow-sm !rounded-full transition-colors border border-gray-100 dark:border-white/10"
+            />
           </div>
-        ) : (
-          <div className="flex-1 min-h-0 flex flex-col justify-between px-4 md:px-0 pb-6 overflow-y-auto custom-scrollbar overscroll-contain animate-in fade-in duration-300">
-            {/* Hero photo: Expands vertically to fill available space */}
-            <div className="relative shrink-0 md:shrink w-full flex-1 min-h-[220px] max-h-[46vh] rounded-[28px] overflow-hidden shadow-sm group bg-gray-100 dark:bg-inmo-darkcard">
-              <img src={advisor.data?.fotografia_url ?? '/avatar-placeholder.svg'} alt={advisor.data?.nombre_comercial ?? 'Foto del Asesor'} className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
-            </div>
 
-            {advisor.isError && <p role="alert" className="text-sm text-inmo-danger mt-2">{operationError(advisor.error)}</p>}
-            {shareError && <p role="status" className="text-xs text-gray-500 mt-1">{shareError}</p>}
-
-            {/* Bottom info section */}
-            <div className="shrink-0 space-y-4 pt-4">
-              <div className="flex flex-col items-start text-left">
-                <h1 className="font-montserrat font-bold text-2xl text-inmo-secondary dark:text-white flex items-center gap-2">
-                  {advisor.data?.nombre_comercial ?? 'Asesor'}
-                  {advisor.data?.validado && <CheckCircle2 aria-label="Asesor validado" className="w-5 h-5 text-inmo-accent shrink-0" />}
-                </h1>
-                <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 mt-1">
-                  <MapPin className="w-4 h-4 text-inmo-accent shrink-0" />
-                  <span className="font-inter text-xs sm:text-sm">León, Guanajuato</span>
+          {/* Cuerpo del Split: Idéntico a AsesorInlineProfile */}
+          {(advisor.isPending || isWireframeMode) ? (
+            <div className="flex-1 min-h-0 flex flex-col p-4 sm:p-5 space-y-5 justify-center max-w-[460px] mx-auto w-full animate-pulse">
+              <div className="flex flex-col md:flex-row gap-4 sm:gap-5 w-full items-stretch">
+                <Skeleton className="w-full md:w-2/3 aspect-[4/4] sm:aspect-[4/5] md:aspect-[3/4] min-h-[220px] max-h-[360px] rounded-[28px]" />
+                <div className="hidden md:flex w-1/3 flex-col justify-around py-4">
+                  <Skeleton className="h-14 w-full rounded-xl" />
+                  <Skeleton className="h-14 w-full rounded-xl" />
                 </div>
               </div>
-
-              <p className="font-inter text-sm text-gray-600 dark:text-gray-300 leading-relaxed text-left line-clamp-3 sm:line-clamp-4">
-                {advisor.data?.descripcion ?? 'Este asesor todavía no ha añadido una descripción.'}
-              </p>
-
-              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400 pt-1 border-t border-gray-100 dark:border-inmo-darktertiary/40">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-montserrat font-black text-xl text-inmo-secondary dark:text-white">{advisor.data?.propiedades_publicas ?? '—'}</span>
-                  <span className="font-inter text-xs">Propiedades</span>
-                </div>
-                {advisor.data?.incorporado_at && (
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="font-montserrat font-black text-xl text-inmo-secondary dark:text-white">{new Date(advisor.data.incorporado_at).getFullYear()}</span>
-                    <span className="font-inter text-xs">Miembro</span>
+              <Skeleton className="h-7 w-2/3 rounded-lg" />
+              <Skeleton className="h-20 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-full" />
+            </div>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col justify-center p-3 sm:p-5">
+              <div className="flex-1 flex flex-col p-2 sm:p-3 space-y-5 justify-center max-w-[460px] mx-auto w-full">
+                {/* Top Section: Photo and KPIs (disposición front-only con foto más grande) */}
+                <div className="flex flex-col md:flex-row w-full items-stretch gap-4 sm:gap-5">
+                  {/* Photo */}
+                  <div className="w-full md:w-2/3 aspect-[4/4] sm:aspect-[4/5] md:aspect-[3/4] min-h-[220px] max-h-[360px] rounded-[28px] overflow-hidden shadow-sm relative shrink-0 bg-gray-100 dark:bg-inmo-darkbg group">
+                    <img
+                      src={advisor.data?.fotografia_url ?? '/avatar-placeholder.svg'}
+                      alt={advisor.data?.nombre_comercial ?? 'Foto del Asesor'}
+                      className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
                   </div>
-                )}
-              </div>
 
-              {/* Botones de acción: icono a la izquierda, color idéntico al texto, sin apilarse */}
-              <div className="pt-2 flex flex-row gap-3 w-full">
-                {isSelf ? (
-                  <Button
-                    variant="secondary"
-                    icon={<User className="w-4 h-4 text-current shrink-0" />}
-                    className="w-full !rounded-full !py-3.5 !px-4 font-inter font-semibold text-sm flex flex-row items-center justify-center gap-2 whitespace-nowrap text-inmo-secondary dark:text-white"
-                    onClick={() => navigate('/asesor/propiedades')}
-                  >
-                    Mi inventario
-                  </Button>
-                ) : role === 'admin' ? (
-                  <Button
-                    variant="secondary"
-                    icon={<CheckCircle2 className="w-4 h-4 text-current shrink-0" />}
-                    className="w-full !rounded-full !py-3.5 !px-4 font-inter font-semibold text-sm flex flex-row items-center justify-center gap-2 whitespace-nowrap text-inmo-secondary dark:text-white"
-                    onClick={() => navigate('/admin/moderacion' + (fromProperty ? '?property=' + fromProperty : ''))}
-                  >
-                    Moderar
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="accent"
-                      icon={<MessageCircle className="w-4 h-4 text-current shrink-0" />}
-                      isLoading={create.isPending}
-                      className="flex-1 !rounded-full !py-3.5 !px-4 font-inter font-bold text-sm shadow-glow flex flex-row items-center justify-center gap-2 whitespace-nowrap text-white"
-                      onClick={handleContact}
-                    >
-                      Contactar
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      icon={<Grid className="w-4 h-4 text-current shrink-0" />}
-                      className="md:hidden flex-1 !rounded-full !py-3.5 !px-4 font-inter font-semibold text-sm flex flex-row items-center justify-center gap-2 whitespace-nowrap text-inmo-secondary dark:text-white"
-                      onClick={() => setIsCatalogOpen(true)}
-                    >
-                      Portafolio
-                    </Button>
-                  </>
-                )}
+                  {/* Vertical KPIs (Desktop Only) */}
+                  <div className="hidden md:flex w-1/3 flex-col justify-center">
+                    <div className="flex flex-col items-center text-center border-b border-gray-100 dark:border-inmo-darktertiary/50 pb-4">
+                      <span className="font-montserrat font-black text-2xl text-inmo-secondary dark:text-white leading-tight">
+                        {advisor.data?.propiedades_publicas ?? '—'}
+                      </span>
+                      <span className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-1">Propiedades</span>
+                    </div>
+
+                    {year && (
+                      <div className="flex flex-col items-center text-center pt-4">
+                        <span className="font-montserrat font-black text-2xl text-inmo-secondary dark:text-white leading-tight">
+                          {year}
+                        </span>
+                        <span className="font-inter text-xs text-gray-500 dark:text-gray-400 mt-1">Miembro</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Horizontal Stats Row (Mobile Only) */}
+                <div className="flex md:hidden justify-between items-center py-3 border-y border-gray-100 dark:border-inmo-darktertiary/50">
+                  <div className="flex flex-col items-center flex-1">
+                    <span className="font-montserrat font-black text-lg text-inmo-secondary dark:text-white leading-tight">
+                      {advisor.data?.propiedades_publicas ?? '—'}
+                    </span>
+                    <span className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-1">Propiedades</span>
+                  </div>
+                  {year && (
+                    <>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-inmo-darktertiary" />
+                      <div className="flex flex-col items-center flex-1">
+                        <span className="font-montserrat font-black text-lg text-inmo-secondary dark:text-white leading-tight">
+                          {year}
+                        </span>
+                        <span className="font-inter text-[11px] text-gray-500 dark:text-gray-400 mt-1">Miembro</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Info & Bio */}
+                <div className="flex flex-col space-y-3 text-left">
+                  <div>
+                    <h3 className="font-montserrat font-bold text-xl sm:text-2xl text-inmo-secondary dark:text-white flex items-center gap-2">
+                      {advisor.data?.nombre_comercial ?? 'Asesor'}
+                      {advisor.data?.validado && <CheckCircle2 aria-label="Asesor validado" className="w-5 h-5 text-inmo-accent shrink-0" />}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 mt-1">
+                      <MapPin className="w-4 h-4 text-inmo-accent" />
+                      <span className="font-inter text-xs sm:text-sm">León, Guanajuato</span>
+                    </div>
+                  </div>
+
+                  <p className="font-inter text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap line-clamp-4">
+                    {advisor.data?.descripcion || 'Este asesor todavía no ha añadido una descripción.'}
+                  </p>
+
+                  {advisor.isError && <p role="alert" className="text-xs text-inmo-danger text-center">{operationError(advisor.error)}</p>}
+                  {shareError && <p role="status" className="text-xs text-gray-500 text-center">{shareError}</p>}
+
+                  {/* Botones de acción: icono a la izquierda, color idéntico al texto */}
+                  <div className="pt-2 flex flex-row gap-3 w-full">
+                    {isSelf ? (
+                      <Button
+                        variant="secondary"
+                        icon={<User className="w-4 h-4 text-current shrink-0" />}
+                        className="w-full !rounded-full !py-3.5 !px-4 font-inter font-semibold text-sm flex flex-row items-center justify-center gap-2 whitespace-nowrap text-inmo-secondary dark:text-white"
+                        onClick={() => navigate('/asesor/propiedades')}
+                      >
+                        Mi inventario
+                      </Button>
+                    ) : role === 'admin' ? (
+                      <Button
+                        variant="secondary"
+                        icon={<CheckCircle2 className="w-4 h-4 text-current shrink-0" />}
+                        className="w-full !rounded-full !py-3.5 !px-4 font-inter font-semibold text-sm flex flex-row items-center justify-center gap-2 whitespace-nowrap text-inmo-secondary dark:text-white"
+                        onClick={() => navigate('/admin/moderacion' + (fromProperty ? '?property=' + fromProperty : ''))}
+                      >
+                        Moderar
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          variant="accent"
+                          icon={<MessageCircle className="w-4 h-4 text-current shrink-0" />}
+                          isLoading={create.isPending}
+                          className="flex-1 !rounded-full !py-3.5 !px-4 font-inter font-bold text-sm shadow-glow flex flex-row items-center justify-center gap-2 whitespace-nowrap text-white"
+                          onClick={handleContact}
+                        >
+                          Contactar
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          icon={<Grid className="w-4 h-4 text-current shrink-0" />}
+                          className="md:hidden flex-1 !rounded-full !py-3.5 !px-4 font-inter font-semibold text-sm flex flex-row items-center justify-center gap-2 whitespace-nowrap text-inmo-secondary dark:text-white"
+                          onClick={() => setIsCatalogOpen(true)}
+                        >
+                          Portafolio
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  {create.isError && <p role="alert" className="text-xs text-inmo-danger text-center">{operationError(create.error)}</p>}
+                </div>
               </div>
-              {create.isError && <p role="alert" className="text-xs text-inmo-danger text-center">{operationError(create.error)}</p>}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </aside>
 
       {/* Right: portfolio (desktop). Extended to fill full width smoothly without excessive blank margins. */}
-      <section className="hidden md:flex flex-1 min-w-0 h-full flex-col bg-gray-50 dark:bg-inmo-darkcard px-6 lg:px-8 xl:px-12 pt-[88px] pb-4">
+      <section className="hidden md:flex flex-1 min-w-0 h-full flex-col pt-[100px] pb-4 pr-4 md:pr-6 pl-2">
         {selectedProperty ? (
           <div className="flex flex-col h-full min-h-0 gap-2">
             <Button variant="ghost" icon={<ArrowLeft className="w-4 h-4" />} className="self-start shrink-0" onClick={() => setSelectedPropertyId(null)}>Volver al portafolio</Button>
-            <div className="flex-1 min-h-0 rounded-card overflow-hidden bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-sm">
+            <div className="flex-1 min-h-0 rounded-card overflow-hidden bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)]">
               <PropertyDetailView propertyId={selectedProperty.id} preview={selectedProperty} layout="horizontal" hideAdvisorProfile />
             </div>
           </div>
