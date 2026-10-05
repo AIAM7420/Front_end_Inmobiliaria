@@ -8,13 +8,39 @@ import type { CriteriosBusqueda } from '../../integrations/backend/types';
 export interface FilterDropdownProps {
   isOpen: boolean;
   onApply: (criteria: CriteriosBusqueda) => void;
+  onClose?: () => void;
   className?: string;
+  direction?: 'down' | 'up';
 }
 
-export const FilterDropdown: React.FC<FilterDropdownProps> = ({ isOpen, onApply, className = '' }) => {
+export const FilterDropdown: React.FC<FilterDropdownProps> = ({
+  isOpen,
+  onApply,
+  onClose,
+  className = '',
+  direction = 'down',
+}) => {
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
   const zones = useGetCatalog('zonas');
   const [zoneId, setZoneId] = useState('');
   const [priceBand, setPriceBand] = useState('');
+
+  React.useEffect(() => {
+    if (!isOpen || !onClose) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.filter-dropdown-toggle')) return;
+      if (dropdownRef.current && !dropdownRef.current.contains(target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   const apply = () => {
     const criteria: CriteriosBusqueda = {};
@@ -28,9 +54,17 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({ isOpen, onApply,
     onApply(criteria);
   };
 
+  const originClass = direction === 'up' ? 'origin-bottom' : 'origin-top';
+
   return (
-    <div hidden={!isOpen} className={`w-full transition-all duration-300 ease-in-out origin-top ${isOpen ? 'opacity-100 scale-y-100 max-h-[400px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'} ${className}`}>
-      <div className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl p-5 rounded-card shadow-xl border border-gray-100 dark:border-inmo-darktertiary/50 mb-3">
+    <div
+      ref={dropdownRef}
+      hidden={!isOpen}
+      className={`w-full transition-all duration-300 ease-in-out ${originClass} ${
+        isOpen ? 'opacity-100 scale-y-100 max-h-[450px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'
+      } ${className}`}
+    >
+      <div className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl p-5 rounded-card shadow-2xl border border-gray-100 dark:border-inmo-darktertiary/50">
         <div className="flex flex-col gap-3">
           {zones.isPending ? <Skeleton className="w-full h-[46px]" /> : <Select
             aria-label="Zona"

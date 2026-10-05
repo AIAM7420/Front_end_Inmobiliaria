@@ -17,6 +17,7 @@ import { Button } from '../atoms/Button';
 import { Skeleton } from '../atoms/Skeleton';
 import { CategoryPills } from '../molecules/CategoryPills';
 import type { PropertyCategory } from '../molecules/CategoryPills';
+import { CategorySelector } from '../molecules/CategorySelector';
 import { FilterDropdown } from '../molecules/FilterDropdown';
 import { BottomSheet } from '../organisms/BottomSheet';
 import { SidePanel } from '../organisms/SidePanel';
@@ -362,24 +363,88 @@ export function MapTemplate(_props: MapTemplateProps) {
       )}
     </div>
 
-    <div className="absolute top-4 left-4 right-4 md:top-24 md:left-6 md:right-auto md:w-auto md:max-w-[calc(100vw-3rem)] lg:max-w-4xl z-50 flex flex-col items-start gap-3 pointer-events-none">
-      <div className="w-full flex flex-col gap-3 pointer-events-auto">
-        <div className="flex items-center gap-2 max-w-full">
-          <CategoryPills
-            showAllOption
-            activeFilter={activeFilter}
-            onSelectFilter={handleFilterChange}
-            className="flex-1 min-w-0"
-          />
-          <FloatingFilterButton onClick={() => setIsFiltersOpen(!isFiltersOpen)} size="small" />
-        </div>
-        <FilterDropdown isOpen={isFiltersOpen && !isSheetOpen} onApply={applyFilters} className="w-full max-w-md md:origin-top-left" />
-        {searchMode === 'text' && chatbot.data?.aclaracion && <p role="status" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-gray-600 dark:text-gray-300 shadow-soft">{chatbot.data.aclaracion}</p>}
+    {/* DESKTOP TOP CATEGORY PILLS (CENTERED & EXTENDED) */}
+    <div className="hidden md:flex absolute top-24 lg:top-28 left-1/2 -translate-x-1/2 w-full max-w-5xl xl:max-w-6xl z-40 px-6 justify-center pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="pointer-events-auto flex items-center justify-center w-full">
+        <CategoryPills
+          showAllOption
+          activeFilter={activeFilter}
+          onSelectFilter={handleFilterChange}
+          className="w-full justify-center md:justify-around shadow-lg"
+        />
       </div>
     </div>
 
-    <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 px-6 pointer-events-none">
-      <div className="w-full pointer-events-auto"><SearchBar placeholder="Busca propiedades en León..." onSubmit={handleTextSearch} size="xl" glass className="w-full shadow-2xl" /></div>
+    {/* MOBILE TOP CONTROLS (SELECTOR + FILTER BUTTON) */}
+    <div className="md:hidden absolute top-4 left-4 right-4 z-40 flex flex-col gap-2.5 pointer-events-none animate-in fade-in slide-in-from-top-2 duration-300">
+      <div className="w-full flex items-center gap-2 pointer-events-auto">
+        <CategorySelector
+          activeFilter={activeFilter}
+          onSelectFilter={handleFilterChange}
+          className="flex-1 min-w-0"
+        />
+        <FloatingFilterButton
+          onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+          isActive={isFiltersOpen}
+          size="small"
+        />
+      </div>
+
+      {/* Mobile FilterDropdown opens downwards from top */}
+      <div className="w-full pointer-events-auto">
+        <FilterDropdown
+          direction="down"
+          isOpen={isFiltersOpen && !isSheetOpen}
+          onApply={applyFilters}
+          onClose={() => setIsFiltersOpen(false)}
+          className="w-full origin-top"
+        />
+      </div>
+
+      {searchMode === 'text' && chatbot.data?.aclaracion && (
+        <p role="status" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-gray-600 dark:text-gray-300 shadow-soft pointer-events-auto">
+          {chatbot.data.aclaracion}
+        </p>
+      )}
+    </div>
+
+    {/* DESKTOP BOTTOM SEARCH BAR + FLOATING FILTER BUTTON (UPWARD DROPDOWN) */}
+    <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-4xl z-30 px-6 pointer-events-none">
+      <div className="w-full pointer-events-auto flex gap-3 items-center">
+        <div className="flex-1 relative">
+          <SearchBar
+            placeholder="Busca propiedades en León..."
+            onSubmit={handleTextSearch}
+            size="xl"
+            glass
+            className="w-full shadow-2xl"
+          />
+          {searchMode === 'text' && chatbot.data?.aclaracion && (
+            <div className="absolute left-0 bottom-full mb-3 z-30 max-w-lg pointer-events-auto">
+              <p role="status" className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-gray-100 dark:border-white/10">
+                {chatbot.data.aclaracion}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="relative shrink-0">
+          <FloatingFilterButton
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            isActive={isFiltersOpen}
+            size="xl"
+          />
+          <div className="absolute right-0 bottom-full mb-3 z-50">
+            <FilterDropdown
+              direction="up"
+              isOpen={isFiltersOpen && !isSheetOpen}
+              onApply={applyFilters}
+              onClose={() => setIsFiltersOpen(false)}
+              className="w-80 md:w-96 origin-bottom-right"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <div className="absolute bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
