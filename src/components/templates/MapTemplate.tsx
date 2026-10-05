@@ -198,6 +198,7 @@ export function MapTemplate(_props: MapTemplateProps) {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isViewingProfile, setIsViewingProfile] = useState(false);
   const [lastText, setLastText] = useState('');
   const types = useGetCatalog('tipos');
   const typeId = activeFilter === null
@@ -249,19 +250,25 @@ export function MapTemplate(_props: MapTemplateProps) {
   };
   const showResults = () => {
     setSelectedPropertyId(null);
+    setIsViewingProfile(false);
     setIsSheetOpen(true);
   };
   const showDetail = (id: string) => {
     setSelectedPropertyId(id);
+    setIsViewingProfile(false);
     setIsSheetOpen(true);
   };
+  const panelTitle = isViewingProfile ? 'Perfil del Asesor'
+    : selectedPropertyId ? undefined
+    : properties.length === 0 ? undefined
+    : `${properties.length}${resultSearch.hasNextPage ? '+' : ''} Coincidencia${properties.length === 1 ? '' : 's'}`;
   const sheetContent = selectedPropertyId && selected
-    ? <PropertyDetailView propertyId={selectedPropertyId} preview={selected} />
-    : <div className="flex flex-col gap-4 flex-1 h-full">
+    ? <div className="w-full h-full overflow-hidden flex flex-col"><PropertyDetailView propertyId={selectedPropertyId} preview={selected} layout="vertical" showAsesorProfile={isViewingProfile} onShowAsesorProfileChange={setIsViewingProfile} /></div>
+    : <div className="grid gap-4 grid-cols-1">
         {isLoading ? Array.from({ length: 4 }).map((_, index) => <PropertyCardSkeleton key={index} />)
-          : properties.map((property) => <ConnectedPropertyCard
-            key={property.id} property={property} onClick={() => showDetail(property.id)}
-          />)}
+          : properties.map((property, index) => <div key={property.id} className="animate-in fade-in zoom-in-95" style={{ animationDelay: `${Math.min(index, 10) * 50}ms` }}><ConnectedPropertyCard
+            property={property} onClick={() => showDetail(property.id)}
+          /></div>)}
         {!isLoading && isError && <EmptyState compact icon={<CloudOff />} title="No pudimos cargar las propiedades"
           description="Hubo un problema al consultar el catálogo. Inténtalo de nuevo más tarde."
           actions={<Button icon={<RefreshCw className="w-4 h-4" />} onClick={retry}>Reintentar</Button>} />}
@@ -314,11 +321,19 @@ export function MapTemplate(_props: MapTemplateProps) {
     </div>
 
     <div className="md:hidden"><BottomSheet
-      isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)}
-      title={selectedPropertyId ? 'Detalle de Propiedad' : `${properties.length} resultados`}
-      noPadding={Boolean(selectedPropertyId)} isHero={Boolean(selectedPropertyId)}
+      isOpen={isSheetOpen} onClose={isViewingProfile ? undefined : () => setIsSheetOpen(false)}
+      onBack={isViewingProfile ? () => setIsViewingProfile(false) : undefined}
+      title={panelTitle}
+      noPadding={Boolean(selectedPropertyId)} isHero={Boolean(selectedPropertyId) && !isViewingProfile}
+      fullHeight={Boolean(selectedPropertyId)}
     >{sheetContent}</BottomSheet></div>
-    <SidePanel isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} title={selectedPropertyId ? 'Detalle de Propiedad' : `${properties.length} resultados`}>
+    <SidePanel
+      isOpen={isSheetOpen} onClose={isViewingProfile ? undefined : () => setIsSheetOpen(false)}
+      onBack={isViewingProfile ? () => setIsViewingProfile(false) : undefined}
+      title={panelTitle}
+      noPadding={Boolean(selectedPropertyId)}
+      compact={!selectedPropertyId && !isLoading && properties.length === 0}
+    >
       {sheetContent}
     </SidePanel>
   </>;
