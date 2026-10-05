@@ -154,17 +154,21 @@ export const AsesorPublicProfileTemplate = () => {
 
   const toolbar = (
     <div className="w-full shrink-0 flex flex-col gap-3 mb-5">
-      <div className="flex items-center gap-3 w-full">
+      <div className="flex flex-wrap lg:flex-nowrap items-center gap-2.5 md:gap-3 w-full">
+        {/* Buscador con tamaño reducido */}
         <SearchBar
           value={query}
           onChange={setQuery}
-          placeholder="Buscar por título, colonia o palabras clave..."
+          placeholder="Buscar en este portafolio..."
           size="slim"
           glass={false}
-          className="flex-1 shadow-sm"
+          className="w-full sm:w-[240px] md:w-[260px] lg:w-[280px] xl:w-[300px] shrink-0 shadow-sm"
         />
+
+        {/* Botón de filtros avanzados */}
         <IconButton
           aria-label="Filtrar propiedades"
+          title="Filtros avanzados"
           onClick={() => setIsFiltersOpen(open => !open)}
           icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
           variant="secondary"
@@ -174,10 +178,15 @@ export const AsesorPublicProfileTemplate = () => {
               : '!bg-white dark:!bg-inmo-darkcard border-gray-100 dark:border-white/10 hover:!bg-gray-50 dark:hover:!bg-inmo-darktertiary text-inmo-secondary dark:text-white'
           }`}
         />
-      </div>
 
-      <div className="bg-gray-100/80 dark:bg-white/5 rounded-2xl p-2.5 md:p-3 flex items-center justify-between gap-3">
-        <CategoryPills activeFilter={category} onSelectFilter={setCategory} className="flex-1 m-0 min-w-0" />
+        {/* Filtros de tipo de propiedad en versión pequeña a la derecha */}
+        <CategoryPills
+          size="small"
+          showAllOption
+          activeFilter={category}
+          onSelectFilter={setCategory}
+          className="shrink-0 max-w-full"
+        />
       </div>
 
       <FilterDropdown
