@@ -111,7 +111,8 @@ function PropertyMarker({ property, propertyType, position, map, onMarkerClick }
       </div>
         ) : (
       <img src={createSvgIcon(propertyType, map.getZoom())} alt={property.titulo} title={`${property.titulo} · zona aproximada`} className="w-12 h-12 drop-shadow-md" style={{ transform: 'translate(0, -25%)' }} />
-    ),
+      )}
+    </div>,
     element
   );
 }
