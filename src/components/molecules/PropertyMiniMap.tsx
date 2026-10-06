@@ -23,9 +23,17 @@ export function PropertyMiniMap({ position, privateLocation = false }: {
       accessToken: token,
       style: isDarkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: [lng, lat],
-      zoom: privateLocation ? 15 : 12,
+      zoom: privateLocation ? 15 : 12.5,
+      pitch: 0,
+      bearing: 0,
+      maxPitch: 0,
+      minPitch: 0,
+      projection: 'mercator',
       interactive: false,
       attributionControl: false,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
     });
 
     const marker = new mapboxgl.Marker({ color: '#FA003F' }).setLngLat([lng, lat]).addTo(map);
@@ -36,13 +44,19 @@ export function PropertyMiniMap({ position, privateLocation = false }: {
         map.resize();
         if (lat !== undefined && lng !== undefined) {
           map.setCenter([lng, lat]);
+          map.setPitch(0);
+          map.setBearing(0);
         }
       } catch {
         // Safe catch if map is tearing down
       }
     };
 
-    map.on('load', handleResize);
+    map.on('load', () => {
+      map.setPitch(0);
+      map.setBearing(0);
+      handleResize();
+    });
     map.on('error', () => {
       if (!destroyed) setFailed(true);
     });
