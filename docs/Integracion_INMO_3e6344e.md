@@ -37,13 +37,13 @@ Resultados ejecutados en cada checkout:
 
 | Control | Frontend propio | INMO copia |
 | --- | --- | --- |
-| Unitarias | 44 pruebas en 16 archivos | 44 pruebas en 16 archivos |
+| Unitarias | 47 pruebas en 17 archivos | 47 pruebas en 17 archivos |
 | Lint | 0 errores, 9 avisos | 0 errores, 9 avisos |
 | Build | TypeScript, Vite y PWA correctos; 102 entradas de precaché | TypeScript, Vite y PWA correctos; 102 entradas de precaché |
 | Navegador | 23 casos de mapas/touch y 42 de regresión | 23 casos de mapas/touch y 42 de regresión |
 | Equivalencia | 101 archivos compilados comparados por SHA-256 con las mismas variables públicas | Sin diferencias con el build propio |
 
-La ejecución completa de INMO copia detectó una espera excesiva al guardar el orden del inventario (41 casos correctos y uno fallido). Se corrigió la invalidación que recargaba páginas y fotografías sin cambios; se repitieron los tres recorridos afectados en ambos repositorios. Los ocho recorridos táctiles se repitieron después de reservar espacio para que el título largo no quede bajo el cierre. Estos reintentos se distinguen de las ejecuciones completas y no se contabilizan como casos adicionales.
+La ejecución completa de INMO copia detectó una espera excesiva al guardar el orden del inventario (41 casos correctos y uno fallido). Se corrigió la invalidación que recargaba páginas y fotografías sin cambios; se repitieron los tres recorridos afectados en ambos repositorios. Los recorridos táctiles se repitieron después de reservar espacio para el título y corregir el cierre tras scroll: un toque estacionario activa el botón una sola vez, mientras arrastres, pinch, cancelación y estado deshabilitado no lo activan. Estos reintentos se distinguen de las ejecuciones completas y no se contabilizan como casos adicionales.
 
 Una repetición del recorrido completo de publicación alcanzó su límite de 60 segundos con cientos de fixtures acumulados en la papelera. Se hizo paginada la limpieza de propiedades sintéticas `Casa navegador` mediante archivo y retirada con historial, antes y después de esas pruebas. Con esa corrección de aislamiento, el mismo recorrido pasó en 19,1 segundos sin aumentar su límite. El servidor E2E comprueba que la base sea exclusiva de pruebas antes de ejecutar cualquier limpieza.
 
