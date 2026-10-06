@@ -26,7 +26,7 @@ export function Footer() {
            <div className="flex flex-col gap-3 min-w-[140px] text-left">
               <h4 className="font-bold text-lg text-inmo-secondary dark:text-white mb-1">Asesores</h4>
               <Link to="/asesor/propiedades" className={linkClass}>Gestionar inventario</Link>
-              <Link to="/messages" className={linkClass}>Mensajes</Link>
+              <Link to="/asesor/mensajes" className={linkClass}>Mensajes</Link>
            </div>
            
            {/* Section: Soporte */}

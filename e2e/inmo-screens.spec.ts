@@ -34,7 +34,10 @@ for (const size of sizes) for (const dark of [false, true]) for (const role of r
     for (const route of role.routes) {
       // Preserve the in-memory JWT; exercise the same history event as browser navigation.
       await page.evaluate(path => { history.pushState({}, '', path); dispatchEvent(new PopStateEvent('popstate')); }, route);
-      if (route === '/map') await expect(page.getByText('El mapa no está configurado. Puedes consultar las propiedades en la lista.', { exact: true })).toBeVisible();
+      if (route === '/map') {
+        await expect(page.getByRole('heading', { name: 'El mapa no está configurado', exact: true })).toBeVisible();
+        await expect(page.getByText('Puedes consultar las propiedades en la lista.', { exact: true })).toBeVisible();
+      }
       else await expect(page.getByRole('heading').filter({ visible: true }).first()).toBeVisible();
       await page.waitForFunction(() => !document.querySelector('[aria-busy=true]'));
       await page.evaluate(async () => { await document.fonts.ready; });

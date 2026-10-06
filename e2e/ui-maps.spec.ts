@@ -69,9 +69,12 @@ test.beforeEach(async ({ page, request }) => {
 });
 
 for (const size of [{ name: 'desktop', width: 1440, height: 900 }, { name: 'tablet', width: 820, height: 1180 }, { name: 'mobile', width: 390, height: 844 }]) {
-  test('anchored filters and shared criteria ' + size.name, async ({ page }) => {
+  test('anchored filters and shared criteria ' + size.name, async ({ page, request }) => {
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.setViewportSize(size);
+    const headers = await authenticate(request, 'phase4-advisor@example.com', 'Secure1!');
+    const preferences = await (await request.get(`${api}/me/preferencias`, { headers })).json();
+    expect((await request.put(`${api}/me/preferencias`, { headers: { ...headers, 'If-Match': `"v${preferences.version}"` }, data: { tema: 'CLARO', alertas_correo: preferences.alertas_correo } })).ok()).toBe(true);
     await login(page, 'phase4-advisor@example.com', 'Secure1!', '/asesor');
     await navigate(page, '/asesor/mensajes');
     await expect(page.getByRole('heading', { name: 'Chats', exact: true })).toBeVisible();
@@ -85,8 +88,16 @@ for (const size of [{ name: 'desktop', width: 1440, height: 900 }, { name: 'tabl
     const box = await dialog.boundingBox(); expect(box!.width).toBeGreaterThan(300); expect(box!.x + box!.width).toBeLessThanOrEqual(size.width);
     await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0); await expect(trigger).toBeFocused();
     await trigger.click();
-    await dialog.getByRole('combobox', { name: 'Sector', exact: true }).selectOption('NORTE');
-    await dialog.getByRole('combobox', { name: 'Rango de precio' }).selectOption('1m-3m');
+    await dialog.getByRole('combobox', { name: 'Sector', exact: true }).click();
+    await expect(page.getByRole('listbox', { name: 'Sector' })).toBeVisible();
+    const optionsBox = await page.getByRole('listbox', { name: 'Sector' }).boundingBox();
+    expect(optionsBox!.x + optionsBox!.width).toBeLessThanOrEqual(size.width);
+    expect(optionsBox!.y + optionsBox!.height).toBeLessThanOrEqual(size.height);
+    await page.screenshot({ path: 'docs/evidence/dropdown-filtros-' + size.name + '.png' });
+    await page.getByRole('option', { name: 'Zona norte', exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('combobox', { name: 'Rango de precio' }).click();
+    await page.getByRole('option', { name: '$1M - $3M', exact: true }).click();
     const search = page.waitForRequest(r => r.url().includes('/busquedas'));
     await dialog.getByRole('button', { name: 'Buscar propiedades' }).click();
     expect((await search).postDataJSON()).toMatchObject({ sector: 'NORTE', precio_min: '1000000', precio_max: '3000000' });
@@ -94,10 +105,24 @@ for (const size of [{ name: 'desktop', width: 1440, height: 900 }, { name: 'tabl
     await navigate(page, '/map');
     await expect(page.locator('.mapboxgl-canvas').first()).toBeVisible();
     await page.getByRole('button', { name: 'Abrir filtros', exact: true }).filter({ visible: true }).click();
-    await expect(dialog.getByRole('combobox', { name: 'Sector', exact: true })).toHaveValue('NORTE');
-    await expect(dialog.getByRole('combobox', { name: 'Rango de precio' })).toHaveValue('1m-3m');
+    await expect(dialog.getByRole('combobox', { name: 'Sector', exact: true })).toHaveText('Zona norte');
+    await expect(dialog.getByRole('combobox', { name: 'Rango de precio' })).toHaveText('$1M - $3M');
+    await dialog.getByRole('combobox', { name: 'Sector', exact: true }).focus();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+    await expect(dialog).toBeVisible();
     await page.screenshot({ path: 'docs/evidence/bugs-filtros-' + size.name + '.png' });
     await page.keyboard.press('Escape');
+    // Mobile map intentionally uses the floating navbar; theme lives in the main header.
+    if (size.width < 768) await navigate(page, '/asesor/mensajes');
+    await page.getByRole('button', { name: 'Usar modo oscuro', exact: true }).click();
+    await expect(page.locator('html')).toHaveClass(/dark/);
+    if (size.width < 768) await navigate(page, '/map');
+    await page.getByRole('button', { name: 'Abrir filtros', exact: true }).filter({ visible: true }).click();
+    await dialog.getByRole('combobox', { name: 'Sector', exact: true }).click();
+    await page.screenshot({ path: 'docs/evidence/dropdown-filtros-' + size.name + '-oscuro.png', animations: 'disabled' });
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     expect(errors).toEqual([]);
   });
 }
@@ -141,6 +166,76 @@ test('real Mapbox keeps canvases, markers and detail selection through delayed t
   }
   await expect(page.getByText('Mapa no disponible', { exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'docs/evidence/bugs-mapa-galeria.png' });
+  expect(errors).toEqual([]);
+});
+
+test('new footer preserves real destinations and renders in both themes without SVG errors', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' && message.text().includes('Invalid DOM property')) errors.push(message.text()); });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const footer = page.locator('footer');
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer.getByRole('link', { name: 'Mensajes', exact: true })).toHaveAttribute('href', '/asesor/mensajes');
+  await expect(footer.getByRole('link', { name: 'Buscar Propiedades', exact: true })).toHaveAttribute('href', '/map');
+  await expect(footer.locator('svg')).toBeVisible();
+  for (const dark of [false, true]) {
+    if (dark) await page.getByRole('button', { name: 'Usar modo oscuro', exact: true }).click();
+    await expect(footer).toHaveCSS('background-color', dark ? 'rgb(31, 31, 31)' : 'rgb(255, 255, 255)');
+    await footer.screenshot({ path: `docs/evidence/dropdown-footer-${dark ? 'oscuro' : 'claro'}.png`, animations: 'disabled' });
+  }
+  expect(errors).toEqual([]);
+});
+
+for (const width of [1440, 390]) {
+  test('uniform administrative tabs navigate to real users and authorizations ' + width, async ({ page, request }) => {
+    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    await page.setViewportSize({ width, height: 900 });
+    const headers = await authenticate(request, 'e2e-admin@example.invalid', 'E2eTesting1!');
+    const preferences = await (await request.get(`${api}/me/preferencias`, { headers })).json();
+    expect((await request.put(`${api}/me/preferencias`, { headers: { ...headers, 'If-Match': `"v${preferences.version}"` }, data: { tema: 'CLARO', alertas_correo: preferences.alertas_correo } })).ok()).toBe(true);
+    await login(page, 'e2e-admin@example.invalid', 'E2eTesting1!', '/admin');
+    await navigate(page, '/admin/solicitudes');
+    const navigation = page.getByRole('navigation', { name: 'Administración de usuarios' });
+    for (const dark of [false, true]) {
+      if (dark) await page.getByRole('button', { name: 'Usar modo oscuro', exact: true }).click();
+      await expect(page.locator('html')).toHaveClass(dark ? /dark/ : /^(?!.*dark).*$/);
+      await expect(navigation.getByRole('link', { name: 'Usuarios', exact: true })).toHaveCSS('background-color', dark ? 'rgb(51, 51, 51)' : 'rgb(255, 255, 255)');
+      await expect(navigation.getByRole('link', { name: 'Autorizaciones' })).toHaveAttribute('aria-current', 'page');
+      const users = await navigation.getByRole('link', { name: 'Usuarios', exact: true }).boundingBox();
+      const approvals = await navigation.getByRole('link', { name: 'Autorizaciones' }).boundingBox();
+      expect(users!.height).toBe(44); expect(approvals!.height).toBe(44);
+      expect(users!.width).toBe(approvals!.width);
+      expect(approvals!.x + approvals!.width).toBeLessThanOrEqual(width);
+      await page.screenshot({ path: `docs/evidence/dropdown-admin-${width}-${dark ? 'oscuro' : 'claro'}.png`, animations: 'disabled' });
+      await navigation.getByRole('link', { name: 'Usuarios', exact: true }).click();
+      await expect(page).toHaveURL(/\/admin\/asesores$/);
+      await expect(page.getByRole('heading', { name: 'Usuarios de la Plataforma' })).toBeVisible();
+      await expect(navigation.getByRole('link', { name: 'Usuarios', exact: true })).toHaveAttribute('aria-current', 'page');
+      await navigation.getByRole('link', { name: 'Autorizaciones' }).click();
+      await expect(page).toHaveURL(/\/admin\/solicitudes$/);
+    }
+    expect(errors).toEqual([]);
+  });
+}
+
+test('new thumbnail marker responds to keyboard after zoom and theme changes', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/map');
+  const marker = page.getByRole('button', { name: fixture.titulo + ' · zona aproximada', exact: true });
+  await expect(marker).toBeVisible();
+  const map = page.getByLabel('Mapa de inmuebles', { exact: true });
+  await expect(map).toHaveAttribute('aria-busy', 'false');
+  const position = await marker.boundingBox();
+  await page.mouse.dblclick(position!.x - 30, position!.y + 24);
+  await expect(marker.getByText(fixture.titulo, { exact: true })).toBeVisible();
+  await expect.poll(() => marker.locator('img').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await page.getByRole('button', { name: 'Usar modo oscuro', exact: true }).click();
+  await expect(map).toHaveAttribute('aria-busy', 'false');
+  await marker.focus(); await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: fixture.titulo, exact: true })).toBeVisible();
+  await page.screenshot({ path: 'docs/evidence/dropdown-marcador-nuevo.png' });
   expect(errors).toEqual([]);
 });
 
@@ -194,6 +289,15 @@ test('short mobile viewport scrolls filters, cycles keyboard focus and closes ou
   expect(await dialog.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
   await page.keyboard.press('Tab');
   await expect(dialog.getByRole('button', { name: 'Cerrar filtros' })).toBeFocused();
+  await dialog.getByRole('combobox', { name: 'Sector', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  const options = page.getByRole('listbox', { name: 'Sector' });
+  await expect(options).toBeVisible();
+  const popup = await options.boundingBox();
+  expect(popup!.y).toBeGreaterThanOrEqual(0);
+  expect(popup!.y + popup!.height).toBeLessThanOrEqual(320);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeVisible();
   await page.mouse.click(385, 310);
   await expect(dialog).toHaveCount(0);
 });

@@ -74,6 +74,8 @@ Corrección posterior del alta de asesores, 2026-10-04: **32 unitarias y 42 prue
 
 Corrección de filtros, sectores, mapas, chat y galería, 2026-10-05: [contratos, evidencia y resultados](Correcciones_filtros_mapas_chat_galeria.md). Esta actualización se entrega sólo en el frontend propio por indicación del usuario; la interfaz nueva de INMO copia se fusionará en una etapa posterior.
 
+Actualización posterior del 2026-10-05: el usuario solicita integrar ahora la interfaz nueva de INMO copia en el frontend propio, conservando la restricción de no publicar en la copia. Se incorporan `38fed41` y `6a4c88e` con las correcciones de desplegables y navegación administrativa. [Procedencia, comportamiento, pruebas y capturas](Desplegables_e_integracion_interfaz.md).
+
 Las pruebas de medios redirigen únicamente el transporte externo `objects.test` al almacenamiento del arnés local; autorización, hashes, confirmación, permisos, versiones, publicación, conversación y persistencia utilizan el backend real. Se comprobó explícitamente que no se manda JWT al PUT de objetos. El arnés no se registra en la aplicación productiva.
 
 Advertencias visibles: chunk Mapbox de aproximadamente 1,84 MB minificado, cargado por vistas de mapa; Recharts puede avisar tamaño cero al cerrar/montar un panel oculto en móvil. No hubo excepciones de página en la matriz de pantallas y los flujos de inventario comprueban ausencia de errores de consola. Los rechazos HTTP previstos por pruebas negativas no son fallos de aceptación.

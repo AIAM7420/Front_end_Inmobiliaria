@@ -188,7 +188,7 @@ export function SkylineTransition(props: React.SVGProps<SVGSVGElement>) {
           <rect x="78" y="230" width="61" height="160" />
           <rect x="86" y="220" width="15" height="10" />
           <rect x="159" y="345" width="2" height="45" />
-          <path d="M159,345 Q164,342 169,345" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M159,345 Q164,342 169,345" stroke="currentColor" strokeWidth="1.5" fill="none"/>
           <rect x="169" y="245" width="90" height="145" />
           <rect x="239" y="237" width="12" height="8" />
           <rect x="244" y="230" width="4" height="7" />
@@ -206,7 +206,7 @@ export function SkylineTransition(props: React.SVGProps<SVGSVGElement>) {
           <rect x="463" y="365" width="15" height="12" />
           <rect x="461" y="363" width="19" height="2" />
           <rect x="534" y="345" width="2" height="45" />
-          <path d="M534,345 Q539,342 544,345" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M534,345 Q539,342 544,345" stroke="currentColor" strokeWidth="1.5" fill="none"/>
           <rect x="544" y="228" width="41" height="162" />
           <rect x="552" y="218" width="15" height="10" />
           <rect x="565" y="220" width="12" height="8" />
@@ -214,7 +214,7 @@ export function SkylineTransition(props: React.SVGProps<SVGSVGElement>) {
           <rect x="532" y="365" width="15" height="12" />
           <rect x="530" y="363" width="19" height="2" />
           <rect x="585" y="345" width="2" height="45" />
-          <path d="M585,345 Q590,342 595,345" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M585,345 Q590,342 595,345" stroke="currentColor" strokeWidth="1.5" fill="none"/>
           <rect x="595" y="276" width="82" height="114" />
           <rect x="603" y="266" width="15" height="10" />
           <rect x="694" y="232" width="71" height="158" />
@@ -368,7 +368,7 @@ export function SkylineTransition(props: React.SVGProps<SVGSVGElement>) {
           <circle cx="2046" cy="385" r="5" />
           <rect x="2040" y="360" width="10" height="10" />
           <polygon points="2040,360 2050,360 2050,354" />
-          <path d="M2025,375 L2200,375 M2025,382 L2200,382" stroke="currentColor" stroke-width="2" />
+          <path d="M2025,375 L2200,375 M2025,382 L2200,382" stroke="currentColor" strokeWidth="2" />
           <rect x="2025" y="370" width="3" height="20" />
           <rect x="2040" y="370" width="3" height="20" />
           <rect x="2055" y="370" width="3" height="20" />

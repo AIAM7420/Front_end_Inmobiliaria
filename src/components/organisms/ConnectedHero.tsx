@@ -23,7 +23,7 @@ export function ConnectedHero({ propertyId, catalogLoading = false }: { property
   const loading = catalogLoading || (Boolean(propertyId) && (photos.isLoading || (Boolean(firstPhotoId) && cover.isLoading)));
 
   // Sin fotografía real disponible (error del backend, catálogo vacío o imagen rota): carrusel ilustrativo.
-  if (!loading && !imageUrl) return <HeroCarousel images={FALLBACK_HERO_IMAGES} />;
+  if (!loading && !imageUrl) return <div className="relative"><HeroCarousel images={FALLBACK_HERO_IMAGES} /><span className="absolute top-3 left-3 rounded-full bg-black/50 px-3 py-1 text-[10px] text-white font-inter">Imágenes ilustrativas</span></div>;
 
   return (
     <div className="relative w-full h-[180px] md:h-[220px] rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm mt-1 md:mt-2 bg-inmo-secondary">

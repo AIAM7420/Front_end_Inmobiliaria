@@ -15,7 +15,8 @@ test('public catalog and filters use the real API without exposing a token', asy
   await expect(page.getByRole('heading', { name: 'Catálogo general' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Abrir filtros' }).click();
-  await page.getByRole('combobox', { name: 'Rango de precio' }).selectOption('under-1m');
+  await page.getByRole('combobox', { name: 'Rango de precio' }).click();
+  await page.getByRole('option', { name: 'Hasta $1M', exact: true }).click();
   const search = page.waitForRequest((request) => request.url().startsWith(`${api}/busquedas`));
   const searchResponse = page.waitForResponse((response) => response.url().startsWith(`${api}/busquedas`));
   await page.getByRole('button', { name: 'Buscar propiedades' }).click();
