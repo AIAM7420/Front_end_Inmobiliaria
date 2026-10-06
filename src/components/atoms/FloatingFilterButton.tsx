@@ -18,7 +18,7 @@ export const FloatingFilterButton: React.FC<FloatingFilterButtonProps> = ({
   const iconSize = size === 'xl' ? 'w-6 h-6' : size === 'large' ? 'w-5 h-5 md:w-6 md:h-6' : 'w-5 h-5';
 
   return (
-    <div className={`filter-dropdown-toggle ${sizeClasses} ${isActive ? 'ring-2 ring-inmo-accent/40 !bg-white dark:!bg-inmo-darkcard' : 'bg-white/70 dark:bg-black/60'} backdrop-blur-2xl border border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] rounded-full transition-all duration-300 select-none shrink-0 ${className}`}>
+    <div className={`filter-dropdown-toggle ${sizeClasses} ${isActive ? 'ring-2 ring-inmo-accent/40 !bg-white/80 dark:!bg-inmo-darkcard' : 'bg-white/40 dark:bg-black/20'} backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full transition-all duration-300 select-none shrink-0 ${className}`}>
       <button
         type="button"
         onClick={onClick}

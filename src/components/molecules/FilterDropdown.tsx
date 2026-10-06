@@ -64,7 +64,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
         isOpen ? 'opacity-100 scale-y-100 max-h-[450px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'
       } ${className}`}
     >
-      <div className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl p-5 rounded-card shadow-2xl border border-gray-100 dark:border-inmo-darktertiary/50">
+      <div className="bg-white/85 dark:bg-black/85 backdrop-blur-2xl p-5 rounded-card shadow-2xl border border-white/50 dark:border-white/10">
         <div className="flex flex-col gap-3">
           {zones.isPending ? <Skeleton className="w-full h-[46px]" /> : <Select
             aria-label="Zona"

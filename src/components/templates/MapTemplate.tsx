@@ -370,7 +370,7 @@ export function MapTemplate(_props: MapTemplateProps) {
           showAllOption
           activeFilter={activeFilter}
           onSelectFilter={handleFilterChange}
-          className="w-full justify-center md:justify-around shadow-lg"
+          className="w-full justify-center md:justify-around"
         />
       </div>
     </div>
@@ -402,7 +402,7 @@ export function MapTemplate(_props: MapTemplateProps) {
       </div>
 
       {searchMode === 'text' && chatbot.data?.aclaracion && (
-        <p role="status" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-gray-600 dark:text-gray-300 shadow-soft pointer-events-auto">
+        <p role="status" className="bg-white/85 dark:bg-black/80 backdrop-blur-2xl rounded-2xl p-3 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-white/50 dark:border-white/10 pointer-events-auto">
           {chatbot.data.aclaracion}
         </p>
       )}
@@ -417,11 +417,11 @@ export function MapTemplate(_props: MapTemplateProps) {
             onSubmit={handleTextSearch}
             size="xl"
             glass
-            className="w-full shadow-2xl"
+            className="w-full"
           />
           {searchMode === 'text' && chatbot.data?.aclaracion && (
             <div className="absolute left-0 bottom-full mb-3 z-30 max-w-lg pointer-events-auto">
-              <p role="status" className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-gray-100 dark:border-white/10">
+              <p role="status" className="bg-white/85 dark:bg-black/80 backdrop-blur-2xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-white/50 dark:border-white/10">
                 {chatbot.data.aclaracion}
               </p>
             </div>

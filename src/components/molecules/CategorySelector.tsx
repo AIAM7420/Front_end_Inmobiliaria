@@ -44,7 +44,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="w-full h-[44px] bg-white/75 dark:bg-inmo-darkcard/90 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-md rounded-full px-4 flex items-center justify-between gap-2.5 transition-all text-inmo-secondary dark:text-white cursor-pointer active:scale-[0.98]"
+        className="w-full h-[44px] bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full px-4 flex items-center justify-between gap-2.5 transition-all text-inmo-secondary dark:text-white cursor-pointer active:scale-[0.98]"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-6 h-6 rounded-full bg-inmo-accent/10 dark:bg-inmo-accent/20 flex items-center justify-center shrink-0">
@@ -64,7 +64,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       {isOpen && (
         <div
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 max-h-[320px] overflow-y-auto custom-scrollbar"
+          className="absolute top-full left-0 right-0 mt-2 bg-white/85 dark:bg-black/85 backdrop-blur-2xl rounded-2xl shadow-xl border border-white/50 dark:border-white/10 p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 max-h-[320px] overflow-y-auto custom-scrollbar"
         >
           {/* Opción Todos */}
           <button
