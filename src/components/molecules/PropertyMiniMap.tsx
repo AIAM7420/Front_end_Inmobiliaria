@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MapPin } from 'lucide-react';
+import { MapPin, Plus, Minus, RotateCcw } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
 /** Public callers must pass the zone centre, never the property's private point. */
@@ -9,10 +9,12 @@ export function PropertyMiniMap({ position, privateLocation = false }: {
   position: { lat: number; lng: number } | null; privateLocation?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
   const { isDarkMode } = useAppContext();
   const [failed, setFailed] = useState(false);
   const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
   const lat = position?.lat, lng = position?.lng;
+  const initialZoom = privateLocation ? 14.5 : 12;
 
   useEffect(() => {
     if (!container.current || !token || lat === undefined || lng === undefined) return;
@@ -23,18 +25,23 @@ export function PropertyMiniMap({ position, privateLocation = false }: {
       accessToken: token,
       style: isDarkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: [lng, lat],
-      zoom: privateLocation ? 15 : 12.5,
+      zoom: initialZoom,
+      minZoom: 6,
+      maxZoom: 18,
       pitch: 0,
       bearing: 0,
       maxPitch: 0,
       minPitch: 0,
       projection: 'mercator',
-      interactive: false,
+      dragPan: true,
+      cooperativeGestures: true,
+      doubleClickZoom: true,
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false,
     });
+    mapRef.current = map;
 
     const marker = new mapboxgl.Marker({ color: '#FA003F' }).setLngLat([lng, lat]).addTo(map);
 
@@ -89,7 +96,7 @@ export function PropertyMiniMap({ position, privateLocation = false }: {
       marker.remove();
       map.remove();
     };
-  }, [lat, lng, token, isDarkMode, privateLocation]);
+  }, [lat, lng, token, isDarkMode, privateLocation, initialZoom]);
 
   const label = privateLocation ? 'Ubicación privada' : 'Ubicación aproximada';
 
@@ -110,6 +117,50 @@ export function PropertyMiniMap({ position, privateLocation = false }: {
             <MapPin className="w-3 h-3 text-inmo-accent" />
             {label}
           </span>
+        </div>
+      )}
+
+      {/* Controles flotantes de zoom y recentrado */}
+      {token && position && !failed && (
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-white/80 dark:bg-black/60 backdrop-blur-md p-1 rounded-full shadow-md border border-white/50 dark:border-white/10">
+          <button
+            type="button"
+            aria-label="Acercar mapa (zoom in)"
+            title="Acercar"
+            onClick={(e) => {
+              e.stopPropagation();
+              mapRef.current?.zoomIn();
+            }}
+            className="w-7 h-7 flex items-center justify-center rounded-full text-inmo-secondary dark:text-white hover:bg-white/80 dark:hover:bg-white/20 active:scale-95 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Alejar mapa (zoom out)"
+            title="Alejar (zoom out)"
+            onClick={(e) => {
+              e.stopPropagation();
+              mapRef.current?.zoomOut();
+            }}
+            className="w-7 h-7 flex items-center justify-center rounded-full text-inmo-secondary dark:text-white hover:bg-white/80 dark:hover:bg-white/20 active:scale-95 transition-all"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Recentrar ubicación"
+            title="Recentrar"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (lat !== undefined && lng !== undefined) {
+                mapRef.current?.flyTo({ center: [lng, lat], zoom: initialZoom, pitch: 0, bearing: 0, essential: true });
+              }
+            }}
+            className="w-7 h-7 flex items-center justify-center rounded-full text-inmo-secondary dark:text-white hover:bg-white/80 dark:hover:bg-white/20 active:scale-95 transition-all border-l border-black/10 dark:border-white/10 pl-1"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-gray-500 dark:text-gray-300" />
+          </button>
         </div>
       )}
 
