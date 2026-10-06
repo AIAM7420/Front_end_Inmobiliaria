@@ -8,10 +8,11 @@ export interface DropdownSelectProps {
   label: string; value: string; options: DropdownOption[]; onChange: (value: string) => void;
   icon?: ReactNode; disabled?: boolean; popupOwnerId?: string;
   compact?: boolean;
+  glass?: boolean;
 }
 
 /** INMO single-choice dropdown. Focus stays on the combobox for keyboard navigation. */
-export function DropdownSelect({ label, value, options, onChange, icon, disabled, popupOwnerId, compact = false }: DropdownSelectProps) {
+export function DropdownSelect({ label, value, options, onChange, icon, disabled, popupOwnerId, compact = false, glass = false }: DropdownSelectProps) {
   const id = useId(), trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false), [active, setActive] = useState(0);
   const typeahead = useRef({ text: '', at: 0 });
@@ -46,7 +47,7 @@ export function DropdownSelect({ label, value, options, onChange, icon, disabled
     <button ref={trigger} type="button" role="combobox" aria-label={label} aria-haspopup="listbox"
       aria-expanded={open} aria-controls={open ? id : undefined} aria-activedescendant={open ? `${id}-option-${active}` : undefined}
       disabled={disabled || enabled.length === 0} onClick={event => { event.currentTarget.focus({ preventScroll: true }); if (open) close(); else show(); }} onKeyDown={keyboard}
-      className={`${compact ? 'h-11 px-4 text-xs font-bold bg-white/75 dark:bg-inmo-darkcard/90 backdrop-blur-2xl border border-white/60 dark:border-white/10' : 'h-[70px] px-6 text-lg bg-white dark:bg-inmo-darkcard'} w-full rounded-full shadow-soft flex items-center gap-3 text-left font-inter text-inmo-secondary dark:text-white outline-none focus-visible:ring-4 focus-visible:ring-inmo-tertiary dark:focus-visible:ring-inmo-darktertiary disabled:opacity-50 disabled:cursor-not-allowed`}>
+      className={`${compact ? 'h-11 px-4 text-xs font-bold bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm' : `h-[70px] px-6 text-lg ${glass ? 'bg-white/60 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-sm' : 'bg-white dark:bg-inmo-darkcard shadow-soft'}`} w-full rounded-full flex items-center gap-3 text-left font-inter text-inmo-secondary dark:text-white outline-none focus-visible:ring-4 focus-visible:ring-inmo-tertiary dark:focus-visible:ring-inmo-darktertiary disabled:opacity-50 disabled:cursor-not-allowed`}>
       {icon && <span className="shrink-0">{icon}</span>}<span className="min-w-0 flex-1 truncate">{options[selected]?.label ?? label}</span>
       <ChevronDown className={`w-5 h-5 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
     </button>

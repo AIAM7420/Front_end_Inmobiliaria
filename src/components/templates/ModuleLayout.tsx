@@ -99,6 +99,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
             {showFilters && onToggleFilters && (
               <div className="relative">
                 <IconButton
+                  aria-label="Abrir filtros del panel"
                   onClick={onToggleFilters}
                   icon={<SlidersHorizontal className="w-5 h-5" strokeWidth={2} />}
                   variant="secondary"
@@ -116,6 +117,8 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
                       document.body
                     )}
                     <div
+                      inert={!isFiltersOpen}
+                      aria-hidden={!isFiltersOpen}
                       className={`absolute right-0 top-full mt-3 w-72 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-xl border border-gray-100 dark:border-inmo-darktertiary z-50 overflow-hidden transition-all duration-200 origin-top-right ${
                         isFiltersOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                       }`}

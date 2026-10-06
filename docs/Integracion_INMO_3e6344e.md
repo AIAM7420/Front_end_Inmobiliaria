@@ -1,6 +1,6 @@
 # Integración de INMO hasta 3e6344e y navegación táctil
 
-Entrega del 2026-10-05 en ambos frontends: `AIAM7420/Front_end_Inmobiliaria` y `angggsoft/inmo`. Sin modificaciones del backend, endpoints nuevos ni migraciones. No se accede a Railway ni se modifica EAM16.
+Entrega del 2026-10-06 en ambos frontends: `AIAM7420/Front_end_Inmobiliaria` y `angggsoft/inmo`. Sin modificaciones del backend, endpoints nuevos ni migraciones. No se accede a Railway ni se modifica EAM16.
 
 ## Procedencia y decisiones de integración
 
@@ -9,6 +9,8 @@ Nuestro punto de partida es `df19aed2e861c6a1b44e672ee56fb2f7bbff2e66` (PR #7). 
 Los 13 commits incorporados desde `6a4c88e` son `55188a1`, `fd53687`, `f3b8031`, `f558662`, `31f14b2`, `8387f3e`, `6188d19`, `f1fd623`, `011439c`, `c737047`, `ab3925d`, `6453829` y `3e6344e`. [Comparación original](https://github.com/angggsoft/inmo/compare/6a4c88e...3e6344e).
 
 Se aplica [estilo-inmo](../agent/skills/estilo-inmo/SKILL.md). Se conservan las píldoras, tarjetas, tipografías, tokens y distribución nuevos; los selectores nativos y las esperas artificiales del prototipo se sustituyen por controles compartidos y estados de consultas reales. Las adaptaciones autorizadas incluyen scroll, áreas táctiles, permisos, estados de API, ausencia de reseñas y mapas aproximados. Esta entrega no afirma una comparación automatizada píxel por píxel de todas las pantallas.
+
+La revisión concurrente del 2026-10-06 incorporó también `aea21a8`, `5646955` y `d84fb75958c34b16d5a7e8a195fe332d5ecfc96f`: estilos de cristal uniformes, filtros compactos, coincidencias del mapa y la nueva distribución de Mensajes. Se conserva su historial. La espera artificial del chat se sustituye por consultas reales, los filtros por el desplegable compartido y se mantiene un único cierre para conversación y asistente. Se repiten las suites afectadas antes de publicar.
 
 ## Matriz de cambios y evidencia
 
@@ -39,9 +41,9 @@ Resultados ejecutados en cada checkout:
 | --- | --- | --- |
 | Unitarias | 47 pruebas en 17 archivos | 47 pruebas en 17 archivos |
 | Lint | 0 errores, 9 avisos | 0 errores, 9 avisos |
-| Build | TypeScript, Vite y PWA correctos; 102 entradas de precaché | TypeScript, Vite y PWA correctos; 102 entradas de precaché |
-| Navegador | 23 casos de mapas/touch y 42 de regresión | 23 casos de mapas/touch y 42 de regresión |
-| Equivalencia | 101 archivos compilados comparados por SHA-256 con las mismas variables públicas | Sin diferencias con el build propio |
+| Build | TypeScript, Vite y PWA correctos; 103 entradas de precaché | TypeScript, Vite y PWA correctos; 103 entradas de precaché |
+| Navegador | 25 casos de mapas/touch y 42 de regresión | 25 casos de mapas/touch y 42 de regresión |
+| Equivalencia | 102 archivos compilados comparados por SHA-256 con las mismas variables públicas | Sin diferencias con el build propio |
 
 La ejecución completa de INMO copia detectó una espera excesiva al guardar el orden del inventario (41 casos correctos y uno fallido). Se corrigió la invalidación que recargaba páginas y fotografías sin cambios; se repitieron los tres recorridos afectados en ambos repositorios. Los recorridos táctiles se repitieron después de reservar espacio para el título y corregir el cierre tras scroll: un toque estacionario activa el botón una sola vez, mientras arrastres, pinch, cancelación y estado deshabilitado no lo activan. Estos reintentos se distinguen de las ejecuciones completas y no se contabilizan como casos adicionales.
 
@@ -64,4 +66,5 @@ Las comprobaciones remotas de Mapbox, R2, correo y Stripe quedan a cargo del usu
 - Scroll móvil [claro](evidence/integracion-touch-phone.png) / [oscuro](evidence/integracion-touch-phone-dark.png).
 - Scroll tableta [claro](evidence/integracion-touch-tablet.png) / [oscuro](evidence/integracion-touch-tablet-dark.png).
 - Portafolio [móvil](evidence/integracion-portafolio-phone.png) / [tableta](evidence/integracion-portafolio-tablet.png).
+- Mensajes nuevos: [teléfono](evidence/integracion-mensajes-390.png) / [tableta](evidence/integracion-mensajes-820.png).
 - [Mapa y detalle de escritorio](evidence/integracion-mapa-desktop.png), filtros [escritorio](evidence/integracion-filtros-desktop.png), [tableta](evidence/integracion-filtros-tablet.png) y [móvil oscuro](evidence/integracion-filtros-mobile-dark.png).

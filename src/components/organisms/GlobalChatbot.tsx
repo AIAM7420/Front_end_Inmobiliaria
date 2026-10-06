@@ -22,7 +22,7 @@ export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, on
           onClick={onOpen}
           icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
           variant="secondary"
-          className="!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 !shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] !rounded-full shrink-0"
+          className="!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm !rounded-full shrink-0"
         />
       </div>
 

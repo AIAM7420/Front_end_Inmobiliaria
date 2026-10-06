@@ -49,7 +49,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
   if (orientation === 'vertical') {
     return (
-      <div className={`w-[52px] rounded-full flex-col py-1.5 bg-white/75 dark:bg-black/60 backdrop-blur-2xl border border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] transition-all duration-300 select-none flex items-center justify-around gap-1 ${className}`}>
+      <div className={`w-[52px] rounded-full flex-col py-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm transition-all duration-300 select-none flex items-center justify-around gap-1 ${className}`}>
         {showAllOption && (
           <button
             type="button"
@@ -122,7 +122,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
   return (
     <div
-      className={`h-[46px] md:h-[48px] rounded-full p-1 bg-white/75 dark:bg-black/60 backdrop-blur-2xl border border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] flex items-center gap-1 select-none overflow-x-auto hide-scrollbar ${className}`}
+      className={`h-[48px] md:h-[52px] rounded-full p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm flex items-center justify-center md:justify-around gap-1 md:gap-2 select-none overflow-x-auto hide-scrollbar w-full ${className}`}
     >
       {showAllOption && (
         <button

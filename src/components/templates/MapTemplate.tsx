@@ -332,7 +332,7 @@ export function MapTemplate(_props: MapTemplateProps) {
           showAllOption
           activeFilter={activeFilter}
           onSelectFilter={handleFilterChange}
-          className="w-full justify-center md:justify-around shadow-lg"
+          className="w-full justify-center md:justify-around"
         />
       </div>
     </div>
@@ -353,7 +353,7 @@ export function MapTemplate(_props: MapTemplateProps) {
       </div>
 
       {searchMode === 'text' && chatbot.data?.aclaracion && (
-        <p role="status" className="bg-white dark:bg-inmo-darkcard rounded-2xl p-3 font-inter text-xs text-gray-600 dark:text-gray-300 shadow-soft pointer-events-auto">
+        <p role="status" className="bg-white/40 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-3 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-sm border border-white/50 dark:border-white/10 pointer-events-auto">
           {chatbot.data.aclaracion}
         </p>
       )}
@@ -368,11 +368,11 @@ export function MapTemplate(_props: MapTemplateProps) {
             onSubmit={handleTextSearch}
             size="xl"
             glass
-            className="w-full shadow-2xl"
+            className="w-full"
           />
           {searchMode === 'text' && chatbot.data?.aclaracion && (
             <div className="absolute left-0 bottom-full mb-3 z-30 max-w-lg pointer-events-auto">
-              <p role="status" className="bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-gray-100 dark:border-white/10">
+              <p role="status" className="bg-white/40 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-sm border border-white/50 dark:border-white/10">
                 {chatbot.data.aclaracion}
               </p>
             </div>
@@ -389,9 +389,16 @@ export function MapTemplate(_props: MapTemplateProps) {
       </div>
     </div>
 
-    <div className="absolute bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
-      <Button onClick={showResults} className={`px-6 py-2.5 !text-xs !shadow-lg pointer-events-auto ${panelOpen ? 'opacity-0 pointer-events-none' : ''}`}>
-        {isLoading ? 'Cargando propiedades...' : `Ver ${properties.length}${resultSearch.hasNextPage ? '+' : ''} resultado${properties.length === 1 ? '' : 's'}`}
+    <div className={`fixed md:absolute bottom-[136px] left-0 right-0 z-40 flex flex-col items-center gap-3 px-6 pointer-events-none transition-all duration-300 ease-out ${
+      isFiltersOpen ? 'md:-translate-x-32 lg:-translate-x-36' : ''
+    }`}>
+      <Button
+        onClick={showResults}
+        className={`px-6 py-2.5 !text-xs !shadow-lg pointer-events-auto transition-all duration-300 ${
+          panelOpen ? 'opacity-0 pointer-events-none' : ''
+        }`}
+      >
+        {isLoading ? 'Cargando coincidencias...' : `Ver ${properties.length}${resultSearch.hasNextPage ? '+' : ''} coincidencia${properties.length === 1 ? '' : 's'}`}
       </Button>
     </div>
 

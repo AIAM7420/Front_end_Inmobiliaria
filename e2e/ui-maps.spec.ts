@@ -159,6 +159,42 @@ test.describe('native touch interactions', () => {
   }
 });
 
+test.describe('new messages layout touch', () => {
+  test.use({ hasTouch: true });
+  for (const width of [390, 820]) test('real chat scroll, custom filters and assistant close ' + width, async ({ page, request }) => {
+    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    await page.setViewportSize({ width, height: 900 });
+    const customer = await authenticate(request, 'e2e-general@example.invalid', 'E2eTesting1!');
+    const response = await request.post(`${api}/conversaciones`, { headers: customer, data: { tipo: 'CLIENTE_ASESOR', propiedad_id: fixture.id } });
+    expect(response.ok()).toBe(true);
+    const conversation = await response.json();
+    for (let index = 0; index < 8; index++) expect((await request.post(`${api}/conversaciones/${conversation.id}/mensajes`, { headers: customer, data: { cliente_mensaje_id: crypto.randomUUID(), contenido: `Mensaje táctil ${width} ${index}: ` + 'Consulta real sobre la publicación y sus espacios. '.repeat(15) } })).ok()).toBe(true);
+    await login(page, 'phase4-advisor@example.com', 'Secure1!', '/asesor');
+    await navigate(page, '/asesor/mensajes?conversation=' + conversation.id);
+    const history = page.getByLabel('Historial de mensajes');
+    await expect(history.getByText('Usuario E2E', { exact: true }).first()).toBeVisible();
+    const bounds = await history.boundingBox();
+    await swipe(page, bounds!.x + bounds!.width / 2, bounds!.y + Math.min(bounds!.height - 60, 400), 0, -220);
+    await expect.poll(() => history.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    await expect(page.getByRole('button', { name: 'Cerrar detalle', exact: true })).toHaveCount(0);
+    await page.screenshot({ path: `docs/evidence/integracion-mensajes-${width}.png` });
+    await page.getByRole('button', { name: 'Cerrar conversación', exact: true }).tap();
+    await expect(history).toHaveCount(0);
+    await page.getByRole('button', { name: 'Abrir filtros del panel', exact: true }).filter({ visible: true }).tap();
+    const filter = page.getByRole('combobox', { name: 'Filtrar conversaciones', exact: true });
+    await filter.tap();
+    await page.getByRole('option', { name: 'Archivados', exact: true }).tap();
+    await expect(filter).toContainText('Archivados');
+    await filter.press('Escape');
+    await expect(filter).not.toBeVisible();
+    if (width >= 768) await page.getByRole('button', { name: 'Abrir asistente', exact: true }).tap();
+    else await navigate(page, '/asesor/mensajes?conversation=ai');
+    await page.getByRole('button', { name: 'Cerrar asistente', exact: true }).tap();
+    await expect(page).not.toHaveURL(/conversation=/);
+    expect(errors).toEqual([]);
+  });
+});
+
 test('portfolio filters load later pages and allow explicit retry without false empty results', async ({ page, request }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const property = await (await request.get(`${api}/propiedades/${fixture.id}`)).json();
@@ -218,7 +254,7 @@ for (const size of [{ name: 'desktop', width: 1440, height: 900 }, { name: 'tabl
     expect((await request.put(`${api}/me/preferencias`, { headers: { ...headers, 'If-Match': `"v${preferences.version}"` }, data: { tema: 'CLARO', alertas_correo: preferences.alertas_correo } })).ok()).toBe(true);
     await login(page, 'phase4-advisor@example.com', 'Secure1!', '/asesor');
     await navigate(page, '/asesor/mensajes');
-    await expect(page.getByRole('heading', { name: 'Chats', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Mensajes', exact: true })).toBeVisible();
     if (size.width < 768) await page.getByRole('button', { name: 'Abrir búsqueda' }).click();
     const trigger = page.getByRole('button', { name: 'Abrir filtros', exact: true }).filter({ visible: true });
     const header = page.locator('header').first(), before = await header.boundingBox();
