@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/react-query';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { UserCheck, CheckCircle2, Clock, AlertCircle, MoreVertical, ChevronRight, Mail, Phone, UserMinus } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { UserCheck, CheckCircle2, MoreVertical, ChevronRight, Mail, Phone, UserMinus } from 'lucide-react';
 import { SplitViewLayout } from '../../templates/SplitViewLayout';
 import { ModuleLayout } from '../../templates/ModuleLayout';
 import { SearchBar } from '../../molecules/SearchBar';
 import { Button } from '../../atoms/Button';
+import { AdminUsersNavigation } from '../../molecules/AdminUsersNavigation';
 import { IconButton } from '../../atoms/IconButton';
 import { Textarea } from '../../atoms/Textarea';
 import { ConfirmModal } from '../../molecules/ConfirmModal';
@@ -16,14 +17,14 @@ import { useStatistics } from '../../../integrations/backend/hooks/useEngagement
 import { downloadCSV } from '../../../integrations/backend/operations.service';
 import { operationError, isVersionConflict } from '../../../integrations/backend/versioning';
 export function AdminUsersView() {
-  const navigate = useNavigate(), [activeTab, setActiveTab] = useState<'activos' | 'suspendidos' | 'autorizaciones'>('activos');
+  const [activeTab, setActiveTab] = useState<'activos' | 'suspendidos'>('activos');
   const [searchQuery, setSearchQuery] = useState(''), [showConfirm, setShowConfirm] = useState(false), [reason, setReason] = useState(''), [conflict, setConflict] = useState(false);
   const [params, setParams] = useSearchParams(), selectedId = params.get('cuenta');
   const state = activeTab === 'activos' ? 'ACTIVA' : 'INACTIVA';
   const list = useInfiniteQuery({ queryKey: ['admin', 'accounts', searchQuery, state], queryFn: ({ pageParam }) => getAdminAccounts({ limit: 20, cursor: pageParam, texto: searchQuery, estado: state }), initialPageParam: undefined as string | undefined, getNextPageParam: page => page.next_cursor ?? undefined });
   const accounts = list.data?.pages.flatMap(page => page.items) ?? [];
   const summaries = useQueries({ queries: accounts.map(account => ({ queryKey: ['admin', 'account-summary', account.id], queryFn: () => getAccountSummary(account.id), staleTime: 30_000 })) });
-  const displayedUsers = accounts.map((account, index) => ({ id: account.id, name: account.nombre, email: account.correo, avatar: null, phone: account.telefono, plan: summaries[index]?.data?.plan ?? (summaries[index]?.isError ? 'Error al consultar' : summaries[index]?.isPending ? '…' : 'Sin periodo vigente'), properties: summaries[index]?.data?.propiedades ?? '—', status: account.estado === 'ACTIVA' ? 'active' : 'suspended', date: '', docs: '' }));
+  const displayedUsers = accounts.map((account, index) => ({ id: account.id, name: account.nombre, email: account.correo, avatar: null, phone: account.telefono, plan: summaries[index]?.data?.plan ?? (summaries[index]?.isError ? 'Error al consultar' : summaries[index]?.isPending ? '…' : 'Sin periodo vigente'), properties: summaries[index]?.data?.propiedades ?? '—', status: account.estado === 'ACTIVA' ? 'active' : 'suspended' }));
   const statistics = useStatistics(true, 30), detail = useGetAdminAccount(selectedId ?? ''), change = useChangeAdminAccountState();
   const summary = useQuery({ queryKey: ['admin', 'account-summary', selectedId], queryFn: () => getAccountSummary(selectedId!), enabled: !!selectedId });
   const isOpen = selectedId !== null;
@@ -109,13 +110,6 @@ export function AdminUsersView() {
               Activos
             </button>
             <button
-              onClick={() => { navigate('/admin/autorizaciones'); }}
-              className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all flex items-center justify-center gap-1 ${activeTab === 'autorizaciones' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Autorizaciones
-              <span className="bg-inmo-accent text-white text-[9px] px-1 rounded-full leading-tight">{statistics.data?.autorizaciones_pendientes ?? '—'}</span>
-            </button>
-            <button
               onClick={() => { setActiveTab('suspendidos'); setSelectedId(null); }}
               className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${activeTab === 'suspendidos' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700'}`}
             >
@@ -125,7 +119,8 @@ export function AdminUsersView() {
         </div>
       }
     >
-      <div className="flex flex-col md:flex-row w-full h-full gap-6 font-inter pb-0 md:pb-6">
+      <AdminUsersNavigation />
+      <div className="flex flex-col md:flex-row w-full flex-1 min-h-0 gap-6 font-inter pb-0 md:pb-6 mt-4">
         {/* KPI Panel (Desktop, when no selection) */}
         {!isOpen && (
           <div className="hidden md:flex flex-col w-[15%] lg:w-[12%] gap-4 h-full shrink-0">
@@ -155,13 +150,6 @@ export function AdminUsersView() {
                 Activos
               </button>
               <button
-                onClick={() => { navigate('/admin/autorizaciones'); }}
-                className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all flex items-center gap-2 ${activeTab === 'autorizaciones' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-              >
-                Autorizaciones
-                <span className="bg-inmo-accent text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none">{statistics.data?.autorizaciones_pendientes ?? '—'}</span>
-              </button>
-              <button
                 onClick={() => { setActiveTab('suspendidos'); setSelectedId(null); }}
                 className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${activeTab === 'suspendidos' ? 'bg-white dark:bg-inmo-darkcard shadow-sm text-inmo-secondary dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
               >
@@ -181,18 +169,9 @@ export function AdminUsersView() {
                 <thead className="sticky top-0 z-10 shadow-sm">
                   <tr className="border-b border-gray-100 dark:border-inmo-darktertiary bg-gray-50/95 dark:bg-inmo-darkbg/95 backdrop-blur-md text-inmo-secondary dark:text-gray-300 font-montserrat text-sm">
                     <th className="p-4 font-bold">Usuario</th>
-                    {activeTab === 'autorizaciones' ? (
-                      <>
-                        <th className="p-4 font-bold">Fecha</th>
-                        <th className="p-4 font-bold">Documentos</th>
-                      </>
-                    ) : (
-                      <>
-                        <th className={`p-4 font-bold ${isOpen ? 'hidden' : ''}`}>Plan</th>
-                        <th className="p-4 font-bold text-center">Propiedades</th>
-                        <th className="p-4 font-bold text-center">Estado</th>
-                      </>
-                    )}
+                    <th className={`p-4 font-bold ${isOpen ? 'hidden' : ''}`}>Plan</th>
+                    <th className="p-4 font-bold text-center">Propiedades</th>
+                    <th className="p-4 font-bold text-center">Estado</th>
                     <th className="p-4 font-bold text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -220,19 +199,6 @@ export function AdminUsersView() {
                         </div>
                       </td>
 
-                      {activeTab === 'autorizaciones' ? (
-                        <>
-                          <td className="p-4"><span className="text-sm text-gray-600 dark:text-gray-300">{user.date}</span></td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2 text-xs font-bold">
-                              {user.docs === 'verified' && <span className="text-inmo-success flex items-center gap-1 bg-inmo-success/10 px-2 py-1 rounded-md"><CheckCircle2 className="w-3.5 h-3.5"/> Completo</span>}
-                              {user.docs === 'pending' && <span className="text-inmo-warning flex items-center gap-1 bg-inmo-warning/10 px-2 py-1 rounded-md"><Clock className="w-3.5 h-3.5"/> En revisiÃ³n</span>}
-                              {user.docs === 'missing' && <span className="text-inmo-danger flex items-center gap-1 bg-inmo-danger/10 px-2 py-1 rounded-md"><AlertCircle className="w-3.5 h-3.5"/> Incompleto</span>}
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
                           <td className={`p-4 ${isOpen ? 'hidden' : ''}`}>
                             <span className={`px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase ${
                               user.plan === 'PRO' ? 'bg-inmo-accent/10 text-inmo-accent' :
@@ -253,9 +219,6 @@ export function AdminUsersView() {
                               </span>
                             </div>
                           </td>
-                        </>
-                      )}
-
                       <td className="p-4 text-right">
                         <IconButton
                           variant="secondary"

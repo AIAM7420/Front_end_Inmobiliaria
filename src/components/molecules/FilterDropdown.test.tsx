@@ -17,7 +17,10 @@ it('portals filters outside the navbar and preserves the shared type and price',
   const button = screen.getByRole('button', { name: 'Abrir filtros' }); button.focus(); fireEvent.click(button);
   const dialog = screen.getByRole('dialog');
   expect(dialog.closest('header')).toBeNull();
-  fireEvent.change(screen.getByRole('combobox', { name: 'Sector' }), { target: { value: 'OESTE' } });
+  fireEvent.click(screen.getByRole('combobox', { name: 'Sector' }));
+  const option = screen.getByRole('option', { name: 'Zona oeste' });
+  fireEvent.pointerDown(option); fireEvent.click(option);
+  expect(screen.getByRole('dialog')).toBe(dialog);
   fireEvent.click(screen.getByRole('button', { name: 'Buscar propiedades' }));
   expect(apply).toHaveBeenCalledWith({ tipo_id: '7', precio_max: '1000000', sector: 'OESTE' });
 });
@@ -27,6 +30,16 @@ it('closes with Escape and returns focus to the filter trigger', () => {
   const button = screen.getByRole('button', { name: 'Abrir filtros' }); button.focus(); fireEvent.click(button);
   fireEvent.keyDown(document, { key: 'Escape' });
   expect(screen.queryByRole('dialog')).toBeNull(); expect(document.activeElement).toBe(button);
+});
+
+it('first Escape closes only the nested options, second closes filters', () => {
+  render(<Example apply={vi.fn()} />);
+  const trigger = screen.getByRole('button', { name: 'Abrir filtros' }); trigger.focus(); fireEvent.click(trigger);
+  const combo = screen.getByRole('combobox', { name: 'Sector' }); combo.focus(); fireEvent.click(combo);
+  fireEvent.keyDown(combo, { key: 'Escape' });
+  expect(screen.queryByRole('listbox')).toBeNull(); expect(screen.getByRole('dialog')).toBeTruthy();
+  fireEvent.keyDown(combo, { key: 'Escape' });
+  expect(screen.queryByRole('dialog')).toBeNull(); expect(document.activeElement).toBe(trigger);
 });
 
 it('closes on an outside pointer without expanding its parent', () => {

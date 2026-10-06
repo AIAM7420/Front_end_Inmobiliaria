@@ -148,7 +148,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
         onScroll={(e) => {
           window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
         }}
-        className={`flex-1 min-h-0 h-full relative overflow-x-hidden ${noScroll ? 'flex flex-col overflow-hidden' : `overflow-y-auto max-md:hide-scrollbar ${noBottomPadding ? 'pb-24 md:pb-6' : 'pb-32 md:pb-6'}`} p-2 -m-2`}
+        className={`flex-1 min-h-0 h-full relative overflow-x-hidden flex flex-col ${noScroll ? 'overflow-hidden' : `overflow-y-auto max-md:hide-scrollbar ${noBottomPadding ? 'pb-24 md:pb-6' : 'pb-32 md:pb-6'}`} p-2 -m-2`}
       >
         {children}
       </div>

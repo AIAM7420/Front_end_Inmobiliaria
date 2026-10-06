@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Home, Map, Heart, Send, User, Building2, MoreHorizontal, Astroid } from 'lucide-react';
-import { navigation } from '../../navigation';
+import { navigationFor } from '../../navigation';
 import { Button } from '../atoms/Button';
 import { BottomSheet } from './BottomSheet';
 interface FloatingNavBarProps {
-  role?: 'public' | 'asesor' | 'admin'; activeRoute?: string;
+  role?: 'public' | 'asesor' | 'admin'; activeRoute?: string; isAuthenticated?: boolean;
   onNavigate?: (route: string) => void; onOpenChatbot?: () => void; hideChatbot?: boolean;
 }
 const glass = 'bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]';
 const iconFor = (id: string) => id === 'map' ? Map : id === 'favorites' ? Heart : id.includes('mensajes') || id === 'messages' ? Send : id.includes('asesores') ? User : id === 'inmuebles' || id.includes('propiedades') ? Building2 : Home;
-export function FloatingNavBar({ role = 'public', activeRoute = 'home', onNavigate, onOpenChatbot, hideChatbot = false }: FloatingNavBarProps) {
+export function FloatingNavBar({ role = 'public', activeRoute = 'home', isAuthenticated = false, onNavigate, onOpenChatbot, hideChatbot = false }: FloatingNavBarProps) {
   const [more, setMore] = useState(false);
-  const items = navigation[role], primary = role === 'admin' ? items.slice(0, 4) : items;
+  const items = navigationFor(role, isAuthenticated), primary = role === 'admin' ? items.slice(0, 4) : items;
   const go = (id: string) => { setMore(false); onNavigate?.(id); };
   return <>
     <nav aria-label="Navegación principal móvil" className="fixed bottom-6 left-0 right-0 px-4 flex gap-3 justify-center z-40">
