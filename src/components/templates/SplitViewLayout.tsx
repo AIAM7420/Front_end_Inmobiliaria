@@ -113,7 +113,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
                  aria-label="Volver al panel anterior"
                  icon={<ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.5} />}
                  variant="secondary"
-                 className="!w-10 !h-10 !p-0 !bg-white/90 dark:!bg-inmo-darkcard/90 backdrop-blur-md hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary !shadow-sm !rounded-full transition-colors border border-gray-100 dark:border-white/10"
+                 className="!w-10 !h-10 !p-0 !rounded-full hover:scale-105 active:scale-95 transition-all"
                />
             </div>
           )}

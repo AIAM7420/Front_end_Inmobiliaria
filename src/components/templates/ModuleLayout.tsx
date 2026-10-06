@@ -120,7 +120,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
                       document.body
                     )}
                     <div
-                      className={`absolute right-0 top-full mt-3 w-72 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-xl border border-gray-100 dark:border-inmo-darktertiary z-50 overflow-hidden transition-all duration-200 origin-top-right ${
+                      className={`absolute right-0 top-full mt-3 w-72 bg-white/60 dark:bg-black/60 backdrop-blur-2xl rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] border border-white/60 dark:border-white/20 z-50 overflow-hidden transition-all duration-200 origin-top-right ${
                         isFiltersOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                       }`}
                     >

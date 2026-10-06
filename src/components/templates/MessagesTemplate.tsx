@@ -373,12 +373,12 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
             <IconButton
               aria-label="Adjuntar archivo"
               icon={<Paperclip className="w-[22px] h-[22px]" />}
-              variant="ghost"
+              variant="secondary"
               disabled={uploading || sendMessage.isPending || attachments.length >= 4}
               onClick={() => setUploadOpen(true)}
-              className="!w-[50px] !h-[50px] !rounded-full shrink-0 text-gray-400 hover:text-inmo-accent bg-white/50 dark:bg-inmo-darkcard/50 backdrop-blur-md shadow-sm border border-gray-100 dark:border-white/10"
+              className="!w-[50px] !h-[50px] !rounded-full shrink-0 text-gray-500 dark:text-gray-400 hover:text-inmo-accent dark:hover:text-inmo-accent"
             />
-            <div className="flex-1 bg-white/80 dark:bg-inmo-darkcard/80 backdrop-blur-md border border-gray-200 dark:border-inmo-darktertiary rounded-2xl min-h-[50px] p-1 flex items-end transition-colors focus-within:border-inmo-accent focus-within:bg-white dark:focus-within:bg-inmo-darkcard shadow-sm">
+            <div className="flex-1 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full min-h-[50px] px-3 py-1 flex items-end transition-colors focus-within:ring-2 focus-within:ring-inmo-accent/20">
               <textarea
                 aria-label="Escribe un mensaje"
                 placeholder="Escribe un mensaje..."

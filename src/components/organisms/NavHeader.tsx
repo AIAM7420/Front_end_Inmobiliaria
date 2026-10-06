@@ -286,7 +286,7 @@ export const NavHeader: React.FC<NavHeaderProps> = ({
                 placeholder="Buscar en cualquier lugar..."
                 size="slim"
                 glass
-                className="w-full !shadow-none border border-gray-200 dark:border-white/10"
+                className="w-full !shadow-none"
               />
             </div>
             <div className={`relative shrink-0 transition-all duration-500 ${showSearchInHeader ? 'w-[44px] opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
