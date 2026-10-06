@@ -79,7 +79,7 @@ test.describe('native touch interactions', () => {
       const photo = page.getByRole('region', { name: 'Fotografía principal' }).filter({ visible: true });
       await expect(photo).toBeVisible();
       const closeBox = await page.getByRole('button', { name: 'Cerrar detalle', exact: true }).filter({ visible: true }).boundingBox();
-      const titleBoxes = await page.getByRole('heading', { name: fixture.titulo, exact: true }).first().evaluate(element => {
+      const titleBoxes = await detail.first().getByRole('heading', { name: fixture.titulo, exact: true }).evaluate(element => {
         const range = document.createRange(); range.selectNodeContents(element);
         return Array.from(range.getClientRects()).map(rect => ({ x: rect.x, y: rect.y, width: rect.width, height: rect.height }));
       });
