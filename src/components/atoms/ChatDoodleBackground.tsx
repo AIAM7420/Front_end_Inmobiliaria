@@ -23,7 +23,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
     >
       {/* Tiled SVG Pattern with Real Estate Doodles & Integrated Logo Silhouette Mask */}
       <svg
-        className="w-full h-full text-inmo-secondary dark:text-inmo-primary stroke-inmo-secondary dark:stroke-inmo-primary opacity-[0.06] dark:opacity-[0.28] transition-opacity duration-300"
+        className="w-full h-full text-inmo-secondary dark:text-black stroke-inmo-secondary dark:stroke-black opacity-[0.06] dark:opacity-[0.32] transition-opacity duration-300"
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
@@ -56,7 +56,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
               strokeWidth="2.0"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-inmo-secondary dark:text-inmo-primary stroke-inmo-secondary dark:stroke-inmo-primary"
+              className="text-inmo-secondary dark:text-black stroke-inmo-secondary dark:stroke-black"
             >
               {/* === SECTOR 1: ZONA SUPERIOR DISPERSA === */}
               {/* 1. Casa clásica con chimenea y humo */}
