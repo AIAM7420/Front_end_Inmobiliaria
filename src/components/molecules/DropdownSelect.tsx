@@ -3,14 +3,15 @@ import type { KeyboardEvent, ReactNode, RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 
-export interface DropdownOption { value: string; label: string; disabled?: boolean }
+export interface DropdownOption { value: string; label: string; disabled?: boolean; icon?: ReactNode }
 export interface DropdownSelectProps {
   label: string; value: string; options: DropdownOption[]; onChange: (value: string) => void;
   icon?: ReactNode; disabled?: boolean; popupOwnerId?: string;
+  compact?: boolean;
 }
 
 /** INMO single-choice dropdown. Focus stays on the combobox for keyboard navigation. */
-export function DropdownSelect({ label, value, options, onChange, icon, disabled, popupOwnerId }: DropdownSelectProps) {
+export function DropdownSelect({ label, value, options, onChange, icon, disabled, popupOwnerId, compact = false }: DropdownSelectProps) {
   const id = useId(), trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false), [active, setActive] = useState(0);
   const typeahead = useRef({ text: '', at: 0 });
@@ -44,8 +45,8 @@ export function DropdownSelect({ label, value, options, onChange, icon, disabled
   return <>
     <button ref={trigger} type="button" role="combobox" aria-label={label} aria-haspopup="listbox"
       aria-expanded={open} aria-controls={open ? id : undefined} aria-activedescendant={open ? `${id}-option-${active}` : undefined}
-      disabled={disabled || enabled.length === 0} onClick={() => open ? close() : show()} onKeyDown={keyboard}
-      className="h-[70px] w-full rounded-full bg-white dark:bg-inmo-darkcard shadow-soft flex items-center gap-3 px-6 text-left font-inter text-lg text-inmo-secondary dark:text-white outline-none focus-visible:ring-4 focus-visible:ring-inmo-tertiary dark:focus-visible:ring-inmo-darktertiary disabled:opacity-50 disabled:cursor-not-allowed">
+      disabled={disabled || enabled.length === 0} onClick={event => { event.currentTarget.focus({ preventScroll: true }); if (open) close(); else show(); }} onKeyDown={keyboard}
+      className={`${compact ? 'h-11 px-4 text-xs font-bold bg-white/75 dark:bg-inmo-darkcard/90 backdrop-blur-2xl border border-white/60 dark:border-white/10' : 'h-[70px] px-6 text-lg bg-white dark:bg-inmo-darkcard'} w-full rounded-full shadow-soft flex items-center gap-3 text-left font-inter text-inmo-secondary dark:text-white outline-none focus-visible:ring-4 focus-visible:ring-inmo-tertiary dark:focus-visible:ring-inmo-darktertiary disabled:opacity-50 disabled:cursor-not-allowed`}>
       {icon && <span className="shrink-0">{icon}</span>}<span className="min-w-0 flex-1 truncate">{options[selected]?.label ?? label}</span>
       <ChevronDown className={`w-5 h-5 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
     </button>
@@ -80,9 +81,9 @@ function DropdownOptions({ id, ownerId, trigger, label, options, value, active, 
   return createPortal(<div ref={panel} id={id} role="listbox" aria-label={label} data-inmo-dropdown-owner={ownerId} style={placement}
     className="fixed z-[110] p-2 overflow-y-auto overscroll-contain rounded-3xl bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-xl border border-gray-100 dark:border-inmo-darktertiary shadow-xl font-inter">
     {options.map((option, index) => <button key={option.value} id={`${id}-option-${index}`} type="button" role="option" aria-selected={option.value === value}
-      tabIndex={-1} disabled={option.disabled} onPointerDown={event => event.preventDefault()} onPointerMove={() => onActive(index)} onClick={() => onChoose(index)}
+      tabIndex={-1} disabled={option.disabled} onPointerDown={event => { if (event.pointerType !== 'touch') event.preventDefault(); }} onPointerMove={event => { if (event.pointerType !== 'touch') onActive(index); }} onClick={() => onChoose(index)}
       className={`w-full min-h-11 px-4 py-2.5 rounded-2xl flex items-center gap-3 text-left text-sm transition-colors disabled:opacity-50 ${option.value === value ? 'bg-inmo-accent/10 text-inmo-accent font-bold' : 'text-inmo-secondary dark:text-white'} ${active === index ? 'ring-2 ring-inmo-accent/40 bg-gray-50 dark:bg-white/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-      <span className="flex-1">{option.label}</span>{option.value === value && <Check className="w-4 h-4 shrink-0 text-inmo-accent" />}
+      {option.icon}<span className="flex-1">{option.label}</span>{option.value === value && <Check className="w-4 h-4 shrink-0 text-inmo-accent" />}
     </button>)}
   </div>, document.body);
 }

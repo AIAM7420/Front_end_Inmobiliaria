@@ -7,7 +7,7 @@ let fixture: { id: string; asesor_id: string; titulo: string };
 test.beforeAll(async ({ browser, request }) => {
   const headers = await authenticate(request, 'phase4-advisor@example.com', 'Secure1!');
   const [types, zones, operations] = await Promise.all(['tipos', 'zonas', 'operaciones'].map(async name => (await request.get(`${api}/catalogos/${name}`)).json()));
-  const created = await request.post(`${api}/propiedades`, { headers, data: { tipo_id: types.find((item: { codigo: string }) => item.codigo === 'CASA').id, zona_id: zones.find((item: { nombre: string }) => item.nombre === 'León (zona general)').id, operacion_id: operations.find((item: { codigo: string }) => item.codigo === 'VENTA').id, titulo: `Casa mapas navegador ${Date.now()}`, descripcion: 'Publicación sintética para probar favoritos y contacto real.', direccion: 'Calle de prueba 123', codigo_postal: '37000', latitud: '21.165', longitud: '-101.680', precio: '1000000', moneda: 'MXN', habitaciones: 2, banos: '1', superficie_construccion: '90', superficie_terreno: '120' } });
+  const created = await request.post(`${api}/propiedades`, { headers, data: { tipo_id: types.find((item: { codigo: string }) => item.codigo === 'CASA').id, zona_id: zones.find((item: { nombre: string }) => item.nombre === 'León (zona general)').id, operacion_id: operations.find((item: { codigo: string }) => item.codigo === 'VENTA').id, titulo: `Casa mapas navegador ${Date.now()}`, descripcion: 'Publicación sintética para probar favoritos y contacto real. Amplios espacios y distribución de prueba para recorrer toda la información desde un dispositivo táctil.\n'.repeat(12), direccion: 'Calle de prueba 123', codigo_postal: '37000', latitud: '21.165', longitud: '-101.680', precio: '1000000', moneda: 'MXN', habitaciones: 2, banos: '1', superficie_construccion: '90', superficie_terreno: '120' } });
   expect(created.status()).toBe(201); fixture = await created.json();
   const page = await browser.newPage();
   for (let index = 0; index < 3; index++) {
@@ -55,6 +55,141 @@ async function transport(page: Page, request: APIRequestContext) {
     await route.fulfill({ response: result });
   });
 }
+
+async function swipe(page: Page, x: number, y: number, dx: number, dy: number) {
+  const session = await page.context().newCDPSession(page);
+  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  for (let step = 1; step <= 12; step++) {
+    await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * step / 12, y: y + dy * step / 12 }] });
+    await page.waitForTimeout(20);
+  }
+  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await session.detach();
+}
+
+test.describe('native touch interactions', () => {
+  test.use({ hasTouch: true });
+  for (const size of [{ name: 'phone', width: 390, height: 844 }, { name: 'tablet', width: 820, height: 1180 }, { name: 'tablet-landscape', width: 1024, height: 768 }, { name: 'wide-tablet', width: 1280, height: 800 }]) for (const dark of [false, true]) {
+    test('detail scroll, gallery swipe and touch selection ' + size.name + (dark ? ' dark' : ' light'), async ({ page }) => {
+      const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+      await page.setViewportSize(size);
+      if (dark) await page.addInitScript(() => localStorage.setItem('inmo_theme', 'dark'));
+      await page.goto('/inmuebles?propiedad=' + fixture.id);
+      const detail = size.width < 768 ? page.getByRole('dialog', { name: 'Detalle de propiedad' }) : page.locator('[aria-hidden="false"]').filter({ has: page.getByRole('region', { name: 'Fotografía principal' }) });
+      const photo = page.getByRole('region', { name: 'Fotografía principal' }).filter({ visible: true });
+      await expect(photo).toBeVisible();
+      if (size.width >= 768) {
+        const card = page.getByLabel('Resultados del catálogo').locator(':scope > div').first();
+        await expect(card).toBeVisible();
+        expect((await card.boundingBox())!.width).toBeGreaterThanOrEqual(200);
+      }
+      const gallery = page.getByLabel('Galería de fotografías').filter({ visible: true });
+      const second = gallery.getByRole('button', { name: 'Mostrar fotografía 2' });
+      await expect(gallery.getByRole('button')).toHaveCount(3);
+      const picture = await photo.boundingBox();
+      await swipe(page, picture!.x + picture!.width * .75, picture!.y + picture!.height * .25, -picture!.width * .5, 0);
+      await expect(second).toHaveAttribute('aria-pressed', 'true');
+      await page.screenshot({ path: 'docs/evidence/integracion-galeria-' + size.name + (dark ? '-dark' : '') + '.png', animations: 'disabled' });
+      await photo.getByRole('button', { name: 'Fotografía anterior' }).tap();
+      await expect(gallery.getByRole('button', { name: 'Mostrar fotografía 1' })).toHaveAttribute('aria-pressed', 'true');
+      const thumbnails = await gallery.boundingBox();
+      if (await gallery.evaluate(element => element.scrollWidth > element.clientWidth)) {
+        await swipe(page, thumbnails!.x + thumbnails!.width * .85, thumbnails!.y + 50, -thumbnails!.width * .55, 0);
+        await expect.poll(() => gallery.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+      }
+      await gallery.getByRole('button', { name: 'Mostrar fotografía 3' }).tap();
+      await expect(gallery.getByRole('button', { name: 'Mostrar fotografía 3' })).toHaveAttribute('aria-pressed', 'true');
+      const scroll = photo.locator('xpath=ancestor::*[contains(@class,"overflow-y-auto")][1]');
+      // On desktop the text column has its own scroll, while the mobile column owns the entire detail.
+      const textScroll = size.width < 768 ? scroll : page.getByRole('heading', { name: fixture.titulo, exact: true }).first().locator('xpath=ancestor::*[contains(@class,"overflow-y-auto")][1]');
+      const bounds = await textScroll.boundingBox();
+      await swipe(page, bounds!.x + bounds!.width * .6, bounds!.y + Math.min(bounds!.height - 50, 370), 0, -230);
+      await expect.poll(() => textScroll.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+      await expect(detail.first()).toBeVisible();
+      await page.screenshot({ path: 'docs/evidence/integracion-touch-' + size.name + (dark ? '-dark' : '') + '.png', animations: 'disabled' });
+      if (size.width < 768) {
+        const handle = page.getByRole('button', { name: 'Expandir o contraer detalle' }).filter({ visible: true });
+        const grip = await handle.boundingBox();
+        await swipe(page, grip!.x + grip!.width / 2, grip!.y + grip!.height / 2, 0, -100);
+        await expect(handle).toHaveAttribute('aria-expanded', 'true');
+        await expect(gallery.getByRole('button', { name: 'Mostrar fotografía 3' })).toHaveAttribute('aria-pressed', 'true');
+        await handle.tap();
+        await expect(handle).toHaveAttribute('aria-expanded', 'false');
+      }
+      expect(errors).toEqual([]);
+      await page.getByRole('button', { name: 'Cerrar detalle', exact: true }).filter({ visible: true }).tap();
+      await expect(photo).toHaveCount(0);
+      await expect(page).not.toHaveURL(/propiedad=/);
+    });
+  }
+
+  for (const size of [{ name: 'phone', width: 390, height: 844 }, { name: 'tablet', width: 820, height: 1180 }]) {
+    test('map detail and advisor portfolio touch flow ' + size.name, async ({ page }) => {
+      const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+      await page.setViewportSize(size);
+      await page.goto('/map?propiedad=' + fixture.id);
+      const photo = page.getByRole('region', { name: 'Fotografía principal' }).filter({ visible: true });
+      await expect(photo).toBeVisible();
+      const picture = await photo.boundingBox();
+      await swipe(page, picture!.x + picture!.width * .75, picture!.y + 90, -picture!.width * .5, 0);
+      await expect(page.getByRole('button', { name: 'Mostrar fotografía 2' }).filter({ visible: true })).toHaveAttribute('aria-pressed', 'true');
+      const scroll = photo.locator('xpath=ancestor::*[contains(@class,"overflow-y-auto")][1]');
+      const area = await scroll.boundingBox();
+      await swipe(page, area!.x + area!.width / 2, area!.y + Math.min(area!.height - 60, 400), 0, -220);
+      await expect.poll(() => scroll.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+      await page.getByRole('button', { name: 'Ver perfil del asesor' }).filter({ visible: true }).tap();
+      await expect(page.getByRole('button', { name: 'Portafolio', exact: true }).filter({ visible: true })).toBeVisible();
+      await page.getByRole('button', { name: 'Portafolio', exact: true }).filter({ visible: true }).tap();
+      await expect(page).toHaveURL(new RegExp('/asesores/' + fixture.asesor_id));
+      if (size.width < 768) await page.getByRole('button', { name: 'Portafolio', exact: true }).tap();
+      await expect(page.getByRole('heading', { name: 'Portafolio', exact: true }).filter({ visible: true }).first()).toBeVisible();
+      await page.screenshot({ path: 'docs/evidence/integracion-portafolio-' + size.name + '.png', animations: 'disabled' });
+      if (size.width < 768) await page.getByRole('button', { name: 'Cerrar detalle', exact: true }).filter({ visible: true }).tap();
+      await page.getByRole('button', { name: 'Volver', exact: true }).filter({ visible: true }).tap();
+      await expect(page).toHaveURL(new RegExp('/map\\?propiedad=' + fixture.id));
+      await expect(page.getByRole('region', { name: 'Fotografía principal' }).filter({ visible: true })).toBeVisible();
+      expect(errors).toEqual([]);
+    });
+  }
+});
+
+test('portfolio filters load later pages and allow explicit retry without false empty results', async ({ page, request }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const property = await (await request.get(`${api}/propiedades/${fixture.id}`)).json();
+  let fail = true, nextRequests = 0;
+  // Pagination contract fixtures; the detail/advisor, photos and login still use the real isolated API.
+  await page.route(`**/asesores/${fixture.asesor_id}/propiedades?*`, async route => {
+    const next = new URL(route.request().url()).searchParams.has('cursor');
+    if (next) { nextRequests++; if (fail) return route.fulfill({ status: 503, body: '{}' }); }
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(next
+      ? { items: [property], next_cursor: null }
+      : { items: Array.from({ length: 20 }, (_, index) => ({ ...property, id: String(900000 + index), titulo: 'Otra publicación', descripcion: '', sector: 'SUR' })), next_cursor: 'controlled-next-page' }) });
+  });
+  await page.route(`**/propiedades/${fixture.id}`, async route => {
+    const response = await route.fetch();
+    await new Promise(resolve => setTimeout(resolve, 600));
+    await route.fulfill({ response });
+  });
+  await page.goto('/asesores/' + fixture.asesor_id + '?propiedad=' + fixture.id);
+  await expect(page.getByText('Cargando publicación…', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Fotografía principal' })).toBeVisible();
+  await page.getByRole('button', { name: 'Volver al portafolio', exact: true }).click();
+  const search = page.getByPlaceholder('Buscar en este portafolio...').filter({ visible: true });
+  await search.fill(fixture.titulo);
+  await expect(page.getByRole('button', { name: 'Reintentar página del portafolio' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sin propiedades con esos criterios' })).toHaveCount(0);
+  fail = false;
+  await page.getByRole('button', { name: 'Reintentar página del portafolio' }).click();
+  await expect(page.getByRole('heading', { name: fixture.titulo, exact: true })).toBeVisible();
+  expect(nextRequests).toBeGreaterThan(1);
+  await page.getByRole('heading', { name: fixture.titulo, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp('propiedad=' + fixture.id));
+  await expect(page.getByRole('region', { name: 'Fotografía principal' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('region', { name: 'Fotografía principal' })).toHaveCount(0);
+  await page.goForward();
+  await expect(page.getByRole('region', { name: 'Fotografía principal' })).toBeVisible();
+});
 
 
 test.beforeEach(async ({ page, request }) => {

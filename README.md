@@ -2,7 +2,7 @@
 
 React, TypeScript y Vite. La capa de API y hooks vive en `src/integrations/backend`.
 
-Integración: [matriz de pantallas, contratos, procedencia, pruebas y capturas](./docs/Integracion_total_INMO.md). Referencia visual `01295be`. La entrega actual se publica sólo en `AIAM7420/Front_end_Inmobiliaria`; INMO copia conserva los cambios de su equipo.
+Integración: [matriz de pantallas, contratos, procedencia, pruebas y capturas](./docs/Integracion_total_INMO.md). Referencia visual `01295be`, ampliada con los cambios de INMO copia hasta `3e6344e`. El frontend integrado se publica en `AIAM7420/Front_end_Inmobiliaria` y `angggsoft/inmo`.
 
 Alta de asesores: [cuenta → correo → documentos → aprobación → suscripción → panel](./docs/Alta_asesor_verificacion.md). El expediente pendiente se completa desde `/registro-asesor` antes de acceder al panel profesional.
 
@@ -11,6 +11,8 @@ Si la PWA conserva una pantalla anterior, consulta [actualización del frontend 
 Correcciones actuales: [filtros, sectores, mapas, chat y galería](./docs/Correcciones_filtros_mapas_chat_galeria.md).
 
 Nueva interfaz incorporada: [desplegables con estilo INMO, pestañas uniformes, marcadores y footer](./docs/Desplegables_e_integracion_interfaz.md), incluyendo los commits `38fed41` y `6a4c88e` de INMO copia.
+
+Última entrega: [mapa y perfil nuevos, portafolio paginado y correcciones táctiles en teléfono/tableta](./docs/Integracion_INMO_3e6344e.md). Conserva el historial de los 13 commits nuevos de tu compañero y las funciones reales de V1.
 
 ## Local
 

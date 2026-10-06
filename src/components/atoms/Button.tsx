@@ -19,8 +19,8 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   // text variant shouldn't have gap-3 padding etc by default if it's meant to be inline, but we can customize it or keep it simple
   const baseStyles = variant === 'text'
-    ? "transition-all font-inter active:scale-95 flex items-center justify-center gap-2"
-    : "rounded-atom min-h-11 px-5 py-2.5 flex items-center justify-center gap-3 transition-all font-inter font-bold active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inmo-accent";
+    ? "transition-all font-inter active:scale-95 flex flex-row items-center justify-center gap-2"
+    : "rounded-atom min-h-11 px-5 py-2.5 flex flex-row items-center justify-center gap-2.5 transition-all font-inter font-bold active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inmo-accent";
 
   const variants = {
     accent: "bg-inmo-accent text-white shadow-glow hover:bg-red-600 hover:-translate-y-1",
@@ -51,9 +51,9 @@ export const Button: React.FC<ButtonProps> = ({
       className={`${baseStyles} ${currentStyles} ${className}`}
       {...props}
     >
-      {isLoading ? <Loader2 className="w-5 h-5 animate-spin shrink-0" /> : icon}
+      {isLoading ? <Loader2 className="w-5 h-5 animate-spin shrink-0 text-current" /> : icon ? <span className="inline-flex shrink-0 text-current">{icon}</span> : null}
       {(children || isLoading) && (
-        <span className="tracking-tight">{isLoading ? 'Procesando...' : children}</span>
+        <span className="tracking-tight whitespace-nowrap">{isLoading ? 'Procesando...' : children}</span>
       )}
     </button>
   );

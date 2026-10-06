@@ -47,6 +47,10 @@ export const IconButton: React.FC<IconButtonProps> = ({
       disabled={disabled || isLoading}
       className={`${baseStyles} ${currentStyles} ${sizes[size]} ${className}`}
       {...props}
+      onClick={event => {
+        if (/filtro/i.test(props['aria-label'] ?? '')) event.currentTarget.focus({ preventScroll: true });
+        props.onClick?.(event);
+      }}
     >
       {isLoading ? <Loader2 className="w-6 h-6 animate-spin shrink-0" /> : icon}
     </button>

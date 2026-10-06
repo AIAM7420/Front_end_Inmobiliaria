@@ -12,17 +12,19 @@ export interface FilterDropdownProps {
   onApply: (criteria: CriteriosBusqueda) => void;
   onClose: () => void;
   className?: string;
+  direction?: 'up' | 'down' | 'auto';
+  initialCriteria?: CriteriosBusqueda;
 }
 
 export function FilterDropdown(props: FilterDropdownProps) {
   return props.isOpen ? <FilterPanel {...props} /> : null;
 }
 
-function FilterPanel({ onApply, onClose, className = '' }: FilterDropdownProps) {
+function FilterPanel({ onApply, onClose, className = '', direction = 'down', initialCriteria }: FilterDropdownProps) {
   const popupOwnerId = useId();
   const { globalFilters } = useAppContext();
   const zones = useGetCatalog('zonas');
-  const [criteria, setCriteria] = useState<CriteriosBusqueda>(globalFilters ?? {});
+  const [criteria, setCriteria] = useState<CriteriosBusqueda>(initialCriteria ?? globalFilters ?? {});
   const panel = useRef<HTMLDivElement>(null);
   const anchor = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null);
   const close = useRef(onClose);
@@ -32,12 +34,16 @@ function FilterPanel({ onApply, onClose, className = '' }: FilterDropdownProps) 
     const place = () => {
       const rect = anchor.current?.getBoundingClientRect();
       const width = Math.min(360, window.innerWidth - 32);
-      const top = Math.min(Math.max(16, (rect?.bottom ?? 72) + 8), Math.max(16, window.innerHeight - 320));
-      setPlacement({ top, left: Math.max(16, Math.min((rect?.right ?? width + 16) - width, window.innerWidth - width - 16)), width, maxHeight: window.innerHeight - top - 16 });
+      const above = Math.max(0, (rect?.top ?? 72) - 24);
+      const below = Math.max(0, window.innerHeight - (rect?.bottom ?? 72) - 24);
+      const up = direction === 'up' || (direction === 'auto' && above > below);
+      const height = Math.min(panel.current?.scrollHeight || 440, Math.max(100, up ? above : below));
+      const top = up ? Math.max(16, (rect?.top ?? window.innerHeight - 16) - height - 8) : Math.max(16, (rect?.bottom ?? 72) + 8);
+      setPlacement({ top, left: Math.max(16, Math.min((rect?.right ?? width + 16) - width, window.innerWidth - width - 16)), width, maxHeight: Math.min(height, window.innerHeight - top - 16) });
     };
     place(); window.addEventListener('resize', place); window.addEventListener('scroll', place, true);
     return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
-  }, []);
+  }, [direction]);
   useEffect(() => {
     panel.current?.querySelector<HTMLElement>('select,button')?.focus();
     const outside = (event: PointerEvent) => {
