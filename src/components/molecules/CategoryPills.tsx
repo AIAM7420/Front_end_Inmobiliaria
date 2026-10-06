@@ -49,7 +49,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
   if (orientation === 'vertical') {
     return (
-      <div className={`w-[52px] rounded-full flex-col py-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm transition-all duration-300 select-none flex items-center justify-around gap-1 ${className}`}>
+      <div className={`w-[48px] rounded-full flex-col p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm transition-all duration-300 select-none flex items-center justify-center gap-1.5 ${className}`}>
         {showAllOption && (
           <button
             type="button"
@@ -81,7 +81,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
   if (size === 'small') {
     return (
-      <div className={`h-[44px] rounded-full p-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-sm flex items-center gap-1 select-none overflow-x-auto hide-scrollbar ${className}`}>
+      <div className={`h-[42px] md:h-[44px] w-fit max-w-full rounded-full p-1 bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-sm flex items-center gap-1 select-none overflow-x-auto hide-scrollbar ${className}`}>
         {showAllOption && (
           <button
             type="button"
@@ -122,7 +122,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
   return (
     <div
-      className={`h-[48px] md:h-[52px] rounded-full p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm flex items-center justify-center md:justify-around gap-1 md:gap-2 select-none overflow-x-auto hide-scrollbar w-full ${className}`}
+      className={`h-[48px] md:h-[50px] w-fit max-w-full rounded-full p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm flex items-center gap-1 md:gap-1.5 select-none overflow-x-auto hide-scrollbar ${className}`}
     >
       {showAllOption && (
         <button

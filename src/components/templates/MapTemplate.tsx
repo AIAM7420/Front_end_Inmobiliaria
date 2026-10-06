@@ -365,12 +365,12 @@ export function MapTemplate(_props: MapTemplateProps) {
 
     {/* DESKTOP TOP CATEGORY PILLS (CENTERED & EXTENDED) */}
     <div className="hidden md:flex absolute top-24 lg:top-28 left-1/2 -translate-x-1/2 w-full max-w-5xl xl:max-w-6xl z-40 px-6 justify-center pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
-      <div className="pointer-events-auto flex items-center justify-center w-full">
+      <div className="pointer-events-auto flex items-center justify-center">
         <CategoryPills
           showAllOption
           activeFilter={activeFilter}
           onSelectFilter={handleFilterChange}
-          className="w-full justify-center md:justify-around"
+          className="shadow-sm"
         />
       </div>
     </div>
