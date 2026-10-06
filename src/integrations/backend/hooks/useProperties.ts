@@ -26,7 +26,7 @@ import {
   getSharedCommissions,
 } from '../properties.service';
 import type { ListPropertiesParams } from '../properties.service';
-import type { Id, PropiedadCrear, PropiedadEditar } from '../types';
+import type { Id, Pagina, PropiedadCrear, PropiedadEditar, PropiedadPrivada } from '../types';
 
 export function useGetProperties(params: ListPropertiesParams = {}, enabled = true) {
   return useQuery({
@@ -107,7 +107,17 @@ export function usePropertyManagement() {
     await invalidate(id);
     client.removeQueries({ predicate: query => query.queryKey[0] === 'properties' && query.queryKey.includes(id) });
   } });
-  const inventoryOrder = useMutation({ mutationFn: reorderInventory, onSuccess: () => invalidate() });
+  const inventoryOrder = useMutation({ mutationFn: reorderInventory, onSuccess: async result => {
+    // The confirmed response carries the new order and versions. Preserve trash
+    // entries; reordering metadata does not require downloading every photo again.
+    const inventoryKey = ['properties', 'own', 'inventory'];
+    await client.cancelQueries({ queryKey: inventoryKey, exact: true });
+    const current = new Map(result.items.map(item => [item.id, item]));
+    client.setQueryData<Pagina<PropiedadPrivada>>(inventoryKey, previous => previous && {
+      ...previous, items: previous.items.map(item => current.get(item.id) ?? item),
+    });
+    await client.invalidateQueries({ queryKey: ['properties', 'own'], predicate: query => query.queryKey[2] !== 'inventory' });
+  } });
   const photoOrder = useMutation({ mutationFn: ({ id, ids, etag }: { id: Id; ids: Id[]; etag: string }) => reorderPhotos(id, ids, etag), onSuccess: () => invalidate() });
   const removePhoto = useMutation({ mutationFn: ({ id, photoId, etag }: { id: Id; photoId: Id; etag: string }) => deletePhoto(id, photoId, etag), onSuccess: async (_result, { id, photoId }) => {
     for (const scope of ['photos', 'own-photos']) client.setQueryData<import('../types').Fotografia[]>(['properties', scope, id], photos => photos?.filter(photo => photo.id !== photoId).map((photo, index) => ({ ...photo, posicion: index + 1 })));
