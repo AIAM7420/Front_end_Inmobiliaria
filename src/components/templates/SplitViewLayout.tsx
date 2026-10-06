@@ -51,6 +51,8 @@ export interface SplitViewLayoutProps {
   mainPanelNoScroll?: boolean;
   /** Override for mobile bottom sheet open state. Defaults to isOpen */
   mobileIsOpen?: boolean;
+  /** Whether to wrap the main panel in a split card style on desktop when isOpen is true */
+  mainPanelSplitCard?: boolean;
 }
 
 export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
@@ -74,6 +76,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   hideDesktopCloseButton = false,
   hideMobileCloseButton = false,
   mainPanelNoScroll = false,
+  mainPanelSplitCard = false,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const desktop = useSyncExternalStore(subscribeViewport, desktopViewport, () => true);
@@ -94,7 +97,9 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
         inert={!isOpen}
         aria-hidden={!isOpen}
         className={`hidden md:flex flex-col h-full relative z-10 overflow-hidden transform-gpu will-change-[width,padding,opacity] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 pt-[100px] pb-4 ${
-          isOpen ? `${sidePanelWidthClass} opacity-100 px-4 pointer-events-auto` : 'w-0 opacity-0 px-0 pointer-events-none'
+          isOpen
+            ? `${sidePanelWidthClass} opacity-100 ${sidePosition === 'right' && mainPanelSplitCard ? 'pr-4 pl-2' : 'px-4'} pointer-events-auto`
+            : 'w-0 opacity-0 px-0 pointer-events-none'
         }`}
       >
         <div className={`w-full h-full min-w-[320px] rounded-card overflow-hidden flex flex-col relative ${
@@ -155,19 +160,47 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
       </div>
 
       {/* CONTENIDO PRINCIPAL */}
-      <div
-        id="main-scroll-container"
-        onScroll={(e) => {
-          window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
-        }}
-        className={`h-full relative transform-gpu will-change-[width] transition-[width,border-radius] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
-          mainPanelNoScroll ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
-        } ${
-          isOpen ? `w-full ${mainPanelWidthClass} md:rounded-card my-2` : 'w-full'
-        }`}
-      >
-        {mainContent}
-      </div>
+      {isOpen && mainPanelSplitCard ? (
+        <>
+          {/* Desktop: En Split Card consistente */}
+          <div
+            className={`hidden md:flex flex-col h-full relative z-10 overflow-hidden transform-gpu will-change-[width,padding,opacity] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 pt-[100px] pb-4 ${
+              sidePosition === 'right' ? 'pl-4 pr-2' : 'pr-4 pl-2'
+            } ${mainPanelWidthClass}`}
+          >
+            <div className="w-full h-full min-w-[300px] rounded-card overflow-hidden flex flex-col relative bg-white dark:bg-inmo-darkcard shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-inmo-darktertiary">
+              {mainContent}
+            </div>
+          </div>
+
+          {/* Mobile: Flujo completo normal */}
+          <div
+            id="main-scroll-container"
+            onScroll={(e) => {
+              window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
+            }}
+            className={`md:hidden h-full relative w-full ${
+              mainPanelNoScroll ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
+            }`}
+          >
+            {mainContent}
+          </div>
+        </>
+      ) : (
+        <div
+          id="main-scroll-container"
+          onScroll={(e) => {
+            window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
+          }}
+          className={`h-full relative transform-gpu will-change-[width] transition-[width,border-radius] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
+            mainPanelNoScroll ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
+          } ${
+            isOpen ? `w-full ${mainPanelWidthClass} md:rounded-card my-2` : 'w-full'
+          }`}
+        >
+          {mainContent}
+        </div>
+      )}
 
       {/* MOBILE BOTTOM SHEET */}
       <div className="md:hidden">
