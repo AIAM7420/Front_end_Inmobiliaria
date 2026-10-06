@@ -5,6 +5,7 @@ import {
   Send,
   X,
   Archive,
+  ArchiveRestore,
   CheckCircle2,
   Paperclip,
   CloudOff,
@@ -35,7 +36,7 @@ import { Skeleton } from '../atoms/Skeleton';
 import { ModuleLayout } from './ModuleLayout';
 import { SplitViewLayout } from './SplitViewLayout';
 import { ConflictNotice } from '../molecules/ConflictNotice';
-import { ChatbotPanel } from '../organisms/ChatBotPanel';
+import { ConfirmModal } from '../molecules/ConfirmModal';
 import { ChatDoodleBackground } from '../atoms/ChatDoodleBackground';
 
 export interface MessagesTemplateProps {}
@@ -77,6 +78,12 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
   const [failure, setFailure] = useState('');
   const [conflict, setConflict] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<{
+    id: string;
+    version: number;
+    archivada: boolean;
+    name: string;
+  } | null>(null);
   const [attachments, setAttachments] = useState<MediaFile[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -84,10 +91,10 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
   const pending = useRef<{ id: string; content: string } | null>(null);
 
   const inbox = useChatInbox();
-  const detail = useConversationDetails(selectedId !== 'ai' ? selectedId : '');
+  const detail = useConversationDetails(selectedId);
   const me = useGetMe();
   const sendMessage = useSendMessage();
-  const stream = useConversationStream(selectedId !== 'ai' ? selectedId : '');
+  const stream = useConversationStream(selectedId);
   const cache = useQueryClient();
 
   useEffect(() => {
@@ -97,11 +104,11 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
 
   const ownId = me.data?.value.id;
   const other = detail.data?.participantes?.find((p) => p.id !== ownId);
-  const title = selectedId === 'ai' ? 'Asistente IA' : (other?.nombre ?? 'Cargando interlocutor…');
+  const title = other?.nombre ?? 'Cargando interlocutor…';
   const lastLoaded = stream.items.at(-1)?.secuencia;
 
   useEffect(() => {
-    if (!selectedId || selectedId === 'ai' || !lastLoaded || document.visibilityState !== 'visible') return;
+    if (!selectedId || !lastLoaded || document.visibilityState !== 'visible') return;
     let active = true;
     void markConversationRead(selectedId, lastLoaded)
       .then(() => {
@@ -136,23 +143,29 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     setConflict(false);
   };
 
-  const handleArchiveToggle = async () => {
-    if (!detail.data || selectedId === 'ai') return;
+  const handleConfirmArchive = async () => {
+    if (!confirmTarget) return;
     setBusy(true);
     try {
-      await archiveConversation(selectedId, !detail.data.archivada, detail.data.version ?? 1);
+      await archiveConversation(
+        confirmTarget.id,
+        !confirmTarget.archivada,
+        confirmTarget.version,
+      );
       void cache.invalidateQueries({ queryKey: ['chat'] });
       void cache.invalidateQueries({ queryKey: ['chat', 'inbox'] });
     } catch (error) {
       setFailure(operationError(error));
       if (isVersionConflict(error)) setConflict(true);
+      throw error;
     } finally {
       setBusy(false);
+      setConfirmTarget(null);
     }
   };
 
   async function send() {
-    if (!selectedId || selectedId === 'ai' || (!draft.trim() && !attachments.length) || sendMessage.isPending || uploading) return;
+    if (!selectedId || (!draft.trim() && !attachments.length) || sendMessage.isPending || uploading) return;
     const content = draft.trim() ? draft : 'Archivo adjunto: ' + attachments.map((a) => a.nombre).join(', ');
     if (!pending.current || pending.current.content !== content) {
       pending.current = { id: crypto.randomUUID(), content };
@@ -182,15 +195,6 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
 
   const renderChatContent = () => {
     if (!selectedId) return null;
-
-    if (selectedId === 'ai') {
-      return (
-        <div className="w-full h-full relative overflow-hidden animate-in fade-in duration-300">
-          <ChatDoodleBackground />
-          <ChatbotPanel onClose={() => select('')} hideCloseButton={true} isEmbedded={true} />
-        </div>
-      );
-    }
 
     return (
       <div className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden animate-in fade-in duration-300">
@@ -222,9 +226,24 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <IconButton
               aria-label={detail.data?.archivada ? 'Recuperar conversación' : 'Archivar conversación'}
-              icon={<Archive className="w-5 h-5 text-gray-500 dark:text-gray-400" />}
+              icon={
+                detail.data?.archivada ? (
+                  <ArchiveRestore className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <Archive className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )
+              }
               disabled={busy || conflict || !detail.data}
-              onClick={handleArchiveToggle}
+              onClick={() => {
+                if (detail.data) {
+                  setConfirmTarget({
+                    id: selectedId,
+                    version: detail.data.version ?? 1,
+                    archivada: Boolean(detail.data.archivada),
+                    name: other?.nombre ?? 'esta conversación',
+                  });
+                }
+              }}
               variant="ghost"
               className="!w-10 !h-10 !rounded-full hover:!bg-white/50 dark:hover:!bg-white/10"
             />
@@ -602,15 +621,42 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
                   {c.ultimo_mensaje?.contenido ?? 'Sin mensajes'}
                 </p>
               </div>
-              {(c.no_leidos ?? 0) > 0 && (
-                <span
-                  className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold shrink-0 ${
-                    isSelected ? 'bg-white text-inmo-accent' : 'bg-inmo-accent text-white'
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                {(c.no_leidos ?? 0) > 0 && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                      isSelected ? 'bg-white text-inmo-accent' : 'bg-inmo-accent text-white'
+                    }`}
+                  >
+                    {c.no_leidos}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  aria-label={c.archivada ? 'Recuperar conversación' : 'Archivar conversación'}
+                  title={c.archivada ? 'Recuperar conversación' : 'Archivar conversación'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmTarget({
+                      id: c.id,
+                      version: c.version ?? 1,
+                      archivada: Boolean(c.archivada),
+                      name: person?.nombre ?? 'esta conversación',
+                    });
+                  }}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    isSelected
+                      ? 'text-white/80 hover:text-white hover:bg-white/20'
+                      : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10'
                   }`}
                 >
-                  {c.no_leidos}
-                </span>
-              )}
+                  {c.archivada ? (
+                    <ArchiveRestore className="w-4 h-4" />
+                  ) : (
+                    <Archive className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
           );
         })}
@@ -717,6 +763,25 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
           )}
         </BottomSheet>
       )}
+
+      <ConfirmModal
+        isOpen={Boolean(confirmTarget)}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmArchive}
+        title={
+          confirmTarget?.archivada
+            ? '¿Recuperar conversación?'
+            : '¿Archivar conversación?'
+        }
+        message={
+          confirmTarget?.archivada
+            ? `¿Deseas desarchivar la conversación con ${confirmTarget?.name ?? 'este usuario'}? Volverá a aparecer en tu bandeja de mensajes activos.`
+            : `¿Estás seguro de que deseas archivar la conversación con ${confirmTarget?.name ?? 'este usuario'}? Se moverá a tu sección de archivados y dejará de mostrarse en la bandeja principal.`
+        }
+        confirmText={confirmTarget?.archivada ? 'Recuperar' : 'Archivar'}
+        cancelText="Cancelar"
+        confirmVariant={confirmTarget?.archivada ? 'accent' : 'warning'}
+      />
     </div>
   );
 }

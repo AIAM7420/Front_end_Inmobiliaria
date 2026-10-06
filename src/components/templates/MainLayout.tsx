@@ -22,12 +22,20 @@ function MainLayoutContent() {
   const portalName = configuration.data?.find(item => item.clave === 'nombre_portal')?.valor;
   const publicNotice = configuration.data?.find(item => item.clave === 'aviso_publico')?.valor;
   useEffect(() => { if (portalName) document.title = portalName; }, [portalName]);
+  const activeRoute = location.pathname === '/' ? 'home' : location.pathname.slice(1).replace(/\/$/,'');
+  const isMessagesRoute = activeRoute === 'messages' || activeRoute === 'asesor/mensajes' || activeRoute.startsWith('messages/') || activeRoute.startsWith('asesor/mensajes/');
   useEffect(() => {
-    const open = () => setChatOpen(true);
+    const open = () => {
+      if (!isMessagesRoute) setChatOpen(true);
+    };
     window.addEventListener('open-chatbot', open);
     return () => window.removeEventListener('open-chatbot', open);
-  }, []);
-  const activeRoute = location.pathname === '/' ? 'home' : location.pathname.slice(1).replace(/\/$/,'');
+  }, [isMessagesRoute]);
+  useEffect(() => {
+    if (isMessagesRoute && chatOpen) {
+      setChatOpen(false);
+    }
+  }, [isMessagesRoute, chatOpen]);
   const full = activeRoute.startsWith('asesores/') || ['home','inmuebles','map','asesor','asesor/propiedades','admin','admin/asesores','admin/moderacion','admin/solicitudes','admin/reportes','admin/finanzas','profile','asesor/profile','admin/profile','favorites','messages','asesor/mensajes'].includes(activeRoute);
   const account = me.data?.value;
   return <div className="bg-gray-50 dark:bg-inmo-darkbg min-h-screen w-full relative transition-colors overflow-hidden text-inmo-secondary dark:text-white">
@@ -40,7 +48,7 @@ function MainLayoutContent() {
     <div className={full ? 'h-[100dvh] overflow-hidden' : 'pb-32'}><Outlet /></div>
     {publicNotice && <aside role="status" className="fixed bottom-28 md:bottom-6 left-4 right-4 md:left-auto md:max-w-md z-40 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft p-4 text-sm border border-inmo-accent/10">{publicNotice}</aside>}
     {themeError && <div role="alert" className="fixed bottom-28 left-4 right-4 md:left-auto md:max-w-md z-50 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-soft p-4 text-sm">{themeError}<button type="button" className="block mt-2 text-inmo-accent font-bold" onClick={() => navigate(role === 'asesor' ? '/asesor/profile?view=general' : role === 'admin' ? '/admin/profile?view=general' : '/profile?view=general')}>Revisar preferencias</button></div>}
-    <div className="md:hidden"><FloatingNavBar role={role ?? 'public'} activeRoute={activeRoute} isAuthenticated={isAuthenticated} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)} onOpenChatbot={() => setChatOpen(true)} hideChatbot={role === 'asesor' || role === 'admin'} /></div>
-    {role !== 'asesor' && role !== 'admin' && <GlobalChatbot isOpen={chatOpen} onOpen={() => setChatOpen(true)} onClose={() => setChatOpen(false)} />}
+    <div className="md:hidden"><FloatingNavBar role={role ?? 'public'} activeRoute={activeRoute} isAuthenticated={isAuthenticated} onNavigate={r => navigate(r === 'home' ? '/' : '/' + r)} onOpenChatbot={() => setChatOpen(true)} hideChatbot={role === 'asesor' || role === 'admin' || isMessagesRoute} /></div>
+    {role !== 'asesor' && role !== 'admin' && !isMessagesRoute && <GlobalChatbot isOpen={chatOpen} onOpen={() => setChatOpen(true)} onClose={() => setChatOpen(false)} />}
   </div>;
 }
