@@ -21,25 +21,25 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
       aria-hidden="true"
       className={`absolute inset-0 pointer-events-none select-none overflow-hidden z-0 ${className}`}
     >
-      {/* Tiled SVG Pattern with Real Estate Doodles & Tight Silhouette Cutout Mask */}
+      {/* Tiled SVG Pattern with Real Estate Doodles & Integrated Logo Silhouette Mask */}
       <svg
-        className="w-full h-full text-inmo-secondary dark:text-inmo-primary opacity-[0.055] dark:opacity-[0.14] transition-opacity duration-300"
+        className="w-full h-full text-inmo-secondary dark:text-inmo-primary stroke-inmo-secondary dark:stroke-inmo-primary opacity-[0.06] dark:opacity-[0.28] transition-opacity duration-300"
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
       >
         <defs>
-          {/* Mascara suave ajustada a la silueta del logo con ligero margen */}
+          {/* Mascara suave y ultra-compacta que integra el logo con los doodles sin repelerlos */}
           <radialGradient id="inmo-mask-grad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#000000" />
-            <stop offset="60%" stopColor="#000000" />
-            <stop offset="85%" stopColor="#888888" />
+            <stop offset="0%" stopColor="#333333" />
+            <stop offset="50%" stopColor="#777777" />
+            <stop offset="80%" stopColor="#cccccc" />
             <stop offset="100%" stopColor="#ffffff" />
           </radialGradient>
 
           <mask id="inmo-center-cutout" maskContentUnits="userSpaceOnUse">
             <rect width="100%" height="100%" fill="#ffffff" />
-            <ellipse cx="50%" cy="50%" rx="120" ry="72" fill="url(#inmo-mask-grad)" />
+            <ellipse cx="50%" cy="50%" rx="48" ry="26" fill="url(#inmo-mask-grad)" />
           </mask>
 
           {/* Doodles con distribución orgánica dispersa (sin cuadrícula), rotaciones vivas y tamaños variados */}
@@ -56,6 +56,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
               strokeWidth="2.0"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="text-inmo-secondary dark:text-inmo-primary stroke-inmo-secondary dark:stroke-inmo-primary"
             >
               {/* === SECTOR 1: ZONA SUPERIOR DISPERSA === */}
               {/* 1. Casa clásica con chimenea y humo */}
@@ -602,18 +603,16 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
       {/* Logo de INMO en el centro como marca de agua sutil (+300% de tamaño) */}
       {showCenterLogo && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          {/* Suave degradado radial que abraza sutilmente las siluetas sin ocultar el techo */}
-          <div className="relative flex flex-col items-center justify-center p-4">
-            <div className="absolute -inset-4 rounded-full bg-radial from-white/70 dark:from-inmo-darkcard/70 via-white/20 dark:via-inmo-darkcard/20 to-transparent blur-md" />
+          <div className="relative flex flex-col items-center justify-center p-2">
             <img
               src="/inmo.png"
               alt="INMO"
-              className="dark:hidden h-24 md:h-32 w-auto object-contain opacity-[0.22] relative z-10 transition-opacity duration-300"
+              className="dark:hidden h-24 md:h-32 w-auto object-contain opacity-[0.25] relative z-10 transition-opacity duration-300"
             />
             <img
               src="/inmo white.png"
               alt="INMO"
-              className="hidden dark:block h-24 md:h-32 w-auto object-contain opacity-[0.30] relative z-10 transition-opacity duration-300"
+              className="hidden dark:block h-24 md:h-32 w-auto object-contain opacity-[0.32] relative z-10 transition-opacity duration-300"
             />
           </div>
         </div>
