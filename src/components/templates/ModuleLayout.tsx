@@ -31,6 +31,9 @@ export interface ModuleLayoutProps {
   // Custom class to restrict width and alignment of the controls area (search/filters)
   controlsMaxWidthClass?: string;
 
+  // Custom class to restrict width and alignment of the title area
+  titleMaxWidthClass?: string;
+
   // Prevent default scroll behavior to allow children to handle their own scroll
   noScroll?: boolean;
   noBottomPadding?: boolean;
@@ -55,6 +58,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
   actions,
   headerEndContent,
   controlsMaxWidthClass = '',
+  titleMaxWidthClass = '',
   noScroll = false,
   noBottomPadding = false,
   children
@@ -64,7 +68,7 @@ export const ModuleLayout: React.FC<ModuleLayoutProps> = ({
       isFullScreen ? 'pt-[104px]' : 'pt-0 pb-24'
     }`}>
       {/* Title Area */}
-      <div className="mt-2 mb-6 w-full shrink-0 flex justify-between items-start md:items-center relative">
+      <div className={`mt-2 mb-6 w-full shrink-0 flex justify-between items-start md:items-center relative transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${titleMaxWidthClass}`}>
         <div className="flex flex-col">
           <h1 className="font-montserrat font-bold text-2xl md:text-3xl text-inmo-secondary dark:text-white mb-2">{title}</h1>
           {subtitle && (

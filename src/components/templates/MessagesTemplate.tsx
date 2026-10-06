@@ -1,6 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Send,
@@ -17,9 +16,7 @@ import {
   Building2,
   Compass,
   Bot,
-  SlidersHorizontal,
 } from 'lucide-react';
-import { SearchBar } from '../molecules/SearchBar';
 import { useAppContext } from '../../context/AppContext';
 import { EmptyState } from '../molecules/EmptyState';
 import { uploadMedia } from '../../integrations/backend/media.service';
@@ -183,8 +180,10 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     }
   }
 
-  // Fijo a 30vw menos el padding interno (px-6 = 3rem) en desktop para mantener gaps consistentes
-  const layoutWidthClass = 'w-full md:max-w-[calc(30vw-3rem)] mx-auto';
+  const isSplit = Boolean(selectedId);
+  const layoutWidthClass = isSplit
+    ? 'w-full max-w-full ml-0 mr-auto'
+    : 'w-full md:max-w-xl lg:max-w-2xl mx-auto';
 
   const renderChatContent = () => {
     if (!selectedId) return null;
@@ -504,12 +503,12 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   );
 
-  const renderChatListItems = (isSplit = false) => {
+  const renderChatListItems = () => {
     if (isWireframeMode || inbox.isLoading) {
       return Array.from({ length: 5 }).map((_, idx) => (
         <div
           key={idx}
-          className={`w-full ${isSplit ? 'h-[72px] rounded-2xl' : 'h-[76px] rounded-[20px]'} bg-gray-50 dark:bg-inmo-darkcard flex items-center px-4 shadow-sm animate-pulse`}
+          className="w-full h-[76px] rounded-[20px] bg-gray-50 dark:bg-inmo-darkcard flex items-center px-4 shadow-sm animate-pulse"
         >
           <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-inmo-darkbg shrink-0" />
           <div className="flex flex-col flex-1 min-w-0 ml-4 gap-2">
@@ -552,12 +551,10 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
             <div
               key={c.id}
               onClick={() => select(c.id)}
-              className={`w-full ${isSplit ? 'h-[72px] rounded-2xl' : 'h-[76px] rounded-[20px]'} flex items-center px-4 cursor-pointer transition-all border shrink-0 ${
+              className={`w-full h-[76px] rounded-[20px] flex items-center px-4 cursor-pointer transition-all border shrink-0 ${
                 isSelected
                   ? 'bg-inmo-accent/10 dark:bg-inmo-accent/15 border-inmo-accent shadow-[0_4px_16px_-6px_rgba(239,68,68,0.25)]'
-                  : isSplit
-                    ? 'bg-gray-50/80 dark:bg-inmo-darkbg/60 border-gray-100 dark:border-white/5 hover:bg-gray-100/80 dark:hover:bg-inmo-darkbg hover:border-gray-200 dark:hover:border-white/10'
-                    : 'bg-white dark:bg-inmo-darkcard border-gray-100 dark:border-inmo-darktertiary shadow-sm hover:border-gray-300 dark:hover:border-gray-600'
+                  : 'bg-white dark:bg-inmo-darkcard border-gray-100 dark:border-inmo-darktertiary shadow-sm hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               <div className="w-12 h-12 bg-inmo-accent/10 dark:bg-inmo-darktertiary rounded-full shrink-0 flex items-center justify-center text-inmo-accent dark:text-white font-bold font-montserrat shadow-sm relative">
@@ -602,113 +599,42 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     );
   };
 
-  const renderMainContent = () => {
-    // Si hay un chat seleccionado, mostramos la lista en el split card izquierdo con gaps y paddings consistentes
-    if (selectedId) {
-      return (
-        <div className="flex flex-col w-full h-full min-h-0 overflow-hidden font-inter">
-          {/* Header del Split Izquierdo */}
-          <div className="shrink-0 px-4 pt-4 pb-3 flex justify-between items-center border-b border-gray-100 dark:border-inmo-darktertiary/40">
-            <div className="flex items-center gap-2">
-              <h2 className="font-montserrat font-bold text-lg md:text-xl text-inmo-secondary dark:text-white">
-                Mensajes
-              </h2>
-              <span className="font-inter text-xs text-inmo-accent font-bold bg-inmo-accent/10 px-2.5 py-0.5 rounded-full">
-                {chats.length}
-              </span>
-            </div>
-            <IconButton
-              onClick={() => select('ai')}
-              icon={<Bot className="w-5 h-5 text-inmo-accent" strokeWidth={2} />}
-              variant="secondary"
-              aria-label="Abrir Asistente IA"
-              className="!w-9 !h-9 !rounded-full !bg-gray-100 dark:!bg-inmo-darktertiary hover:!bg-inmo-accent/10 !shadow-none border border-transparent"
-            />
-          </div>
-
-          {/* Buscador y Filtros compactos para el Split */}
-          <div className="shrink-0 px-4 pt-3 pb-2 flex gap-2 items-center">
-            <div className="flex-1 min-w-0">
-              <SearchBar
-                placeholder="Buscar..."
-                size="slim"
-                className="w-full"
-                value={search}
-                onChange={setSearch}
-              />
-            </div>
-            <div className="relative shrink-0">
-              <IconButton
-                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                icon={<SlidersHorizontal className="w-4 h-4" strokeWidth={2} />}
-                variant="secondary"
-                aria-label="Filtrar"
-                className="!w-[42px] !h-[42px] !bg-gray-100 dark:!bg-inmo-darktertiary border border-gray-200/50 dark:border-white/10 !shadow-none hover:!bg-gray-200 dark:hover:!bg-inmo-darkbg shrink-0"
-              />
-              {isFiltersOpen && typeof document !== 'undefined' && createPortal(
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsFiltersOpen(false);
-                  }}
-                />,
-                document.body
-              )}
-              <div
-                className={`absolute right-0 top-full mt-2 w-64 bg-white dark:bg-inmo-darkcard rounded-2xl shadow-xl border border-gray-100 dark:border-inmo-darktertiary z-50 p-3 transition-all duration-200 origin-top-right ${
-                  isFiltersOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
-                }`}
-              >
-                {filtersContent}
-              </div>
-            </div>
-          </div>
-
-          {/* Lista de Chats con Scroll Interno */}
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 flex flex-col gap-2.5">
-            {renderChatListItems(true)}
-          </div>
-        </div>
-      );
-    }
-
-    // Sin chat seleccionado: Vista completa en ModuleLayout sobre fondo sólido
-    return (
-      <ModuleLayout
-        title="Mensajes"
-        subtitle={
-          chats.length === 1
-            ? 'Tienes 1 conversación activa.'
-            : `Tienes ${chats.length} conversaciones activas.`
-        }
-        isFullScreen={true}
-        searchPlaceholder="¿Qué estás buscando?"
-        searchValue={search}
-        onSearchChange={setSearch}
-        isFiltersOpen={isFiltersOpen}
-        onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
-        onCloseFilters={() => setIsFiltersOpen(false)}
-        filtersContent={filtersContent}
-        controlsMaxWidthClass={layoutWidthClass}
-        noScroll={true}
-        actions={
-          <IconButton
-            onClick={() => select('ai')}
-            icon={<Bot className="w-5 h-5" strokeWidth={2} />}
-            variant="secondary"
-            className="hidden md:flex w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0 text-inmo-accent"
-          />
-        }
+  const renderMainContent = () => (
+    <ModuleLayout
+      title="Mensajes"
+      subtitle={
+        chats.length === 1
+          ? 'Tienes 1 conversación activa.'
+          : `Tienes ${chats.length} conversaciones activas.`
+      }
+      isFullScreen={true}
+      searchPlaceholder="¿Qué estás buscando?"
+      searchValue={search}
+      onSearchChange={setSearch}
+      isFiltersOpen={isFiltersOpen}
+      onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+      onCloseFilters={() => setIsFiltersOpen(false)}
+      filtersContent={filtersContent}
+      titleMaxWidthClass={layoutWidthClass}
+      controlsMaxWidthClass={layoutWidthClass}
+      noScroll={true}
+      actions={
+        <IconButton
+          onClick={() => select('ai')}
+          icon={<Bot className="w-5 h-5" strokeWidth={2} />}
+          variant="secondary"
+          aria-label="Abrir Asistente IA"
+          className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0 text-inmo-accent"
+        />
+      }
+    >
+      <div
+        className={`w-full flex-1 min-h-0 overflow-y-auto max-md:hide-scrollbar flex flex-col gap-3 pb-32 md:pb-6 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${layoutWidthClass}`}
       >
-        <div
-          className={`w-full flex-1 min-h-0 overflow-y-auto max-md:hide-scrollbar flex flex-col gap-3 pb-32 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${layoutWidthClass}`}
-        >
-          {renderChatListItems(false)}
-        </div>
-      </ModuleLayout>
-    );
-  };
+        {renderChatListItems()}
+      </div>
+    </ModuleLayout>
+  );
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-gray-50 dark:bg-inmo-darkbg">
@@ -719,7 +645,6 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
         sidePosition="right"
         sidePanelWidthClass="w-full md:w-[68%] lg:w-[70%]"
         mainPanelWidthClass="md:w-[32%] lg:w-[30%]"
-        mainPanelSplitCard={true}
         sideContent={renderChatContent()}
         mainContent={renderMainContent()}
         bottomSheetNoPadding={true}
