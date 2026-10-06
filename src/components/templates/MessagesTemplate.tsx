@@ -38,6 +38,7 @@ import { ModuleLayout } from './ModuleLayout';
 import { SplitViewLayout } from './SplitViewLayout';
 import { ConflictNotice } from '../molecules/ConflictNotice';
 import { ChatbotPanel } from '../organisms/ChatBotPanel';
+import { ChatDoodleBackground } from '../atoms/ChatDoodleBackground';
 
 export interface MessagesTemplateProps {}
 
@@ -187,7 +188,8 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
 
     if (selectedId === 'ai') {
       return (
-        <div className="w-full h-full relative">
+        <div className="w-full h-full relative overflow-hidden">
+          <ChatDoodleBackground />
           <ChatbotPanel onClose={() => select('')} hideCloseButton={true} isEmbedded={true} />
         </div>
       );
@@ -195,6 +197,9 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
 
     return (
       <div className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden">
+        {/* Fondo sutil tipo doodles estilo WhatsApp con elementos inmobiliarios */}
+        <ChatDoodleBackground />
+
         {/* Header - Floating Pill */}
         <div className="absolute top-2 left-4 right-4 md:top-4 md:left-6 md:right-6 z-20 h-auto md:h-16 border border-white/50 dark:border-white/10 bg-white/40 dark:bg-black/20 backdrop-blur-xl flex items-center justify-between px-3 py-2 md:px-4 shrink-0 shadow-sm rounded-full">
           <div className="flex items-center gap-3 min-w-0">
@@ -615,7 +620,10 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
   );
 
   return (
-    <>
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Fondo global de garabatos inmobiliarios y logo INMO watermark */}
+      <ChatDoodleBackground />
+
       <SplitViewLayout
         isOpen={Boolean(selectedId)}
         onClose={() => select('')}
@@ -674,6 +682,6 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
           )}
         </BottomSheet>
       )}
-    </>
+    </div>
   );
 }
