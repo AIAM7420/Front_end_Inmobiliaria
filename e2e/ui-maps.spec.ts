@@ -78,6 +78,12 @@ test.describe('native touch interactions', () => {
       const detail = size.width < 768 ? page.getByRole('dialog', { name: 'Detalle de propiedad' }) : page.locator('[aria-hidden="false"]').filter({ has: page.getByRole('region', { name: 'Fotografía principal' }) });
       const photo = page.getByRole('region', { name: 'Fotografía principal' }).filter({ visible: true });
       await expect(photo).toBeVisible();
+      const closeBox = await page.getByRole('button', { name: 'Cerrar detalle', exact: true }).filter({ visible: true }).boundingBox();
+      const titleBoxes = await page.getByRole('heading', { name: fixture.titulo, exact: true }).first().evaluate(element => {
+        const range = document.createRange(); range.selectNodeContents(element);
+        return Array.from(range.getClientRects()).map(rect => ({ x: rect.x, y: rect.y, width: rect.width, height: rect.height }));
+      });
+      for (const text of titleBoxes) expect(text.x < closeBox!.x + closeBox!.width && text.x + text.width > closeBox!.x && text.y < closeBox!.y + closeBox!.height && text.y + text.height > closeBox!.y).toBe(false);
       if (size.width >= 768) {
         const card = page.getByLabel('Resultados del catálogo').locator(':scope > div').first();
         await expect(card).toBeVisible();

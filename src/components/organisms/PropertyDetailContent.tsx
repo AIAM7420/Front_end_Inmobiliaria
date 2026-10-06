@@ -85,7 +85,7 @@ export function PropertyDetailContent({ property, layout = 'vertical', owned = f
     {photos.isError && <p role="alert" className="text-sm text-inmo-danger">No pudimos cargar las fotografías.</p>}
   </div>;
   const title = <div className={horizontal ? 'flex flex-col gap-2 mb-3' : ''}>
-    <h2 className={`text-[22px] ${horizontal ? 'md:text-2xl' : 'mb-2'} font-bold font-montserrat text-inmo-secondary dark:text-white leading-tight`}>{property.titulo}</h2>
+    <h2 className={`text-[22px] ${horizontal ? 'md:text-2xl pr-12' : 'mb-2'} font-bold font-montserrat text-inmo-secondary dark:text-white leading-tight`}>{property.titulo}</h2>
     <div className={horizontal ? 'flex justify-between items-end w-full gap-2' : ''}>
       <div className={`flex items-center text-gray-500 dark:text-gray-400 min-w-0 ${horizontal ? 'pb-1' : 'mb-4'}`}>
         <MapPin className="w-4 h-4 mr-1 shrink-0" /><span className="text-sm font-inter font-medium truncate">{location}</span>
