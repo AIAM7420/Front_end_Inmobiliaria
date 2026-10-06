@@ -48,7 +48,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
             width="460"
             height="460"
             patternUnits="userSpaceOnUse"
-            patternTransform="scale(0.68)"
+            patternTransform="scale(1.05)"
           >
             <g
               fill="none"
