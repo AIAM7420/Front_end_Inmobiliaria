@@ -25,12 +25,29 @@ Se aplica [estilo-inmo](../agent/skills/estilo-inmo/SKILL.md). Se conservan las 
 | Catálogo dividido | Columnas y etiqueta de ubicación responden al ancho del panel, evitando tarjetas de unos 100 px en tableta | Anchura mínima de tarjeta comprobada durante el detalle abierto |
 | Mapas / tema | Se retiene la instancia, cámara, selección y geometría aproximada; no se dibujan las áreas rojas retiradas por el diseño nuevo | Cuatro cambios de tema con estilos retrasados y recuperación explícita de error |
 | Administración / chat | Pestañas uniformes conservadas y un único cierre de conversación. Archivo, mensajes y adjuntos existentes | Navegación protegida en ambos temas y tamaños; chat de ambos participantes |
+| Inventario / guardar orden | La respuesta confirmada actualiza orden y versiones; conserva papelera y refresca fichas privadas sin volver a descargar todas las páginas y fotografías | Regresión unitaria de caché y recorridos de orden, fotografías, publicación y conflicto `412` |
 
 Se conservan login único, JWT en memoria, `/me`, onboarding obligatorio, documentos privados, aprobación, pago confirmado por proveedor, ETags `"vN"`, recuperación manual de `412`, inventario y retirada con historial. Sin calificaciones, reseñas, Renta ni traspasos de propiedades. La PWA mantiene su caché de recursos estáticos.
 
 ## Validación y límites de la evidencia
 
 Los comandos reproducibles son `npm test`, `npm run lint`, `npm run build`, `npx playwright test` y `npx playwright test --config playwright.maps.config.ts`, con `E2E_API_URL=http://127.0.0.1:8002/api/v1`.
+
+Resultados ejecutados en cada checkout:
+
+| Control | Frontend propio | INMO copia |
+| --- | --- | --- |
+| Unitarias | 44 pruebas en 16 archivos | 44 pruebas en 16 archivos |
+| Lint | 0 errores, 9 avisos | 0 errores, 9 avisos |
+| Build | TypeScript, Vite y PWA correctos; 102 entradas de precaché | TypeScript, Vite y PWA correctos; 102 entradas de precaché |
+| Navegador | 23 casos de mapas/touch y 42 de regresión | 23 casos de mapas/touch y 42 de regresión |
+| Equivalencia | 101 archivos compilados comparados por SHA-256 con las mismas variables públicas | Sin diferencias con el build propio |
+
+La ejecución completa de INMO copia detectó una espera excesiva al guardar el orden del inventario (41 casos correctos y uno fallido). Se corrigió la invalidación que recargaba páginas y fotografías sin cambios; se repitieron los tres recorridos afectados en ambos repositorios. Los ocho recorridos táctiles se repitieron después de reservar espacio para que el título largo no quede bajo el cierre. Estos reintentos se distinguen de las ejecuciones completas y no se contabilizan como casos adicionales.
+
+Una repetición del recorrido completo de publicación alcanzó su límite de 60 segundos con cientos de fixtures acumulados en la papelera. Se hizo paginada la limpieza de propiedades sintéticas `Casa navegador` mediante archivo y retirada con historial, antes y después de esas pruebas. Con esa corrección de aislamiento, el mismo recorrido pasó en 19,1 segundos sin aumentar su límite. El servidor E2E comprueba que la base sea exclusiva de pruebas antes de ejecutar cualquier limpieza.
+
+Persisten nueve avisos de lint relativos a efectos y exports de Fast Refresh, el aviso de tamaño del chunk del SDK de Mapbox y avisos de Recharts al medir paneles ocultos. No hubo excepciones de página en los recorridos táctiles. No se afirma una prueba en dispositivos físicos: se utilizaron Chrome, viewports y eventos táctiles nativos.
 
 La API E2E utiliza exclusivamente MySQL de pruebas y comprueba su identidad antes de los recorridos. Archivos, correo y Stripe utilizan proveedores de memoria. Los mapas ejecutan el SDK real de Mapbox/WebGL con estilos locales controlados, incluyendo cargas retrasadas y errores; no constituyen una prueba del proveedor remoto. La prueba adicional de paginación intercepta únicamente las páginas del portafolio para producir un fallo recuperable; las consultas de perfil, detalle y fotografías conservan la API real aislada.
 

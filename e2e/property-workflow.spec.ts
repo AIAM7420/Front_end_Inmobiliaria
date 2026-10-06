@@ -3,17 +3,34 @@ import { expect, test } from '@playwright/test';
 const api = process.env.E2E_API_URL ?? 'http://127.0.0.1:8000/api/v1';
 const backend = api.replace(/\/api\/v1$/, '');
 
-test.afterEach(async ({ request }) => {
+// The guarded E2E database is reused locally. Retire these synthetic fixtures
+// through the real API so repeated runs do not accumulate hundreds of trash rows.
+async function cleanInventoryFixtures(request: import('@playwright/test').APIRequestContext) {
   const login = await request.post(`${api}/sesiones`, { data: { correo: 'phase4-advisor@example.com', password: 'Secure1!' } });
   const { access_token } = await login.json() as { access_token: string };
   const headers = { Authorization: `Bearer ${access_token}` };
-  const result = await request.get(`${api}/me/propiedades?limit=100`, { headers });
-  const { items } = await result.json() as { items: Array<{id:string;titulo:string;estado_publicacion:string;version:number}> };
-  for (const item of items.filter(item => item.titulo.startsWith('Casa navegador') && item.estado_publicacion !== 'ARCHIVADA')) {
-    const archived = await request.post(`${api}/me/propiedades/${item.id}/publicacion`, { headers: { ...headers, 'If-Match': `"v${item.version}"` }, data: { accion: 'ARCHIVAR' } });
-    expect(archived.status()).toBe(200);
+  type Fixture = {id:string;titulo:string;estado_publicacion:string;version:number};
+  const items: Fixture[] = [];
+  let cursor: string | null = null;
+  do {
+    const result = await request.get(`${api}/me/propiedades`, { headers, params: { limit: 100, ...(cursor ? { cursor } : {}) } });
+    expect(result.ok()).toBe(true);
+    const page = await result.json() as { items: Fixture[]; next_cursor: string | null };
+    items.push(...page.items);
+    cursor = page.next_cursor;
+  } while (cursor);
+  for (let item of items.filter(item => item.titulo.startsWith('Casa navegador'))) {
+    if (item.estado_publicacion !== 'ARCHIVADA') {
+      const archived = await request.post(`${api}/me/propiedades/${item.id}/publicacion`, { headers: { ...headers, 'If-Match': `"v${item.version}"` }, data: { accion: 'ARCHIVAR' } });
+      expect(archived.status()).toBe(200);
+      item = await archived.json();
+    }
+    const retired = await request.delete(`${api}/me/propiedades/${item.id}/retiro`, { headers: { ...headers, 'If-Match': `"v${item.version}"` } });
+    expect(retired.status()).toBe(200);
   }
-});
+}
+test.beforeAll(async ({ request }) => { test.setTimeout(120_000); await cleanInventoryFixtures(request); });
+test.afterEach(async ({ request }) => { await cleanInventoryFixtures(request); });
 
 test('real inventory saves, uploads and publishes with the refreshed resource version', async ({ page, request }) => {
   test.setTimeout(60_000);
