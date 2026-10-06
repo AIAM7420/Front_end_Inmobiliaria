@@ -102,7 +102,12 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
       {/* INITIAL STATE (Gemini-like) */}
       {!publicCatalog.isError && !(publicCatalog.isSuccess && publicCatalog.data.items.length === 0) && !hasStarted && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 animate-in fade-in zoom-in-95 duration-500">
-          <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-inmo-secondary dark:text-white mb-8 text-center">
+          {/* Avatar en grande */}
+          <div className="group mb-5 flex items-center justify-center transition-transform duration-300 hover:scale-105">
+            <ChatbotAvatar className="w-24 h-24 md:w-28 md:h-28 drop-shadow-xl" />
+          </div>
+
+          <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-inmo-secondary dark:text-white mb-8 text-center tracking-tight">
             Hola, ¿qué quieres hacer?
           </h2>
 
