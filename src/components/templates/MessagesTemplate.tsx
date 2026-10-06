@@ -262,17 +262,22 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
               <Skeleton className="h-20 w-3/4 rounded-2xl" />
             </div>
           ) : !stream.items.length ? (
-            <EmptyState
-              className="w-full h-full"
-              icon={<MessageCircle />}
-              title="Inicia la conversación"
-              description={
-                <>
-                  Aún no hay mensajes. Escribe tu duda sobre la propiedad y {other?.nombre ?? 'tu contacto'} te
-                  responderá aquí.
-                </>
-              }
-            />
+            <div className="w-full flex-1 flex items-center justify-center p-4">
+              <EmptyState
+                solid
+                icon={<MessageCircle />}
+                title="Inicia la conversación"
+                description={
+                  <>
+                    Aún no hay mensajes. Escribe tu duda sobre la propiedad y{' '}
+                    <span className="font-semibold text-inmo-secondary dark:text-white">
+                      {other?.nombre ?? 'tu contacto'}
+                    </span>{' '}
+                    te responderá aquí.
+                  </>
+                }
+              />
+            </div>
           ) : (
             stream.items.map((message) => {
               const sent = message.emisor_id === ownId;
@@ -442,6 +447,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
 
   const emptyInbox = search.trim() ? (
     <EmptyState
+      solid
       compact
       icon={<SearchX />}
       title="Sin resultados"
@@ -454,6 +460,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   ) : filter === 'unread' ? (
     <EmptyState
+      solid
       compact
       icon={<CheckCheck />}
       title="¡Estás al día!"
@@ -466,6 +473,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   ) : filter === 'archived' ? (
     <EmptyState
+      solid
       compact
       icon={<Archive />}
       title="No hay conversaciones archivadas"
@@ -478,6 +486,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   ) : (
     <EmptyState
+      solid
       icon={<MessagesSquare />}
       title="Aún no tienes conversaciones"
       description={
