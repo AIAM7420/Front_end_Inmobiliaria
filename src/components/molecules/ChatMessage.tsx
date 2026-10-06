@@ -1,6 +1,7 @@
 // src/components/molecules/chatMessage.tsx
 import React from 'react';
-import { Bot, User } from 'lucide-react';
+import { User } from 'lucide-react';
+import { ChatbotAvatar } from '../atoms/ChatbotAvatar';
 
 interface ChatMessageProps {
   message: string;
@@ -13,12 +14,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 }) => {
   return (
     <div className={`flex items-start gap-3 ${isBot ? '' : 'flex-row-reverse'}`}>
-      {/* Avatar[cite: 1] */}
+      {/* Avatar */}
       <div className={`w-8 h-8 rounded-atom flex items-center justify-center shrink-0 ${
-        isBot ? 'bg-gray-100 dark:bg-inmo-darkbg' : 'bg-inmo-accent'
+        isBot ? '' : 'bg-inmo-accent'
       }`}>
         {isBot ? (
-          <Bot className="w-4 h-4 text-inmo-secondary dark:text-white" />
+          <ChatbotAvatar className="w-8 h-8 pointer-events-none" />
         ) : (
           <User className="w-4 h-4 text-white" />
         )}

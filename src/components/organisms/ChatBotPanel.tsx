@@ -1,11 +1,12 @@
 // src/components/organisms/ChatBotPanel.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Bot, Send, User, CloudOff, Ghost } from 'lucide-react';
+import { X, Send, User, CloudOff, Ghost } from 'lucide-react';
 import { Button } from '../atoms/Button';
 import { IconButton } from '../atoms/IconButton';
 import { Input } from '../atoms/Input';
 import { Skeleton } from '../atoms/Skeleton';
 import { EmptyState } from '../molecules/EmptyState';
+import { ChatbotAvatar } from '../atoms/ChatbotAvatar';
 import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
 import { useGetProperties } from '../../integrations/backend/hooks/useProperties';
 
@@ -70,7 +71,8 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
 
       {/* Header del Panel */}
       <div className={`flex justify-between items-center px-6 py-5 ${hasStarted ? 'border-b border-gray-100 dark:border-inmo-darktertiary' : ''} transition-all duration-500`}>
-        <div className={`flex items-center gap-3 mx-auto transition-opacity duration-500 ${hasStarted ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`flex items-center gap-2.5 mx-auto transition-opacity duration-500 ${hasStarted ? 'opacity-100' : 'opacity-0'}`}>
+          <ChatbotAvatar className="w-5 h-5 pointer-events-none" />
           <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Chatbot</span>
         </div>
         {!hideCloseButton && (
@@ -144,8 +146,8 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
           <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 animate-in slide-in-from-bottom-10 fade-in duration-500">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex items-start gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-8 h-8 rounded-atom flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-inmo-accent text-white' : 'bg-gray-100 dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white'}`}>
-                  {msg.sender === 'bot' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                <div className={`w-8 h-8 rounded-atom flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-inmo-accent text-white' : ''}`}>
+                  {msg.sender === 'bot' ? <ChatbotAvatar className="w-8 h-8" /> : <User className="w-4 h-4" />}
                 </div>
                 <div className={`rounded-2xl p-4 max-w-[80%] shadow-sm ${
                   msg.sender === 'user'
@@ -159,8 +161,8 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
 
             {isTyping && (
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-atom bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary flex items-center justify-center shrink-0 text-inmo-secondary dark:text-white">
-                  <Bot className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-atom flex items-center justify-center shrink-0">
+                  <ChatbotAvatar className="w-8 h-8" />
                 </div>
                 <Skeleton className="w-40 h-10 rounded-2xl" />
               </div>

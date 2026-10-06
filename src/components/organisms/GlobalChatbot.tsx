@@ -1,6 +1,5 @@
 import React from 'react';
-import { Bot } from 'lucide-react';
-import { IconButton } from '../atoms/IconButton';
+import { ChatbotAvatar } from '../atoms/ChatbotAvatar';
 import { ChatbotPanel } from './ChatBotPanel';
 import { useGetProperties } from '../../integrations/backend/hooks/useProperties';
 
@@ -18,12 +17,14 @@ export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, on
     <>
       {/* DESKTOP CHATBOT BUTTON (PC ONLY) */}
       <div className="hidden md:flex fixed bottom-6 right-6 z-40">
-        <IconButton
+        <button
+          type="button"
           onClick={onOpen}
-          icon={<Bot className="w-7 h-7 text-inmo-secondary dark:text-white" strokeWidth={1.75} />}
-          variant="secondary"
-          className="!w-[64px] !h-[64px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm !rounded-full shrink-0"
-        />
+          aria-label="Abrir asistente virtual"
+          className="group relative w-[64px] h-[64px] rounded-full p-0 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_30px_rgba(255,255,255,0.08)] dark:hover:shadow-[0_12px_40px_rgba(255,255,255,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inmo-accent shrink-0"
+        >
+          <ChatbotAvatar className="w-full h-full pointer-events-none drop-shadow-sm" />
+        </button>
       </div>
 
       {/* CHATBOT (MOBILE) */}
