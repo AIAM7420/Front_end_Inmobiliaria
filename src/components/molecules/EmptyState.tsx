@@ -46,13 +46,9 @@ export function EmptyState({
     >
       <span
         aria-hidden="true"
-        className={`flex items-center justify-center mb-1 ${
-          solid
-            ? 'w-14 h-14 rounded-full bg-inmo-accent/10 text-inmo-accent [&>svg]:w-7 [&>svg]:h-7 [&>svg]:stroke-[2]'
-            : `[&>svg]:stroke-[1.5] ${compact ? '[&>svg]:w-8 [&>svg]:h-8' : '[&>svg]:w-11 [&>svg]:h-11'} ${
-                isError ? 'text-inmo-danger/70' : 'text-gray-400 dark:text-gray-500'
-              }`
-        }`}
+        className={`flex items-center justify-center mb-1 [&>svg]:stroke-[1.5] ${
+          compact ? '[&>svg]:w-8 [&>svg]:h-8' : '[&>svg]:w-11 [&>svg]:h-11'
+        } ${isError ? 'text-inmo-danger/70' : 'text-gray-400 dark:text-gray-500'}`}
       >
         {icon}
       </span>

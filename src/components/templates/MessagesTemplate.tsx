@@ -12,7 +12,6 @@ import {
   SearchX,
   CheckCheck,
   MessagesSquare,
-  MessageCircle,
   Building2,
   Compass,
 } from 'lucide-react';
@@ -265,7 +264,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
             <div className="w-full flex-1 flex items-center justify-center p-4">
               <EmptyState
                 solid
-                icon={<MessageCircle />}
+                icon={<MessagesSquare />}
                 title="Inicia la conversación"
                 description={
                   <>
