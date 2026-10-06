@@ -9,8 +9,10 @@ import { EmptyState } from '../molecules/EmptyState';
 import { useChatbotQuery } from '../../integrations/backend/hooks/useNlp';
 import { useGetProperties } from '../../integrations/backend/hooks/useProperties';
 
-interface ChatbotPanelProps {
+export interface ChatbotPanelProps {
   onClose: () => void;
+  hideCloseButton?: boolean;
+  isEmbedded?: boolean;
 }
 
 interface Message {
@@ -19,7 +21,7 @@ interface Message {
   sender: 'bot' | 'user';
 }
 
-export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose }) => {
+export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseButton = false, isEmbedded = false }) => {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: '¡Hola! ¿En qué te puedo ayudar hoy a encontrar tu espacio ideal?', sender: 'bot' }
@@ -64,20 +66,22 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-inmo-darkcard w-full h-full flex flex-col relative z-20 rounded-t-3xl md:rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)]">
+    <div className={`bg-white dark:bg-inmo-darkcard w-full h-full flex flex-col relative z-20 ${isEmbedded ? '' : 'rounded-t-3xl md:rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)]'}`}>
 
       {/* Header del Panel */}
       <div className={`flex justify-between items-center px-6 py-5 ${hasStarted ? 'border-b border-gray-100 dark:border-inmo-darktertiary' : ''} transition-all duration-500`}>
         <div className={`flex items-center gap-3 mx-auto transition-opacity duration-500 ${hasStarted ? 'opacity-100' : 'opacity-0'}`}>
           <span className="font-montserrat font-bold text-sm text-inmo-secondary dark:text-white">Chatbot</span>
         </div>
-        <IconButton
-          onClick={onClose}
-          variant="secondary"
-          size="sm"
-          className="absolute right-6 !bg-gray-50 dark:!bg-inmo-darkbg"
-          icon={<X className="w-4 h-4 text-gray-400" strokeWidth={2.5} />}
-        />
+        {!hideCloseButton && (
+          <IconButton
+            onClick={onClose}
+            variant="secondary"
+            size="sm"
+            className="absolute right-6 !bg-gray-50 dark:!bg-inmo-darkbg"
+            icon={<X className="w-4 h-4 text-gray-400" strokeWidth={2.5} />}
+          />
+        )}
       </div>
 
       {/* ERROR OR EMPTY STATE */}
