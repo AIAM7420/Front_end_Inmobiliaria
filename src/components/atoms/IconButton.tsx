@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,6 +17,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   className = '',
   ...props
 }) => {
+  const tap = useRef<{ x: number; y: number; id: number } | null>(null);
   const baseStyles = "flex items-center justify-center transition-all active:scale-95 shrink-0";
 
   const variants = {
@@ -47,6 +48,30 @@ export const IconButton: React.FC<IconButtonProps> = ({
       disabled={disabled || isLoading}
       className={`${baseStyles} ${currentStyles} ${sizes[size]} ${className}`}
       {...props}
+      onTouchStart={event => {
+        props.onTouchStart?.(event);
+        const touch = event.touches[0];
+        tap.current = !event.defaultPrevented && event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY, id: touch.identifier } : null;
+      }}
+      onTouchMove={event => {
+        props.onTouchMove?.(event);
+        const touch = event.touches[0], start = tap.current;
+        if (event.touches.length !== 1 || (start && Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 10)) tap.current = null;
+      }}
+      onTouchCancel={event => { tap.current = null; props.onTouchCancel?.(event); }}
+      onTouchEnd={event => {
+        props.onTouchEnd?.(event);
+        const start = tap.current, touch = event.changedTouches[0];
+        tap.current = null;
+        if (event.defaultPrevented || disabled || isLoading || !start || !touch || event.touches.length || touch.identifier !== start.id) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 10 || touch.clientX < rect.left || touch.clientX > rect.right || touch.clientY < rect.top || touch.clientY > rect.bottom) return;
+        // Chrome can suppress the compatibility click immediately after a scroll.
+        // Activate a genuine stationary tap and suppress its delayed duplicate.
+        event.preventDefault();
+        event.currentTarget.focus({ preventScroll: true });
+        event.currentTarget.click();
+      }}
       onClick={event => {
         if (/filtro/i.test(props['aria-label'] ?? '')) event.currentTarget.focus({ preventScroll: true });
         props.onClick?.(event);
