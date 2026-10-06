@@ -33,4 +33,9 @@ describe('ChatbotAvatar', () => {
     const { container: idleContainer } = render(<ChatbotAvatar isHovered={false} />);
     expect(idleContainer.querySelector('svg')?.classList.contains('is-forced-idle')).toBe(true);
   });
+
+  it('supports thinking state', () => {
+    const { container: thinkingContainer } = render(<ChatbotAvatar isThinking={true} />);
+    expect(thinkingContainer.querySelector('svg')?.classList.contains('is-forced-hover')).toBe(true);
+  });
 });
