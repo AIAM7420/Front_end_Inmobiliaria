@@ -64,7 +64,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       {isOpen && (
         <div
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 bg-white/85 dark:bg-black/85 backdrop-blur-2xl rounded-2xl shadow-xl border border-white/50 dark:border-white/10 p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 max-h-[320px] overflow-y-auto custom-scrollbar"
+          className="absolute top-full left-0 right-0 mt-2 bg-white/40 dark:bg-black/20 backdrop-blur-xl rounded-2xl shadow-sm border border-white/50 dark:border-white/10 p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 max-h-[320px] overflow-y-auto custom-scrollbar"
         >
           {/* Opción Todos */}
           <button

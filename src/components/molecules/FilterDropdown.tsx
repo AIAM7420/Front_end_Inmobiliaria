@@ -64,7 +64,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
         isOpen ? 'opacity-100 scale-y-100 max-h-[450px]' : 'opacity-0 scale-y-95 max-h-0 overflow-hidden'
       } ${className}`}
     >
-      <div className="bg-white/85 dark:bg-black/85 backdrop-blur-2xl p-5 rounded-card shadow-2xl border border-white/50 dark:border-white/10">
+      <div className="bg-white/40 dark:bg-black/20 backdrop-blur-xl p-5 rounded-card shadow-sm border border-white/50 dark:border-white/10">
         <div className="flex flex-col gap-3">
           {zones.isPending ? <Skeleton className="w-full h-[46px]" /> : <Select
             aria-label="Zona"
@@ -72,7 +72,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
             onChange={(event) => setZoneId(event.target.value)}
             leftIcon={<MapPin className="w-5 h-5 text-gray-400" strokeWidth={1.5} />}
             className="!text-sm"
-            wrapperClassName="!h-[46px] !bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !px-4"
+            wrapperClassName="!h-[46px] !bg-white/60 dark:!bg-black/40 backdrop-blur-md !shadow-none !px-4 border border-white/40 dark:border-white/10"
           >
             <option value="">Todas las zonas</option>
             {zones.data?.map((zone) => <option key={zone.id} value={zone.id}>{zone.nombre}</option>)}
@@ -84,7 +84,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
             onChange={(event) => setPriceBand(event.target.value)}
             leftIcon={<span className="w-5 h-5 text-gray-400 font-bold flex items-center justify-center font-montserrat">$</span>}
             className="!text-sm"
-            wrapperClassName="!h-[46px] !bg-gray-50 dark:!bg-inmo-darkbg !shadow-none !px-4"
+            wrapperClassName="!h-[46px] !bg-white/60 dark:!bg-black/40 backdrop-blur-md !shadow-none !px-4 border border-white/40 dark:border-white/10"
           >
             <option value="" className="text-black dark:text-white">Rango de precio</option>
             <option value="under-1m" className="text-black dark:text-white">Hasta $1M</option>

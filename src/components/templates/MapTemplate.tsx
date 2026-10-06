@@ -402,7 +402,7 @@ export function MapTemplate(_props: MapTemplateProps) {
       </div>
 
       {searchMode === 'text' && chatbot.data?.aclaracion && (
-        <p role="status" className="bg-white/85 dark:bg-black/80 backdrop-blur-2xl rounded-2xl p-3 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-white/50 dark:border-white/10 pointer-events-auto">
+        <p role="status" className="bg-white/40 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-3 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-sm border border-white/50 dark:border-white/10 pointer-events-auto">
           {chatbot.data.aclaracion}
         </p>
       )}
@@ -421,7 +421,7 @@ export function MapTemplate(_props: MapTemplateProps) {
           />
           {searchMode === 'text' && chatbot.data?.aclaracion && (
             <div className="absolute left-0 bottom-full mb-3 z-30 max-w-lg pointer-events-auto">
-              <p role="status" className="bg-white/85 dark:bg-black/80 backdrop-blur-2xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-xl border border-white/50 dark:border-white/10">
+              <p role="status" className="bg-white/40 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-3.5 font-inter text-xs text-gray-700 dark:text-gray-200 shadow-sm border border-white/50 dark:border-white/10">
                 {chatbot.data.aclaracion}
               </p>
             </div>
@@ -440,16 +440,23 @@ export function MapTemplate(_props: MapTemplateProps) {
               isOpen={isFiltersOpen && !isSheetOpen}
               onApply={applyFilters}
               onClose={() => setIsFiltersOpen(false)}
-              className="w-80 md:w-96 origin-bottom-right"
+              className="w-72 md:w-80 origin-bottom-right"
             />
           </div>
         </div>
       </div>
     </div>
 
-    <div className="absolute bottom-[130px] left-0 right-0 z-10 flex flex-col items-center gap-3 px-6 pointer-events-none">
-      <Button onClick={showResults} className={`px-6 py-2.5 !text-xs !shadow-lg pointer-events-auto ${isSheetOpen ? 'opacity-0 pointer-events-none' : ''}`}>
-        {isLoading ? 'Cargando propiedades...' : `Ver ${properties.length}${resultSearch.hasNextPage ? '+' : ''} resultado${properties.length === 1 ? '' : 's'}`}
+    <div className={`fixed md:absolute bottom-[136px] left-0 right-0 z-40 flex flex-col items-center gap-3 px-6 pointer-events-none transition-all duration-300 ease-out ${
+      isFiltersOpen ? 'md:-translate-x-32 lg:-translate-x-36' : ''
+    }`}>
+      <Button
+        onClick={showResults}
+        className={`px-6 py-2.5 !text-xs !shadow-lg pointer-events-auto transition-all duration-300 ${
+          isSheetOpen ? 'opacity-0 pointer-events-none' : ''
+        }`}
+      >
+        {isLoading ? 'Cargando coincidencias...' : `Ver ${properties.length}${resultSearch.hasNextPage ? '+' : ''} coincidencia${properties.length === 1 ? '' : 's'}`}
       </Button>
     </div>
 
