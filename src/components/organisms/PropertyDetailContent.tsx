@@ -77,7 +77,7 @@ export function PropertyDetailContent({ property, layout = 'vertical', owned = f
     <div className="w-full md:w-[50%] flex flex-col gap-3 shrink-0 h-full"><div className="relative w-full flex-1 min-h-[200px] rounded-[24px] overflow-hidden">{photo('w-full h-full')}</div>{gallery}</div>
     <div className="w-full md:w-[50%] flex flex-col pt-2 md:pl-2 min-w-0 min-h-0">
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">{title}<div className="mb-3">{description}</div>{highlights}
-        <div className="flex flex-col gap-3 mb-3 w-full">{features}<div className="w-full h-[140px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden"><PropertyMiniMap position={position} privateLocation={owned || moderation} /></div></div>{children}
+        <div className="flex flex-col gap-3 mb-3 w-full">{features}<div className="w-full h-[160px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0 border border-gray-100 dark:border-inmo-darktertiary shadow-sm"><PropertyMiniMap position={position} privateLocation={owned || moderation} /></div></div>{children}
       </div><div className="mt-auto pt-3 border-t border-gray-100 dark:border-inmo-darktertiary flex justify-center shrink-0">{bottomBar}</div>
     </div>
   </div>;
@@ -85,7 +85,7 @@ export function PropertyDetailContent({ property, layout = 'vertical', owned = f
     <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar pb-[100px]">
       <div className="w-full relative rounded-b-[32px] overflow-hidden bg-gray-100 dark:bg-inmo-darkbg shrink-0">{photo('w-full h-[300px]')}</div>
       <div className="p-6 flex flex-col gap-5 flex-1">{title}<div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />{highlights}{features}
-        <div className="w-full h-[140px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0"><PropertyMiniMap position={position} privateLocation={owned || moderation} /></div>
+        <div className="w-full h-[160px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0 border border-gray-100 dark:border-inmo-darktertiary shadow-sm"><PropertyMiniMap position={position} privateLocation={owned || moderation} /></div>
         <div><h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white mb-2">Descripción</h3>{description}</div>
         {Boolean(photos.data?.length) && <div className="flex flex-col gap-3"><h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white">Galería</h3>{gallery}</div>}{children}{moderation && bottomBar}
       </div>
