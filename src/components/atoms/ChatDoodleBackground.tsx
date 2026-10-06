@@ -22,7 +22,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
     >
       {/* Tiled SVG Pattern with Real Estate Doodles */}
       <svg
-        className="w-full h-full text-inmo-secondary dark:text-white opacity-[0.045] dark:opacity-[0.065] transition-opacity duration-300"
+        className="w-full h-full text-inmo-secondary dark:text-inmo-primary opacity-[0.055] dark:opacity-[0.14] transition-opacity duration-300"
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
@@ -37,7 +37,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
             <g
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.35"
+              strokeWidth="2.0"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -289,7 +289,7 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
               </g>
 
               {/* Chispas y destellos WhatsApp (estrellitas, puntos, cruces) */}
-              <g strokeWidth="1">
+              <g strokeWidth="1.5">
                 {/* Destellos de 4 puntas */}
                 <path d="M 75 45 L 77 50 L 82 52 L 77 54 L 75 59 L 73 54 L 68 52 L 73 50 Z" />
                 <path d="M 285 35 L 286 39 L 290 40 L 286 41 L 285 45 L 284 41 L 280 40 L 284 39 Z" />
@@ -328,21 +328,21 @@ export const ChatDoodleBackground: React.FC<ChatDoodleBackgroundProps> = ({
         <rect width="100%" height="100%" fill="url(#inmo-chat-doodles)" />
       </svg>
 
-      {/* Logo de INMO en el centro como marca de agua sutil */}
+      {/* Logo de INMO en el centro como marca de agua sutil (+300% de tamaño) */}
       {showCenterLogo && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
           {/* Suave degradado radial que desvanece los garabatos detrás del logo para máxima legibilidad */}
           <div className="relative flex flex-col items-center justify-center p-8">
-            <div className="absolute -inset-10 rounded-full bg-radial from-gray-50/80 dark:from-inmo-darkbg/80 via-transparent to-transparent blur-md" />
+            <div className="absolute -inset-20 rounded-full bg-radial from-gray-50/80 dark:from-inmo-darkbg/80 via-transparent to-transparent blur-2xl" />
             <img
               src="/inmo.png"
               alt="INMO"
-              className="dark:hidden h-9 md:h-12 w-auto object-contain opacity-[0.08] filter grayscale"
+              className="dark:hidden h-28 md:h-36 w-auto object-contain opacity-[0.09] filter grayscale"
             />
             <img
               src="/inmo white.png"
               alt="INMO"
-              className="hidden dark:block h-9 md:h-12 w-auto object-contain opacity-[0.08] filter grayscale"
+              className="hidden dark:block h-28 md:h-36 w-auto object-contain opacity-[0.14] filter grayscale"
             />
           </div>
         </div>

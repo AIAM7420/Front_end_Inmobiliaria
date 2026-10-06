@@ -15,7 +15,6 @@ import {
   MessageCircle,
   Building2,
   Compass,
-  Bot,
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { EmptyState } from '../molecules/EmptyState';
@@ -180,17 +179,14 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     }
   }
 
-  const isSplit = Boolean(selectedId);
-  const layoutWidthClass = isSplit
-    ? 'w-full max-w-full ml-0 mr-auto'
-    : 'w-full md:max-w-xl lg:max-w-2xl mx-auto';
+  const layoutWidthClass = 'w-full md:max-w-xl lg:max-w-2xl mx-auto';
 
   const renderChatContent = () => {
     if (!selectedId) return null;
 
     if (selectedId === 'ai') {
       return (
-        <div className="w-full h-full relative overflow-hidden">
+        <div className="w-full h-full relative overflow-hidden animate-in fade-in duration-300">
           <ChatDoodleBackground />
           <ChatbotPanel onClose={() => select('')} hideCloseButton={true} isEmbedded={true} />
         </div>
@@ -198,7 +194,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     }
 
     return (
-      <div className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden">
+      <div className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden animate-in fade-in duration-300">
         {/* Fondo sutil tipo doodles estilo WhatsApp con elementos inmobiliarios */}
         <ChatDoodleBackground />
 
@@ -553,31 +549,57 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
               onClick={() => select(c.id)}
               className={`w-full h-[76px] rounded-[20px] flex items-center px-4 cursor-pointer transition-all border shrink-0 ${
                 isSelected
-                  ? 'bg-inmo-accent/10 dark:bg-inmo-accent/15 border-inmo-accent shadow-[0_4px_16px_-6px_rgba(239,68,68,0.25)]'
+                  ? 'bg-inmo-accent border-inmo-accent text-white shadow-[0_8px_25px_-6px_rgba(250,0,63,0.45)]'
                   : 'bg-white dark:bg-inmo-darkcard border-gray-100 dark:border-inmo-darktertiary shadow-sm hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
-              <div className="w-12 h-12 bg-inmo-accent/10 dark:bg-inmo-darktertiary rounded-full shrink-0 flex items-center justify-center text-inmo-accent dark:text-white font-bold font-montserrat shadow-sm relative">
+              <div
+                className={`w-12 h-12 rounded-full shrink-0 flex items-center justify-center font-bold font-montserrat shadow-sm relative transition-colors ${
+                  isSelected
+                    ? 'bg-white text-inmo-accent'
+                    : 'bg-inmo-accent/10 dark:bg-inmo-darktertiary text-inmo-accent dark:text-white'
+                }`}
+              >
                 {person?.nombre.charAt(0) ?? '…'}
                 {person?.en_linea && (
-                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-inmo-success rounded-full border-2 border-white dark:border-inmo-darkcard" />
+                  <div
+                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 bg-inmo-success rounded-full border-2 ${
+                      isSelected ? 'border-inmo-accent' : 'border-white dark:border-inmo-darkcard'
+                    }`}
+                  />
                 )}
               </div>
               <div className="ml-4 flex-1 overflow-hidden">
                 <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-montserrat font-bold text-[13px] md:text-sm text-inmo-secondary dark:text-white truncate">
+                  <h3
+                    className={`font-montserrat font-bold text-[13px] md:text-sm truncate ${
+                      isSelected ? 'text-white' : 'text-inmo-secondary dark:text-white'
+                    }`}
+                  >
                     {person?.nombre ?? 'Nombre no disponible'}
                   </h3>
-                  <span className="text-[10px] md:text-[11px] font-bold text-gray-400 font-inter whitespace-nowrap ml-2 uppercase tracking-wide">
+                  <span
+                    className={`text-[10px] md:text-[11px] font-bold font-inter whitespace-nowrap ml-2 uppercase tracking-wide ${
+                      isSelected ? 'text-white/80' : 'text-gray-400'
+                    }`}
+                  >
                     {formatChatTime(c.ultimo_mensaje?.persistido_at)}
                   </span>
                 </div>
-                <p className="text-[12px] md:text-[13px] text-gray-500 dark:text-gray-400 font-inter font-medium truncate">
+                <p
+                  className={`text-[12px] md:text-[13px] font-inter font-medium truncate ${
+                    isSelected ? 'text-white/90' : 'text-gray-500 dark:text-gray-400'
+                  }`}
+                >
                   {c.ultimo_mensaje?.contenido ?? 'Sin mensajes'}
                 </p>
               </div>
               {(c.no_leidos ?? 0) > 0 && (
-                <span className="ml-2 bg-inmo-accent text-white text-xs px-2 py-0.5 rounded-full font-bold shrink-0">
+                <span
+                  className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold shrink-0 ${
+                    isSelected ? 'bg-white text-inmo-accent' : 'bg-inmo-accent text-white'
+                  }`}
+                >
                   {c.no_leidos}
                 </span>
               )}
@@ -618,15 +640,6 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
       titleMaxWidthClass={layoutWidthClass}
       controlsMaxWidthClass={layoutWidthClass}
       noScroll={true}
-      actions={
-        <IconButton
-          onClick={() => select('ai')}
-          icon={<Bot className="w-5 h-5" strokeWidth={2} />}
-          variant="secondary"
-          aria-label="Abrir Asistente IA"
-          className="w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0 text-inmo-accent"
-        />
-      }
     >
       <div
         className={`w-full flex-1 min-h-0 overflow-y-auto max-md:hide-scrollbar flex flex-col gap-3 pb-32 md:pb-6 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${layoutWidthClass}`}
