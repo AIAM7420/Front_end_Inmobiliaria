@@ -64,11 +64,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
     setIsTyping(true);
 
     try {
-      // Estado de carga/pensamiento con "..." durante unos instantes (mínimo 750ms)
-      const [result] = await Promise.all([
-        chatbot.mutateAsync(text),
-        new Promise(resolve => setTimeout(resolve, 750))
-      ]);
+      const result = await chatbot.mutateAsync(text);
       const reply = result.estado === 'ACLARACION'
         ? result.aclaracion ?? 'Cuéntame qué tipo de propiedad buscas en León.'
         : result.estado === 'SIN_RESULTADOS'
@@ -76,7 +72,6 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
           : `Encontramos ${result.resultados.length} propiedades: ${result.resultados.slice(0, 3).map((item) => item.titulo).join(', ')}.`;
       setMessages(prev => [...prev, { id: crypto.randomUUID(), text: reply, sender: 'bot' }]);
     } catch {
-      await new Promise(resolve => setTimeout(resolve, 600));
       setMessages(prev => [...prev, { id: crypto.randomUUID(), text: 'No pudimos procesar tu consulta. Inténtalo de nuevo.', sender: 'bot' }]);
     } finally {
       setIsTyping(false);
@@ -166,7 +161,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
 
           {/* Thinking state con avatar pensando y "..." */}
           {isTyping && (
-            <div className="flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div role="status" aria-label="Procesando consulta" className="flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="w-8 h-8 rounded-atom flex items-center justify-center shrink-0">
                 <ChatbotAvatar className="w-8 h-8" isThinking={true} />
               </div>
@@ -195,10 +190,10 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
             </Button>
             <Button
               variant="secondary"
-              onClick={() => void handleSend('Departamentos en renta')}
+              onClick={() => void handleSend('Departamentos en venta en León')}
               className="px-3 py-1.5 !h-auto !text-xs !bg-gray-50 dark:!bg-inmo-darkbg border border-gray-100 dark:border-inmo-darktertiary !text-inmo-secondary dark:!text-gray-300 hover:!border-inmo-accent hover:!bg-white dark:hover:!bg-inmo-darktertiary !shadow-none rounded-full"
             >
-              Rentar depa
+              Departamentos
             </Button>
             <Button
               variant="secondary"
@@ -216,6 +211,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
           <div className="relative z-10">
             <Input
               type="text"
+              aria-label="Consulta al asistente"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && void handleSend()}
@@ -225,7 +221,8 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
               rightIcon={
                 <IconButton
                   onClick={() => void handleSend()}
-                  disabled={!inputValue.trim()}
+                  aria-label="Enviar consulta"
+                  disabled={isTyping || !inputValue.trim()}
                   variant="tertiary"
                   size="sm"
                   className="!bg-inmo-secondary !text-white hover:!bg-inmo-accent transition-colors"

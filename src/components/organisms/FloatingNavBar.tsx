@@ -21,6 +21,7 @@ export function FloatingNavBar({ role = 'public', activeRoute = 'home', isAuthen
         {role === 'admin' && <Button variant="ghost" aria-label="Más opciones administrativas" aria-expanded={more} onClick={() => setMore(true)} className="!p-1 !h-full !bg-transparent"><span className="flex flex-col items-center gap-1 text-gray-500"><MoreHorizontal className="w-5 h-5" /><span className="text-[9px]">Más</span></span></Button>}
       </div>
       <div
+        inert={hideChatbot} aria-hidden={hideChatbot}
         className={`transition-all duration-300 ease-in-out shrink-0 overflow-hidden ${
           hideChatbot
             ? 'w-0 opacity-0 scale-0 pointer-events-none -mr-3'

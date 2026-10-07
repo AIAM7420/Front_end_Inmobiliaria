@@ -2,7 +2,7 @@
   "reason": "GitHub push protection blocked a Figma token in historical mcp_config.json. That local configuration is excluded from imported history.",
   "scope": "Unpublished imported ancestry in AIAM7420/Front_end_Inmobiliaria only. Existing source main is not rewritten.",
   "excluded_path": "mcp_config.json",
-  "original_source_tip": "ef8666abab5af32ce9a4e7c5e3e06aae1e92faee",
+  "original_source_tip": "f0b53627d382ebe439c67002225f068611be24f3",
   "application_files_unchanged": true,
   "sanitized_tree": "93a02995227461ea9e92fe971afa446e211a8831",
   "commits": [
@@ -253,6 +253,21 @@
     {
       "original": "c74fb0c1fb77bff74d6addf4ea819312fd9402b9",
       "sanitized": "3bfc742a457665c1309feae32df373c0a562916c"
+    },
+    {
+      "original": "09a8ff5a11c786c5dfff8a8ad43eb94a9f1d3f14",
+      "sanitized": "160bf1f57c99582101a62a36c7bc0063c695471d",
+      "strategy": "cherry-pick with original authorship; published source history retained"
+    },
+    {
+      "original": "db786736abc830343456aff45e17c73e06edff98",
+      "sanitized": "ce97f2ce3099ccf89a1652e19ad6f9c5796367d1",
+      "strategy": "cherry-pick with original authorship; published source history retained"
+    },
+    {
+      "original": "f0b53627d382ebe439c67002225f068611be24f3",
+      "sanitized": "1040591e2f061f09de7eba75e865dc3773b8e024",
+      "strategy": "cherry-pick with original authorship; published source history retained"
     }
   ]
 }

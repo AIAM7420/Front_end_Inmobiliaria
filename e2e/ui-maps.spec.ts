@@ -203,6 +203,43 @@ test.describe('new messages layout touch', () => {
   });
 });
 
+test.describe('latest assistant interface', () => {
+  test.use({ hasTouch: true });
+  for (const width of [390, 1440]) test('avatar, actual thinking state and accessible close ' + width, async ({ page }) => {
+    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/inmuebles');
+    const trigger = page.getByRole('button', { name: width < 768 ? 'Abrir asistente' : 'Abrir asistente virtual', exact: true });
+    await trigger.tap();
+    const dialog = page.getByRole('dialog', { name: 'Asistente INMO' }).filter({ visible: true });
+    await expect(dialog.locator('svg.inmo-chatbot-avatar').first()).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Rentar depa', exact: true })).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: 'Departamentos', exact: true })).toBeVisible();
+    let release = () => {};
+    const barrier = new Promise<void>(resolve => { release = resolve; });
+    await page.route('**/chatbot/consultas', async route => {
+      const response = await route.fetch();
+      await barrier;
+      await route.fulfill({ response });
+    });
+    await dialog.getByRole('textbox', { name: 'Consulta al asistente' }).fill('Quiero comprar una casa en León');
+    const response = page.waitForResponse(result => result.url().endsWith('/chatbot/consultas'));
+    await dialog.getByRole('button', { name: 'Enviar consulta', exact: true }).tap();
+    await expect(dialog.getByRole('status', { name: 'Procesando consulta' })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Enviar consulta', exact: true })).toBeDisabled();
+    release();
+    expect((await response).status()).toBe(200);
+    await expect(dialog.getByRole('status', { name: 'Procesando consulta' })).toHaveCount(0);
+    await expect(dialog.getByText('Quiero comprar una casa en León', { exact: true })).toBeVisible();
+    await expect(dialog.getByText('Chatbot', { exact: true }).locator('..')).toHaveCSS('opacity', '1');
+    await page.screenshot({ path: `docs/evidence/integracion-asistente-${width}.png` });
+    await dialog.getByRole('textbox', { name: 'Consulta al asistente' }).press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Asistente INMO' })).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    expect(errors).toEqual([]);
+  });
+});
+
 test('portfolio filters load later pages and allow explicit retry without false empty results', async ({ page, request }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const property = await (await request.get(`${api}/propiedades/${fixture.id}`)).json();

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ChatbotAvatar } from '../atoms/ChatbotAvatar';
 import { ChatbotPanel } from './ChatBotPanel';
 
@@ -9,12 +9,33 @@ export interface GlobalChatbotProps {
 }
 
 export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, onClose }) => {
+  const close = useRef(onClose);
+  useEffect(() => { close.current = onClose; }, [onClose]);
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement instanceof HTMLButtonElement
+      ? document.activeElement
+      : document.querySelector<HTMLButtonElement>(window.matchMedia('(min-width: 768px)').matches ? 'button[aria-label="Abrir asistente virtual"]' : 'button[aria-label="Abrir asistente"]');
+    const visible = Array.from(document.querySelectorAll<HTMLElement>('[data-global-chat-panel]')).find(node => node.getClientRects().length > 0);
+    visible?.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true });
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); close.current(); }
+      if (event.key === 'Tab' && visible) {
+        const controls = Array.from(visible.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')).filter(node => node.getClientRects().length > 0);
+        const first = controls[0], last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    document.addEventListener('keydown', keyboard);
+    return () => { document.removeEventListener('keydown', keyboard); if (previous instanceof HTMLElement) previous.focus({ preventScroll: true }); };
+  }, [isOpen]);
   return (
     <>
       {/* DESKTOP CHATBOT BUTTON (PC ONLY) */}
       <div className={`hidden md:flex fixed bottom-6 right-6 z-40 transition-all duration-300 ease-in-out origin-center ${
         isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
-      }`}>
+      }`} inert={isOpen} aria-hidden={isOpen}>
         <button
           type="button"
           onClick={onOpen}
@@ -27,19 +48,21 @@ export const GlobalChatbot: React.FC<GlobalChatbotProps> = ({ isOpen, onOpen, on
 
       {/* CHATBOT (MOBILE) */}
       <div
+        data-global-chat-panel role="dialog" aria-label="Asistente INMO" aria-modal={isOpen} inert={!isOpen} aria-hidden={!isOpen}
         className={`md:hidden fixed bottom-0 left-0 right-0 z-[60] flex justify-center transform transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom ${
           isOpen
             ? 'translate-y-0 opacity-100 scale-100'
             : 'translate-y-full opacity-0 scale-95 pointer-events-none'
         }`}
       >
-        <div className="w-full max-w-[500px] h-[80vh] max-h-[85vh]">
+        <div className="w-full max-w-[500px] h-[80dvh] max-h-[85dvh]">
           <ChatbotPanel onClose={onClose} />
         </div>
       </div>
 
       {/* CHATBOT (DESKTOP SIDE PANEL) */}
       <div
+        data-global-chat-panel role="dialog" aria-label="Asistente INMO" aria-modal={isOpen} inert={!isOpen} aria-hidden={!isOpen}
         className={`hidden md:flex fixed bottom-6 right-6 z-[60] w-[420px] h-[640px] max-h-[calc(100vh-3rem)] bg-white/95 dark:bg-inmo-darkcard/95 backdrop-blur-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 dark:border-white/10 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom-right flex-col overflow-hidden ${
           isOpen
             ? 'scale-100 opacity-100 rounded-[32px] pointer-events-auto'
