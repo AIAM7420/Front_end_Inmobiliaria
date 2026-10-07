@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'accent' | 'secondary' | 'tertiary' | 'text' | 'ghost' | 'danger' | 'warning';
+  variant?: 'accent' | 'secondary' | 'tertiary' | 'text' | 'ghost' | 'danger' | 'warning' | 'glass';
   isLoading?: boolean;
   icon?: React.ReactNode;
 }
@@ -19,12 +19,13 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   // text variant shouldn't have gap-3 padding etc by default if it's meant to be inline, but we can customize it or keep it simple
   const baseStyles = variant === 'text'
-    ? "transition-all font-inter active:scale-95 flex items-center justify-center gap-2"
-    : "rounded-atom min-h-11 px-5 py-2.5 flex items-center justify-center gap-3 transition-all font-inter font-bold active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inmo-accent";
+    ? "transition-all font-inter active:scale-95 flex flex-row items-center justify-center gap-2"
+    : "rounded-atom min-h-11 px-5 py-2.5 flex flex-row items-center justify-center gap-2.5 transition-all font-inter font-bold active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inmo-accent";
 
   const variants = {
     accent: "bg-inmo-accent text-white shadow-glow hover:bg-red-600 hover:-translate-y-1",
-    secondary: "bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:-translate-y-1",
+    secondary: "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm text-inmo-secondary dark:text-white hover:bg-white/60 dark:hover:bg-black/30 hover:-translate-y-0.5",
+    glass: "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm text-inmo-secondary dark:text-white hover:bg-white/60 dark:hover:bg-black/30 hover:-translate-y-0.5",
     tertiary: "bg-inmo-tertiary dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110",
     text: "text-gray-500 dark:text-gray-400 font-medium hover:text-inmo-accent dark:hover:text-inmo-accent",
     ghost: "bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:text-inmo-secondary dark:hover:text-white",
@@ -51,9 +52,9 @@ export const Button: React.FC<ButtonProps> = ({
       className={`${baseStyles} ${currentStyles} ${className}`}
       {...props}
     >
-      {isLoading ? <Loader2 className="w-5 h-5 animate-spin shrink-0" /> : icon}
+      {isLoading ? <Loader2 className="w-5 h-5 animate-spin shrink-0 text-current" /> : icon ? <span className="inline-flex shrink-0 text-current">{icon}</span> : null}
       {(children || isLoading) && (
-        <span className="tracking-tight">{isLoading ? 'Procesando...' : children}</span>
+        <span className="tracking-tight whitespace-nowrap">{isLoading ? 'Procesando...' : children}</span>
       )}
     </button>
   );

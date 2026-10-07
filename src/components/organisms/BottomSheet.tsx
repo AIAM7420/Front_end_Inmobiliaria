@@ -35,6 +35,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const startY = useRef(0);
   const currentY = useRef(0);
   const startTime = useRef(0);
+  const dragged = useRef(false);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -64,6 +65,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    dragged.current = false;
     startY.current = e.touches[0].clientY;
     currentY.current = e.touches[0].clientY;
     startTime.current = Date.now();
@@ -78,6 +80,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     const y = e.touches[0].clientY;
     currentY.current = y;
     const deltaY = y - startY.current;
+    if (Math.abs(deltaY) > 10) dragged.current = true;
 
     if (sheetRef.current) {
       let translateY = deltaY;
@@ -94,20 +97,20 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     setIsDragging(false);
     const deltaY = currentY.current - startY.current;
     const deltaTime = Date.now() - startTime.current;
-    const velocity = deltaY / deltaTime;
+    const velocity = deltaY / Math.max(1, deltaTime);
 
     if (sheetRef.current) {
       sheetRef.current.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
       sheetRef.current.style.transform = '';
     }
 
-    if (deltaY > 50 || velocity > 0.5) {
+    if (deltaY > 50 || (deltaY > 15 && velocity > 0.5)) {
       if (isExpanded) {
         setIsExpanded(false);
       } else {
         onClose?.();
       }
-    } else if (deltaY < -50 || velocity < -0.5) {
+    } else if (deltaY < -50 || (deltaY < -15 && velocity < -0.5)) {
       if (!isExpanded && heightMode !== 'content') {
         setIsExpanded(true);
       }
@@ -155,18 +158,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 ? 'absolute top-0 left-0 right-0 pt-4 pb-4 bg-gradient-to-b from-black/40 to-transparent pointer-events-none'
                 : isExpanded ? 'pt-2 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent' : 'pt-4 pb-2 bg-white dark:bg-inmo-darkbg border-b border-transparent'
             }`}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onClick={() => {
-              if (heightMode !== 'content') setIsExpanded(!isExpanded);
-            }}
           >
-            <div className={`w-12 h-1.5 rounded-full pointer-events-auto transition-all duration-300 ${title && !isHero ? 'mb-3' : ''} ${
-              isHero
-                ? 'bg-white/90 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.5)]'
-                : 'bg-gray-300 dark:bg-gray-600'
-            } ${isExpanded ? 'opacity-0 h-0 mb-0 scale-y-0' : 'opacity-100 h-1.5'}`} />
+            <button type="button" aria-label="Expandir o contraer detalle" aria-expanded={isExpanded}
+              className="w-20 h-11 pointer-events-auto flex items-center justify-center shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-inmo-accent"
+              style={{ touchAction: 'none' }}
+              onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
+              onTouchCancel={() => { dragged.current = true; setIsDragging(false); if (sheetRef.current) sheetRef.current.style.transform = ''; }}
+              onClick={() => { if (dragged.current) { dragged.current = false; return; } if (heightMode !== 'content') setIsExpanded(value => !value); }}>
+              <span className={`w-12 h-1.5 rounded-full ${isHero ? 'bg-white/90 shadow-sm' : 'bg-gray-300 dark:bg-gray-600'}`} />
+            </button>
 
             {title && !isHero && (
               <h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white px-6 text-center w-full truncate pb-2 pointer-events-auto">
@@ -214,7 +214,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           )}
         </div>
 
-        <div className={`flex-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${fullHeight ? 'flex flex-col min-h-0' : 'overflow-y-auto ' + (isHero ? 'pt-0' : 'pt-2')}`}>
+        <div className={`flex-1 min-h-0 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${fullHeight ? 'flex flex-col min-h-0' : 'overflow-y-auto overscroll-y-contain ' + (isHero ? 'pt-0' : 'pt-2')}`}>
           {fullHeight ? (
             children
           ) : (

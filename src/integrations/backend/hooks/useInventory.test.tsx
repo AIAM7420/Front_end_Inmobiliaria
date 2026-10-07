@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getOwnProperties } from '../properties.service';
+import { getOwnPhotos, getOwnProperties, reorderInventory } from '../properties.service';
 import type { PropiedadPrivada } from '../types';
-import { useGetInventory } from './useProperties';
+import { useGetInventory, useGetOwnPhotos, usePropertyManagement } from './useProperties';
 
 vi.mock('../properties.service');
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
@@ -14,6 +14,23 @@ function setup() {
 }
 const property = (id: string, version = 1) => ({ id, version }) as PropiedadPrivada;
 describe('complete inventory', () => {
+  it('applies confirmed order and versions without refetching the full inventory or unchanged photos', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const original = { ...property('1'), estado_publicacion: 'REGISTRADA', orden_inventario: 1 } as PropiedadPrivada;
+    const archived = { ...property('2'), estado_publicacion: 'ARCHIVADA' } as PropiedadPrivada;
+    const confirmed = { ...original, version: 2, orden_inventario: 3 };
+    client.setQueryData(['properties', 'own', 'inventory'], { items: [original, archived], next_cursor: null });
+    client.setQueryData(['properties', 'own-photos', '1'], []);
+    vi.mocked(reorderInventory).mockResolvedValue({ items: [confirmed], next_cursor: null });
+    const { result } = renderHook(() => ({ inventory: useGetInventory(), photos: useGetOwnPhotos('1'), management: usePropertyManagement() }), {
+      wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
+    });
+    await result.current.management.inventoryOrder.mutateAsync([original]);
+    await waitFor(() => expect(result.current.inventory.data?.items[0]).toEqual(confirmed));
+    expect(result.current.inventory.data?.items[1]).toEqual(archived);
+    expect(getOwnProperties).not.toHaveBeenCalled();
+    expect(getOwnPhotos).not.toHaveBeenCalled();
+  });
   it('loads every cursor, preserves BIGINT string IDs, and uses the latest duplicate', async () => {
     vi.mocked(getOwnProperties).mockResolvedValueOnce({ items: Array.from({ length: 100 }, (_, i) => property(String(i))), next_cursor: 'second' })
       .mockResolvedValueOnce({ items: [property('9007199254740993'), property('3', 2)], next_cursor: 'third' })

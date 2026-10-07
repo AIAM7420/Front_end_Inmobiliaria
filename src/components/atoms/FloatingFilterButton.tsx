@@ -3,25 +3,31 @@ import { SlidersHorizontal } from 'lucide-react';
 
 export interface FloatingFilterButtonProps {
   onClick: () => void;
-  size?: 'small' | 'large';
+  size?: 'small' | 'large' | 'xl';
   className?: string;
+  isActive?: boolean;
 }
 
 export const FloatingFilterButton: React.FC<FloatingFilterButtonProps> = ({
   onClick,
   size = 'small',
-  className = ''
+  className = '',
+  isActive = false,
 }) => {
+  const sizeClasses = size === 'small' ? 'w-[44px] h-[44px]' : size === 'xl' ? 'w-[72px] h-[72px]' : 'w-[56px] h-[56px]';
+  const iconSize = size === 'xl' ? 'w-6 h-6' : size === 'large' ? 'w-5 h-5 md:w-6 md:h-6' : 'w-5 h-5';
+
   return (
-    <div className={`${size === 'small' ? 'w-[44px] h-[44px]' : 'w-[52px] h-[52px]'} bg-white/60 dark:bg-black/60 backdrop-blur-2xl border-t border-l border-white/60 dark:border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] rounded-full transition-all duration-300 select-none shrink-0 ${className}`}>
+    <div className={`filter-dropdown-toggle ${sizeClasses} ${isActive ? 'ring-2 ring-inmo-accent/40 !bg-white/80 dark:!bg-inmo-darkcard' : 'bg-white/40 dark:bg-black/20'} backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full transition-all duration-300 select-none shrink-0 ${className}`}>
       <button
-        aria-label="Abrir filtros"
-        onClick={onClick}
-        className="relative flex flex-col items-center justify-center w-full h-full bg-transparent border-none outline-none cursor-pointer group hover:scale-105 transition-transform"
+        type="button"
+        onClick={event => { event.currentTarget.focus({ preventScroll: true }); onClick(); }}
+        aria-label="Abrir filtros" aria-expanded={isActive}
+        className="relative flex flex-col items-center justify-center w-full h-full bg-transparent border-none focus-visible:ring-2 focus-visible:ring-inmo-accent outline-none cursor-pointer group hover:scale-105 transition-transform"
       >
-        <div className="relative flex flex-col items-center justify-center transition-all duration-300 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200">
+        <div className={`relative flex flex-col items-center justify-center transition-all duration-300 ${isActive ? 'text-inmo-accent' : 'text-gray-600 dark:text-gray-300 group-hover:text-inmo-accent'}`}>
           <div className="relative transition-transform duration-300">
-            <SlidersHorizontal className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2} />
+            <SlidersHorizontal className={iconSize} strokeWidth={isActive ? 2.5 : 2} />
           </div>
         </div>
       </button>

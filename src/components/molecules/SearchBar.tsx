@@ -59,8 +59,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const textSize = size === 'xl' ? 'text-lg' : size === 'slim' ? 'text-sm' : 'text-base';
   const iconSize = size === 'xl' ? 'w-6 h-6' : size === 'slim' ? 'w-4 h-4' : 'w-5 h-5';
 
-  // Liquid glass effect
-  const glassStyles = "bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
+  // Liquid glass effect matching NavHeader / FloatingNavBar
+  const glassStyles = "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
   const solidStyles = "bg-gray-50 dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary shadow-sm";
   const bgClasses = glass ? glassStyles : solidStyles;
   // Determinar el padding en pixeles para el estado activo
@@ -68,7 +68,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <div
-      className={`relative ${bgClasses} ${isFocused ? 'ring-2 ring-inmo-tertiary dark:ring-inmo-darktertiary' : ''} rounded-atom ${h} shadow-soft overflow-hidden cursor-text w-full flex items-center ${className}`}
+      className={`relative ${bgClasses} ${isFocused ? 'ring-2 ring-inmo-tertiary dark:ring-inmo-darktertiary' : ''} rounded-atom ${h} ${glass ? '' : 'shadow-soft'} overflow-hidden cursor-text w-full flex items-center ${className}`}
       onClick={() => {
         if (inputRef.current) inputRef.current.focus();
       }}

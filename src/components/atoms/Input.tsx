@@ -6,6 +6,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   rightIcon?: React.ReactNode;
   error?: string;
   wrapperClassName?: string;
+  glass?: boolean;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
@@ -14,12 +15,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   error,
   wrapperClassName = '',
   className = '',
+  glass = true,
   ...props
 }, ref) => {
-  const baseWrapperStyles = "relative bg-white dark:bg-inmo-darkcard rounded-3xl h-[56px] w-full shadow-soft flex items-center px-5 gap-3 transition-all";
+  const glassStyles = "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
+  const solidStyles = "bg-white dark:bg-inmo-darkcard shadow-soft";
+  const bgStyles = glass ? glassStyles : solidStyles;
+
+  const baseWrapperStyles = `relative ${bgStyles} rounded-3xl h-[56px] w-full flex items-center px-5 gap-3 transition-all`;
   const errorWrapperStyles = error 
     ? "border-2 border-inmo-danger" 
-    : "focus-within:ring-4 focus-within:ring-inmo-tertiary dark:focus-within:ring-inmo-darktertiary";
+    : "focus-within:ring-2 focus-within:ring-inmo-accent/20";
 
   const textStyles = error 
     ? "text-inmo-danger placeholder-inmo-danger/50" 

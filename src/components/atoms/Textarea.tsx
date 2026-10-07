@@ -6,6 +6,7 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   error?: string;
   wrapperClassName?: string;
   containerClassName?: string;
+  glass?: boolean;
 }
 
 export const Textarea: React.FC<TextareaProps> = ({
@@ -14,12 +15,17 @@ export const Textarea: React.FC<TextareaProps> = ({
   wrapperClassName = '',
   containerClassName = '',
   className = '',
+  glass = true,
   ...props
 }) => {
-  const baseWrapperStyles = "relative bg-white dark:bg-inmo-darkcard rounded-3xl w-full shadow-soft flex px-6 pt-5 pb-4 gap-3 transition-all";
+  const glassStyles = "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm";
+  const solidStyles = "bg-white dark:bg-inmo-darkcard shadow-soft";
+  const bgStyles = glass ? glassStyles : solidStyles;
+
+  const baseWrapperStyles = `relative ${bgStyles} rounded-3xl w-full flex px-6 pt-5 pb-4 gap-3 transition-all`;
   const errorWrapperStyles = error
     ? "border-2 border-inmo-danger"
-    : "focus-within:ring-4 focus-within:ring-inmo-tertiary dark:focus-within:ring-inmo-darktertiary";
+    : "focus-within:ring-2 focus-within:ring-inmo-accent/20";
 
   const textStyles = error
     ? "text-inmo-danger placeholder-inmo-danger/50"

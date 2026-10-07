@@ -66,7 +66,7 @@ test('confirmed synthetic user logs in and opens protected chat without persisti
   await expect.poll(() => sentFrames.length).toBeGreaterThan(0);
   expect((JSON.parse(sentFrames[0]) as { type: string }).type).toBe('auth');
   await expect.poll(() => receivedTypes.includes('auth.ok')).toBe(true);
-  await expect(page.getByRole('heading', { name: 'Chats', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mensajes', exact: true })).toBeVisible();
   const inbox = await page.request.get(`${api}/conversaciones`, { headers: { Authorization: `Bearer ${(await (await page.request.post(`${api}/sesiones`, { data: { correo: 'e2e-general@example.invalid', password: 'E2eTesting1!' } })).json()).access_token}` } });
   expect(inbox.status()).toBe(200);
 });
