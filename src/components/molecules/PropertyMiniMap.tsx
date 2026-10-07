@@ -29,7 +29,7 @@ export function PropertyMiniMap({ position, privateLocation = false, loading = f
     <div ref={container} className="absolute inset-0 w-full h-full" />
     {token && position && status === 'ready' && <>
       {position && <span className="absolute top-2 left-2 pointer-events-none px-2 py-1 rounded-full text-[11px] font-semibold bg-white/80 dark:bg-black/60 backdrop-blur-md border border-white/50 dark:border-white/10">{label}</span>}
-      <div className="absolute bottom-2 right-2 flex gap-1 p-1 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-md border border-white/50 dark:border-white/10">
+      <div className="absolute top-2 right-2 flex gap-1 p-1 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-md border border-white/50 dark:border-white/10">
         <IconButton aria-label="Acercar mapa (zoom in)" variant="ghost" icon={<Plus className="w-4 h-4" />} onClick={() => map?.zoomIn()} />
         <IconButton aria-label="Alejar mapa (zoom out)" variant="ghost" icon={<Minus className="w-4 h-4" />} onClick={() => map?.zoomOut()} />
         <IconButton aria-label="Recentrar ubicación" variant="ghost" icon={<RotateCcw className="w-4 h-4" />} onClick={() => map?.flyTo({ center: lat === undefined || lng === undefined ? LEON_CENTER : [lng, lat], zoom: initialZoom, pitch: 0, bearing: 0 })} />
