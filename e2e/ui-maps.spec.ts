@@ -147,7 +147,14 @@ test.describe('native touch interactions', () => {
       await expect(page.getByRole('button', { name: 'Portafolio', exact: true }).filter({ visible: true })).toBeVisible();
       await page.getByRole('button', { name: 'Portafolio', exact: true }).filter({ visible: true }).tap();
       await expect(page).toHaveURL(new RegExp('/asesores/' + fixture.asesor_id));
-      if (size.width < 768) await page.getByRole('button', { name: 'Portafolio', exact: true }).tap();
+      if (size.width < 768) {
+        const portfolioButton = page.getByRole('button', { name: 'Portafolio', exact: true });
+        await portfolioButton.scrollIntoViewIfNeeded();
+        const action = await portfolioButton.boundingBox();
+        const navigation = await page.getByRole('navigation', { name: 'Navegación principal móvil' }).boundingBox();
+        expect(action!.y + action!.height).toBeLessThanOrEqual(navigation!.y);
+        await portfolioButton.tap();
+      }
       await expect(page.getByRole('heading', { name: 'Portafolio', exact: true }).filter({ visible: true }).first()).toBeVisible();
       await page.screenshot({ path: 'docs/evidence/integracion-portafolio-' + size.name + '.png', animations: 'disabled' });
       if (size.width < 768) await page.getByRole('button', { name: 'Cerrar detalle', exact: true }).filter({ visible: true }).tap();

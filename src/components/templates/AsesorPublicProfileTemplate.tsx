@@ -243,7 +243,7 @@ export const AsesorPublicProfileTemplate = () => {
     <div className="h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden bg-gray-50 dark:bg-inmo-darkbg relative pt-[88px] md:pt-[100px] pb-4 px-3 md:px-6 gap-4 md:gap-6">
 
       {/* Columna Izquierda: Split Card del Asesor (Visualmente consistente con el SplitViewLayout) */}
-      <aside className="w-full md:w-[32%] lg:w-[30%] xl:w-[28%] 2xl:w-[26%] h-full min-h-0 flex flex-col shrink-0 relative z-20">
+      <aside className="w-full md:w-[32%] lg:w-[30%] xl:w-[28%] 2xl:w-[26%] h-full min-h-0 pb-[calc(96px+env(safe-area-inset-bottom))] md:pb-0 flex flex-col shrink-0 relative z-20">
         <div className="w-full h-full rounded-card overflow-hidden flex flex-col relative bg-white dark:bg-inmo-darkcard shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-inmo-darktertiary">
 
           {/* Header con Controles del Split */}
