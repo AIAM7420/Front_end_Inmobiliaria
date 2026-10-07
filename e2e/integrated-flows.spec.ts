@@ -95,11 +95,29 @@ test('two real participants exchange private attachments, names, reading and per
     await expect(advisorPage.getByRole('link', { name: 'documento-privado.pdf', exact: true })).toBeVisible();
     const admin = await authenticate(request, 'e2e-admin@example.invalid', 'E2eTesting1!');
     expect((await request.get(`${api}/archivos/${attachment.id}/url`, { headers: admin })).status()).toBe(404);
-    await page.getByRole('button', { name: 'Archivar conversación' }).click();
-    await expect(page.getByRole('button', { name: 'Recuperar conversación' })).toBeVisible();
+    const chat = page.getByRole('region', { name: 'Conversación activa' });
+    await chat.getByRole('button', { name: 'Archivar conversación' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Archivar', exact: true }).click();
+    await expect(chat.getByRole('button', { name: 'Recuperar conversación' })).toBeVisible();
     expect((await (await request.get(`${api}/conversaciones/${conversation.id}`, { headers: advisor })).json()).archivada).toBe(false);
-    await page.getByRole('button', { name: 'Recuperar conversación' }).click();
-    await expect(page.getByRole('button', { name: 'Archivar conversación' })).toBeVisible();
+    await chat.getByRole('button', { name: 'Recuperar conversación' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Recuperar', exact: true }).click();
+    await expect(chat.getByRole('button', { name: 'Archivar conversación' })).toBeVisible();
+    // A stale archive must retain the draft and require review, never replay the mutation.
+    const draft = 'Borrador que debe conservarse después del conflicto';
+    await page.getByRole('textbox', { name: 'Escribe un mensaje' }).fill(draft);
+    let staleAttempts = 0;
+    await page.route(`**/conversaciones/${conversation.id}/estado`, async route => {
+      staleAttempts++;
+      await route.fulfill({ status: 412, contentType: 'application/problem+json', body: JSON.stringify({ status: 412, title: 'Versión desactualizada', code: 'VERSION_DESACTUALIZADA' }) });
+    });
+    await chat.getByRole('button', { name: 'Archivar conversación' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Archivar', exact: true }).click();
+    await chat.getByRole('button', { name: 'Revisar versión actual', exact: true }).click();
+    await chat.getByRole('button', { name: 'He revisado; conservar mis cambios', exact: true }).click();
+    await expect(page.getByRole('textbox', { name: 'Escribe un mensaje' })).toHaveValue(draft);
+    expect(staleAttempts).toBe(1);
+    await page.unroute(`**/conversaciones/${conversation.id}/estado`);
     const recovery = page.waitForResponse(response => response.url().includes(`/conversaciones/${conversation.id}/mensajes?`) && response.url().includes('after_sequence='));
     await page.evaluate(() => { (window as unknown as { __inmoSockets: WebSocket[] }).__inmoSockets.at(-1)?.close(); });
     const missed = `Recuperación REST ${Date.now()}`;

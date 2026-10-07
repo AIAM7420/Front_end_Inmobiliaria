@@ -5,6 +5,7 @@ import {
   Send,
   X,
   Archive,
+  ArchiveRestore,
   CheckCircle2,
   Paperclip,
   CloudOff,
@@ -12,10 +13,8 @@ import {
   SearchX,
   CheckCheck,
   MessagesSquare,
-  MessageCircle,
   Building2,
   Compass,
-  Bot,
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { EmptyState } from '../molecules/EmptyState';
@@ -37,7 +36,8 @@ import { Skeleton } from '../atoms/Skeleton';
 import { ModuleLayout } from './ModuleLayout';
 import { SplitViewLayout } from './SplitViewLayout';
 import { ConflictNotice } from '../molecules/ConflictNotice';
-import { ChatbotPanel } from '../organisms/ChatBotPanel';
+import { ConfirmModal } from '../molecules/ConfirmModal';
+import { ChatDoodleBackground } from '../atoms/ChatDoodleBackground';
 
 export interface MessagesTemplateProps {}
 
@@ -76,7 +76,14 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
   const [search, setSearch] = useState('');
   const [failure, setFailure] = useState('');
   const [conflict, setConflict] = useState(false);
+  const [conflictTargetId, setConflictTargetId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<{
+    id: string;
+    version: number;
+    archivada: boolean;
+    name: string;
+  } | null>(null);
   const [attachments, setAttachments] = useState<MediaFile[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -84,28 +91,29 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
   const pending = useRef<{ id: string; content: string } | null>(null);
 
   const inbox = useChatInbox();
-  const detail = useConversationDetails(selectedId !== 'ai' ? selectedId : '');
+  const detail = useConversationDetails(selectedId);
+  const conflictResource = useConversationDetails(conflictTargetId);
   const me = useGetMe();
   const sendMessage = useSendMessage();
-  const stream = useConversationStream(selectedId !== 'ai' ? selectedId : '');
+  const stream = useConversationStream(selectedId);
   const cache = useQueryClient();
 
   const isWireframeMode = inbox.isPending || me.isPending;
   useEffect(() => {
     if (!isFiltersOpen) return;
-    const trigger = document.activeElement as HTMLElement | null;
+    const trigger = document.activeElement;
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.defaultPrevented) setIsFiltersOpen(false); };
     document.addEventListener('keydown', escape);
-    return () => { document.removeEventListener('keydown', escape); trigger?.focus({ preventScroll: true }); };
+    return () => { document.removeEventListener('keydown', escape); if (trigger instanceof HTMLElement) trigger.focus({ preventScroll: true }); };
   }, [isFiltersOpen]);
 
   const ownId = me.data?.value.id;
   const other = detail.data?.participantes?.find((p) => p.id !== ownId);
-  const title = selectedId === 'ai' ? 'Asistente IA' : (other?.nombre ?? 'Cargando interlocutor…');
+  const title = other?.nombre ?? 'Cargando interlocutor…';
   const lastLoaded = stream.items.at(-1)?.secuencia;
 
   useEffect(() => {
-    if (!selectedId || selectedId === 'ai' || !lastLoaded || document.visibilityState !== 'visible') return;
+    if (!selectedId || !lastLoaded || document.visibilityState !== 'visible') return;
     let active = true;
     void markConversationRead(selectedId, lastLoaded)
       .then(() => {
@@ -138,25 +146,51 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     pending.current = null;
     setFailure('');
     setConflict(false);
+    setConflictTargetId('');
   };
 
-  const handleArchiveToggle = async () => {
-    if (!detail.data || selectedId === 'ai') return;
+  const handleConfirmArchive = async () => {
+    if (!confirmTarget) return;
     setBusy(true);
     try {
-      await archiveConversation(selectedId, !detail.data.archivada, detail.data.version ?? 1);
+      await archiveConversation(
+        confirmTarget.id,
+        !confirmTarget.archivada,
+        confirmTarget.version,
+      );
       void cache.invalidateQueries({ queryKey: ['chat'] });
       void cache.invalidateQueries({ queryKey: ['chat', 'inbox'] });
     } catch (error) {
       setFailure(operationError(error));
-      if (isVersionConflict(error)) setConflict(true);
+      if (isVersionConflict(error)) {
+        setConflictTargetId(confirmTarget.id);
+        setConflict(true);
+      }
+      throw error;
     } finally {
       setBusy(false);
+      setConfirmTarget(null);
     }
   };
 
+  const conflictNotice = conflict ? (
+    <ConflictNotice
+      current={<p>Estado: {conflictResource.data?.archivada ? 'Archivada' : 'Activa'} · versión {conflictResource.data?.version}</p>}
+      onReview={async () => {
+        const result = await conflictResource.refetch();
+        if (result.isError) throw result.error;
+      }}
+      onAccept={() => {
+        setConflict(false);
+        setConflictTargetId('');
+        setFailure('');
+        void cache.invalidateQueries({ queryKey: ['chat', 'inbox'] });
+      }}
+    />
+  ) : null;
+
   async function send() {
-    if (!selectedId || selectedId === 'ai' || (!draft.trim() && !attachments.length) || sendMessage.isPending || uploading) return;
+    if (!selectedId || (!draft.trim() && !attachments.length) || sendMessage.isPending || uploading) return;
     const content = draft.trim() ? draft : 'Archivo adjunto: ' + attachments.map((a) => a.nombre).join(', ');
     if (!pending.current || pending.current.content !== content) {
       pending.current = { id: crypto.randomUUID(), content };
@@ -182,22 +216,16 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     }
   }
 
-  // Fijo a 30vw menos el padding interno (px-6 = 3rem) en desktop para mantener gaps consistentes
-  const layoutWidthClass = 'w-full md:max-w-[calc(30vw-3rem)] mx-auto';
+  const layoutWidthClass = 'w-full md:max-w-xl lg:max-w-2xl mx-auto';
 
   const renderChatContent = () => {
     if (!selectedId) return null;
 
-    if (selectedId === 'ai') {
-      return (
-        <div className="w-full h-full relative">
-          <ChatbotPanel onClose={() => select('')} isEmbedded={true} />
-        </div>
-      );
-    }
-
     return (
-      <div className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden">
+      <div role="region" aria-label="Conversación activa" className="flex flex-col h-full w-full bg-transparent relative font-inter overflow-hidden animate-in fade-in duration-300">
+        {/* Fondo sutil tipo doodles estilo WhatsApp con elementos inmobiliarios */}
+        <ChatDoodleBackground />
+
         {/* Header - Floating Pill */}
         <div className="absolute top-2 left-4 right-4 md:top-4 md:left-6 md:right-6 z-20 h-auto md:h-16 border border-white/50 dark:border-white/10 bg-white/40 dark:bg-black/20 backdrop-blur-xl flex items-center justify-between px-3 py-2 md:px-4 shrink-0 shadow-sm rounded-full">
           <div className="flex items-center gap-3 min-w-0">
@@ -223,17 +251,32 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <IconButton
               aria-label={detail.data?.archivada ? 'Recuperar conversación' : 'Archivar conversación'}
-              icon={<Archive className="w-5 h-5 text-gray-500 dark:text-gray-400" />}
-              disabled={busy || conflict || !detail.data}
-              onClick={handleArchiveToggle}
+              icon={
+                detail.data?.archivada ? (
+                  <ArchiveRestore className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <Archive className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )
+              }
+              disabled={busy || conflict || !detail.data?.version}
+              onClick={() => {
+                if (detail.data?.version) {
+                  setConfirmTarget({
+                    id: selectedId,
+                    version: detail.data.version,
+                    archivada: Boolean(detail.data.archivada),
+                    name: other?.nombre ?? 'esta conversación',
+                  });
+                }
+              }}
               variant="ghost"
-              className="!w-10 !h-10 !rounded-full hover:!bg-white/50 dark:hover:!bg-white/10"
+              className="!w-11 !h-11 !rounded-full hover:!bg-white/50 dark:hover:!bg-white/10"
             />
             <IconButton
               aria-label="Cerrar conversación"
               icon={<X className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.5} />}
               variant="ghost"
-              className="!w-10 !h-10 !rounded-full hover:!bg-white/50 dark:hover:!bg-white/10"
+              className="!w-11 !h-11 !rounded-full hover:!bg-white/50 dark:hover:!bg-white/10"
               onClick={() => select('')}
             />
           </div>
@@ -262,17 +305,22 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
               <Skeleton className="h-20 w-3/4 rounded-2xl" />
             </div>
           ) : !stream.items.length ? (
-            <EmptyState
-              className="w-full h-full"
-              icon={<MessageCircle />}
-              title="Inicia la conversación"
-              description={
-                <>
-                  Aún no hay mensajes. Escribe tu duda sobre la propiedad y {other?.nombre ?? 'tu contacto'} te
-                  responderá aquí.
-                </>
-              }
-            />
+            <div className="w-full flex-1 flex items-center justify-center p-4">
+              <EmptyState
+                solid
+                icon={<MessagesSquare />}
+                title="Inicia la conversación"
+                description={
+                  <>
+                    Aún no hay mensajes. Escribe tu duda sobre la propiedad y{' '}
+                    <span className="font-semibold text-inmo-secondary dark:text-white">
+                      {other?.nombre ?? 'tu contacto'}
+                    </span>{' '}
+                    te responderá aquí.
+                  </>
+                }
+              />
+            </div>
           ) : (
             stream.items.map((message) => {
               const sent = message.emisor_id === ownId;
@@ -317,23 +365,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
             })
           )}
 
-          {conflict && (
-            <ConflictNotice
-              current={
-                <p>
-                  Estado: {detail.data?.archivada ? 'Archivada' : 'Activa'} · versión {detail.data?.version}
-                </p>
-              }
-              onReview={async () => {
-                const result = await detail.refetch();
-                if (result.isError) throw result.error;
-              }}
-              onAccept={() => {
-                setConflict(false);
-                setFailure('');
-              }}
-            />
-          )}
+          {conflictTargetId === selectedId && conflictNotice}
 
           {failure && (
             <p role="alert" className="text-sm text-inmo-danger text-center">
@@ -373,12 +405,12 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
             <IconButton
               aria-label="Adjuntar archivo"
               icon={<Paperclip className="w-[22px] h-[22px]" />}
-              variant="ghost"
+              variant="secondary"
               disabled={uploading || sendMessage.isPending || attachments.length >= 4}
               onClick={() => setUploadOpen(true)}
-              className="!w-[50px] !h-[50px] !rounded-full shrink-0 text-gray-400 hover:text-inmo-accent bg-white/50 dark:bg-inmo-darkcard/50 backdrop-blur-md shadow-sm border border-gray-100 dark:border-white/10"
+              className="!w-[50px] !h-[50px] !rounded-full shrink-0 text-gray-500 dark:text-gray-400 hover:text-inmo-accent dark:hover:text-inmo-accent"
             />
-            <div className="flex-1 bg-white/80 dark:bg-inmo-darkcard/80 backdrop-blur-md border border-gray-200 dark:border-inmo-darktertiary rounded-2xl min-h-[50px] p-1 flex items-end transition-colors focus-within:border-inmo-accent focus-within:bg-white dark:focus-within:bg-inmo-darkcard shadow-sm">
+            <div className="flex-1 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm rounded-full min-h-[50px] px-3 py-1 flex items-end transition-colors focus-within:ring-2 focus-within:ring-inmo-accent/20">
               <textarea
                 aria-label="Escribe un mensaje"
                 placeholder="Escribe un mensaje..."
@@ -414,13 +446,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
   const filtersContent = (
     <>
       <div className="flex items-center bg-gray-50 dark:bg-inmo-darkbg rounded-2xl">
-        <DropdownSelect
-          compact
-          label="Filtrar conversaciones"
-          value={filter}
-          onChange={setFilter}
-          options={[{ value: 'active', label: 'Todos los mensajes' }, { value: 'unread', label: 'No leídos' }, { value: 'archived', label: 'Archivados' }]}
-        />
+        <DropdownSelect compact label="Filtrar conversaciones" value={filter} onChange={setFilter} options={[{ value: "active", label: "Todos los mensajes" }, { value: "unread", label: "No leídos" }, { value: "archived", label: "Archivados" }]} />
       </div>
       <Button onClick={() => setIsFiltersOpen(false)} className="w-full h-12 mt-1">
         Aplicar Filtros
@@ -432,6 +458,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
 
   const emptyInbox = search.trim() ? (
     <EmptyState
+      solid
       compact
       icon={<SearchX />}
       title="Sin resultados"
@@ -444,6 +471,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   ) : filter === 'unread' ? (
     <EmptyState
+      solid
       compact
       icon={<CheckCheck />}
       title="¡Estás al día!"
@@ -456,6 +484,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   ) : filter === 'archived' ? (
     <EmptyState
+      solid
       compact
       icon={<Archive />}
       title="No hay conversaciones archivadas"
@@ -468,6 +497,7 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   ) : (
     <EmptyState
+      solid
       icon={<MessagesSquare />}
       title="Aún no tienes conversaciones"
       description={
@@ -489,6 +519,157 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
     />
   );
 
+  const renderChatListItems = () => {
+    if (isWireframeMode || inbox.isLoading) {
+      return Array.from({ length: 5 }).map((_, idx) => (
+        <div
+          key={idx}
+          className="w-full h-[76px] rounded-[20px] bg-gray-50 dark:bg-inmo-darkcard flex items-center px-4 shadow-sm animate-pulse"
+        >
+          <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-inmo-darkbg shrink-0" />
+          <div className="flex flex-col flex-1 min-w-0 ml-4 gap-2">
+            <div className="flex justify-between items-center">
+              <div className="w-1/2 h-4 bg-gray-200 dark:bg-inmo-darkbg rounded" />
+              <div className="w-8 h-3 bg-gray-200 dark:bg-inmo-darkbg rounded" />
+            </div>
+            <div className="w-3/4 h-3 bg-gray-200 dark:bg-inmo-darkbg rounded" />
+          </div>
+        </div>
+      ));
+    }
+
+    if (inbox.isError) {
+      return (
+        <EmptyState
+          tone="error"
+          icon={<CloudOff />}
+          title="No pudimos cargar tus conversaciones"
+          description="Hubo un problema al conectar con el servidor de mensajes. Inténtalo de nuevo en unos momentos."
+          actions={
+            <Button icon={<RefreshCw className="w-4 h-4" />} onClick={() => void inbox.refetch()}>
+              Reintentar
+            </Button>
+          }
+        />
+      );
+    }
+
+    if (chats.length === 0) {
+      return emptyInbox;
+    }
+
+    return (
+      <>
+        {chats.map((c) => {
+          const person = c.participantes?.find((p) => p.id !== ownId);
+          const isSelected = selectedId === c.id;
+          return (
+            <div
+              key={c.id}
+              role="button" tabIndex={0} aria-label={person?.nombre ?? "Nombre no disponible"} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); select(c.id); } }} onClick={() => select(c.id)}
+              className={`w-full h-[76px] rounded-[20px] flex items-center px-4 cursor-pointer transition-all border shrink-0 ${
+                isSelected
+                  ? 'bg-inmo-accent border-inmo-accent text-white shadow-[0_8px_25px_-6px_rgba(250,0,63,0.45)]'
+                  : 'bg-white dark:bg-inmo-darkcard border-gray-100 dark:border-inmo-darktertiary shadow-sm hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <div
+                className={`w-12 h-12 rounded-full shrink-0 flex items-center justify-center font-bold font-montserrat shadow-sm relative transition-colors ${
+                  isSelected
+                    ? 'bg-white text-inmo-accent'
+                    : 'bg-inmo-accent/10 dark:bg-inmo-darktertiary text-inmo-accent dark:text-white'
+                }`}
+              >
+                {person?.nombre.charAt(0) ?? '…'}
+                {person?.en_linea && (
+                  <div
+                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 bg-inmo-success rounded-full border-2 ${
+                      isSelected ? 'border-inmo-accent' : 'border-white dark:border-inmo-darkcard'
+                    }`}
+                  />
+                )}
+              </div>
+              <div className="ml-4 flex-1 overflow-hidden">
+                <div className="flex justify-between items-baseline mb-1">
+                  <h3
+                    className={`font-montserrat font-bold text-[13px] md:text-sm truncate ${
+                      isSelected ? 'text-white' : 'text-inmo-secondary dark:text-white'
+                    }`}
+                  >
+                    {person?.nombre ?? 'Nombre no disponible'}
+                  </h3>
+                  <span
+                    className={`text-[10px] md:text-[11px] font-bold font-inter whitespace-nowrap ml-2 uppercase tracking-wide ${
+                      isSelected ? 'text-white/80' : 'text-gray-400'
+                    }`}
+                  >
+                    {formatChatTime(c.ultimo_mensaje?.persistido_at)}
+                  </span>
+                </div>
+                <p
+                  className={`text-[12px] md:text-[13px] font-inter font-medium truncate ${
+                    isSelected ? 'text-white/90' : 'text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  {c.ultimo_mensaje?.contenido ?? 'Sin mensajes'}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                {(c.no_leidos ?? 0) > 0 && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                      isSelected ? 'bg-white text-inmo-accent' : 'bg-inmo-accent text-white'
+                    }`}
+                  >
+                    {c.no_leidos}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  aria-label={c.archivada ? 'Recuperar conversación' : 'Archivar conversación'}
+                  title={c.archivada ? 'Recuperar conversación' : 'Archivar conversación'}
+                  disabled={busy || conflict || !c.version}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!c.version) return;
+                    setConfirmTarget({
+                      id: c.id,
+                      version: c.version,
+                      archivada: Boolean(c.archivada),
+                      name: person?.nombre ?? 'esta conversación',
+                    });
+                  }}
+                  className={`min-w-11 min-h-11 flex items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
+                    isSelected
+                      ? 'text-white/80 hover:text-white hover:bg-white/20'
+                      : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10'
+                  }`}
+                >
+                  {c.archivada ? (
+                    <ArchiveRestore className="w-4 h-4" />
+                  ) : (
+                    <Archive className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {inbox.hasNextPage && (
+          <Button
+            variant="secondary"
+            onClick={() => void inbox.fetchNextPage()}
+            disabled={inbox.isFetchingNextPage}
+            className="w-full mt-2"
+          >
+            Cargar más conversaciones
+          </Button>
+        )}
+      </>
+    );
+  };
+
   const renderMainContent = () => (
     <ModuleLayout
       title="Mensajes"
@@ -505,128 +686,35 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
       onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
       onCloseFilters={() => setIsFiltersOpen(false)}
       filtersContent={filtersContent}
+      titleMaxWidthClass={layoutWidthClass}
       controlsMaxWidthClass={layoutWidthClass}
       noScroll={true}
-      actions={
-        <IconButton
-          aria-label="Abrir asistente"
-          onClick={() => select('ai')}
-          icon={<Bot className="w-5 h-5" strokeWidth={2} />}
-          variant="secondary"
-          className="hidden md:flex w-[44px] h-[44px] !bg-white/40 dark:!bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 !shadow-sm hover:!bg-white/60 dark:hover:!bg-black/40 shrink-0 text-inmo-accent"
-        />
-      }
     >
-      {/* Lista de Chats */}
       <div
-        className={`w-full flex-1 min-h-0 overflow-y-auto max-md:hide-scrollbar flex flex-col gap-3 pb-32 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${layoutWidthClass}`}
+        className={`w-full flex-1 min-h-0 overflow-y-auto max-md:hide-scrollbar flex flex-col gap-3 pb-32 md:pb-6 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${layoutWidthClass}`}
       >
-        {isWireframeMode || inbox.isLoading ? (
-          Array.from({ length: 5 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="w-full h-[76px] bg-gray-50 dark:bg-inmo-darkcard rounded-[20px] flex items-center px-4 shadow-sm animate-pulse"
-            >
-              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-inmo-darkbg shrink-0" />
-              <div className="flex flex-col flex-1 min-w-0 ml-4 gap-2">
-                <div className="flex justify-between items-center">
-                  <div className="w-1/2 h-4 bg-gray-200 dark:bg-inmo-darkbg rounded" />
-                  <div className="w-8 h-3 bg-gray-200 dark:bg-inmo-darkbg rounded" />
-                </div>
-                <div className="w-3/4 h-3 bg-gray-200 dark:bg-inmo-darkbg rounded" />
-              </div>
-            </div>
-          ))
-        ) : inbox.isError ? (
-          <EmptyState
-            tone="error"
-            icon={<CloudOff />}
-            title="No pudimos cargar tus conversaciones"
-            description="Hubo un problema al conectar con el servidor de mensajes. Inténtalo de nuevo en unos momentos."
-            actions={
-              <Button icon={<RefreshCw className="w-4 h-4" />} onClick={() => void inbox.refetch()}>
-                Reintentar
-              </Button>
-            }
-          />
-        ) : chats.length === 0 ? (
-          emptyInbox
-        ) : (
-          chats.map((c) => {
-            const person = c.participantes?.find((p) => p.id !== ownId);
-            const isSelected = selectedId === c.id;
-            return (
-              <div
-                key={c.id}
-                role="button"
-                tabIndex={0}
-                aria-label={person?.nombre ?? 'Nombre no disponible'}
-                onClick={() => select(c.id)}
-                onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(c.id); } }}
-                className={`w-full h-[76px] rounded-[20px] flex items-center px-4 cursor-pointer transition-all border shrink-0 ${
-                  isSelected
-                    ? 'bg-white dark:bg-inmo-darkcard border-inmo-accent shadow-[0_8px_30px_-12px_rgba(239,68,68,0.3)]'
-                    : 'bg-white dark:bg-inmo-darkcard border-gray-100 dark:border-inmo-darktertiary shadow-sm hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-              >
-                <div className="w-12 h-12 bg-inmo-accent/10 dark:bg-inmo-darktertiary rounded-full shrink-0 flex items-center justify-center text-inmo-accent dark:text-white font-bold font-montserrat shadow-sm relative">
-                  {person?.nombre.charAt(0) ?? '…'}
-                  {person?.en_linea && (
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-inmo-success rounded-full border-2 border-white dark:border-inmo-darkcard" />
-                  )}
-                </div>
-                <div className="ml-4 flex-1 overflow-hidden">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-montserrat font-bold text-[13px] md:text-sm text-inmo-secondary dark:text-white truncate">
-                      {person?.nombre ?? 'Nombre no disponible'}
-                    </h3>
-                    <span className="text-[10px] md:text-[11px] font-bold text-gray-400 font-inter whitespace-nowrap ml-2 uppercase tracking-wide">
-                      {formatChatTime(c.ultimo_mensaje?.persistido_at)}
-                    </span>
-                  </div>
-                  <p className="text-[12px] md:text-[13px] text-gray-500 dark:text-gray-400 font-inter font-medium truncate">
-                    {c.ultimo_mensaje?.contenido ?? 'Sin mensajes'}
-                  </p>
-                </div>
-                {(c.no_leidos ?? 0) > 0 && (
-                  <span className="ml-2 bg-inmo-accent text-white text-xs px-2 py-0.5 rounded-full font-bold shrink-0">
-                    {c.no_leidos}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        )}
-
-        {inbox.hasNextPage && (
-          <Button
-            variant="secondary"
-            onClick={() => void inbox.fetchNextPage()}
-            disabled={inbox.isFetchingNextPage}
-            className="w-full mt-2"
-          >
-            Cargar más conversaciones
-          </Button>
-        )}
+        {conflictTargetId !== selectedId && conflictNotice}
+        {!selectedId && failure && <p role="alert" className="text-inmo-danger text-sm">{failure}</p>}
+        {renderChatListItems()}
       </div>
     </ModuleLayout>
   );
 
   return (
-    <>
+    <div className="relative w-full h-full overflow-hidden bg-gray-50 dark:bg-inmo-darkbg">
       <SplitViewLayout
         isOpen={Boolean(selectedId)}
         onClose={() => select('')}
         sideTitle=""
         sidePosition="right"
-        sidePanelWidthClass="w-full md:w-[70%]"
-        mainPanelWidthClass="md:w-[30%]"
+        sidePanelWidthClass="w-full md:w-[68%] lg:w-[70%]"
+        mainPanelWidthClass="md:w-[32%] lg:w-[30%]"
         sideContent={renderChatContent()}
         mainContent={renderMainContent()}
         bottomSheetNoPadding={true}
         bottomSheetFullHeight={true}
         desktopNoPadding={true}
-        sidePanelTransparent={true}
+        sidePanelTransparent={false}
         hideDesktopCloseButton={true}
         hideMobileCloseButton={true}
         bottomSheetIsHero={false}
@@ -673,6 +761,25 @@ export function MessagesTemplate(_props: MessagesTemplateProps) {
           )}
         </BottomSheet>
       )}
-    </>
+
+      <ConfirmModal
+        isOpen={Boolean(confirmTarget)}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmArchive}
+        title={
+          confirmTarget?.archivada
+            ? '¿Recuperar conversación?'
+            : '¿Archivar conversación?'
+        }
+        message={
+          confirmTarget?.archivada
+            ? `¿Deseas desarchivar la conversación con ${confirmTarget?.name ?? 'este usuario'}? Volverá a aparecer en tu bandeja de mensajes activos.`
+            : `¿Estás seguro de que deseas archivar la conversación con ${confirmTarget?.name ?? 'este usuario'}? Se moverá a tu sección de archivados y dejará de mostrarse en la bandeja principal.`
+        }
+        confirmText={confirmTarget?.archivada ? 'Recuperar' : 'Archivar'}
+        cancelText="Cancelar"
+        confirmVariant={confirmTarget?.archivada ? 'accent' : 'warning'}
+      />
+    </div>
   );
 }

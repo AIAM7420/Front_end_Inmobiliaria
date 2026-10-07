@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'accent' | 'secondary' | 'tertiary' | 'text' | 'ghost' | 'danger' | 'warning';
+  variant?: 'accent' | 'secondary' | 'tertiary' | 'text' | 'ghost' | 'danger' | 'warning' | 'glass';
   isLoading?: boolean;
   icon?: React.ReactNode;
 }
@@ -24,7 +24,8 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variants = {
     accent: "bg-inmo-accent text-white shadow-glow hover:bg-red-600 hover:-translate-y-1",
-    secondary: "bg-white dark:bg-inmo-darkcard text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:-translate-y-1",
+    secondary: "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm text-inmo-secondary dark:text-white hover:bg-white/60 dark:hover:bg-black/30 hover:-translate-y-0.5",
+    glass: "bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm text-inmo-secondary dark:text-white hover:bg-white/60 dark:hover:bg-black/30 hover:-translate-y-0.5",
     tertiary: "bg-inmo-tertiary dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white shadow-soft hover:bg-gray-300 dark:hover:bg-gray-500 hover:scale-110",
     text: "text-gray-500 dark:text-gray-400 font-medium hover:text-inmo-accent dark:hover:text-inmo-accent",
     ghost: "bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-inmo-darkbg hover:text-inmo-secondary dark:hover:text-white",

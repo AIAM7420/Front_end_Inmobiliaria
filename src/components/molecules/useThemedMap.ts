@@ -10,7 +10,7 @@ const styleFor = (dark: boolean) => `mapbox://styles/mapbox/${dark ? 'dark' : 'l
 
 /** Keep the camera and DOM markers while styles load; rebuild style layers only when ready. */
 export function useThemedMap(container: RefObject<HTMLDivElement | null>, token: string | undefined,
-  dark: boolean, options: { center?: [number, number]; zoom?: number; interactive?: boolean } = {}) {
+  dark: boolean, options: Partial<Pick<mapboxgl.MapOptions, 'center' | 'zoom' | 'interactive' | 'pitch' | 'bearing' | 'maxPitch' | 'minPitch' | 'projection' | 'dragRotate' | 'pitchWithRotate' | 'touchPitch' | 'cooperativeGestures'>> = {}) {
   const initial = useRef(options), currentTheme = useRef(dark), appliedTheme = useRef(dark);
   const generation = useRef(0), readyGeneration = useRef(-1);
   useEffect(() => { currentTheme.current = dark; }, [dark]);

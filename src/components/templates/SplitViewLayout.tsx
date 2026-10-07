@@ -94,7 +94,9 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
         inert={!isOpen}
         aria-hidden={!isOpen}
         className={`hidden md:flex flex-col h-full relative z-10 overflow-hidden transform-gpu will-change-[width,padding,opacity] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 pt-[100px] pb-4 ${
-          isOpen ? `${sidePanelWidthClass} opacity-100 px-4 pointer-events-auto` : 'w-0 opacity-0 px-0 pointer-events-none'
+          isOpen
+            ? `${sidePanelWidthClass} opacity-100 ${sidePosition === 'right' ? 'pr-4 md:pr-6 pl-2' : 'px-4'} pointer-events-auto`
+            : 'w-0 opacity-0 px-0 pointer-events-none'
         }`}
       >
         <div className={`w-full h-full min-w-[320px] rounded-card overflow-hidden flex flex-col relative ${
@@ -111,7 +113,7 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
                  aria-label="Volver al panel anterior"
                  icon={<ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.5} />}
                  variant="secondary"
-                 className="!w-10 !h-10 !p-0 !bg-white/90 dark:!bg-inmo-darkcard/90 backdrop-blur-md hover:!bg-gray-100 dark:hover:!bg-inmo-darktertiary !shadow-sm !rounded-full transition-colors border border-gray-100 dark:border-white/10"
+                 className="!w-10 !h-10 !p-0 !rounded-full hover:scale-105 active:scale-95 transition-all"
                />
             </div>
           )}
@@ -160,10 +162,10 @@ export const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
         onScroll={(e) => {
           window.dispatchEvent(new CustomEvent('app-scroll', { detail: { scrollY: (e.target as HTMLDivElement).scrollTop } }));
         }}
-        className={`h-full relative transform-gpu will-change-[width] transition-[width,border-radius] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
+        className={`h-full relative transform-gpu will-change-[width] transition-[width] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
           mainPanelNoScroll ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
         } ${
-          isOpen ? `w-full ${mainPanelWidthClass} md:rounded-card my-2` : 'w-full'
+          isOpen ? `w-full ${mainPanelWidthClass}` : 'w-full'
         }`}
       >
         {mainContent}

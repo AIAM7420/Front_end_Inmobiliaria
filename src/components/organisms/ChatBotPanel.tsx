@@ -66,7 +66,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
   };
 
   return (
-    <div className={`bg-white dark:bg-inmo-darkcard w-full h-full flex flex-col relative z-20 ${isEmbedded ? '' : 'rounded-t-3xl md:rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)]'}`}>
+    <div className={`w-full h-full flex flex-col relative z-20 ${isEmbedded ? 'bg-transparent' : 'bg-white dark:bg-inmo-darkcard rounded-t-3xl md:rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)]'}`}>
 
       {/* Header del Panel */}
       <div className={`flex justify-between items-center px-6 py-5 ${hasStarted ? 'border-b border-gray-100 dark:border-inmo-darktertiary' : ''} transition-all duration-500`}>
@@ -150,7 +150,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
                 <div className={`rounded-2xl p-4 max-w-[80%] shadow-sm ${
                   msg.sender === 'user'
                     ? 'bg-inmo-accent text-white rounded-tr-none'
-                    : 'bg-gray-100 dark:bg-inmo-darktertiary text-inmo-secondary dark:text-white rounded-tl-none'
+                    : 'bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary text-inmo-secondary dark:text-white rounded-tl-none'
                 }`}>
                   <p className="font-inter text-sm leading-relaxed">{msg.text}</p>
                 </div>
@@ -159,7 +159,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
 
             {isTyping && (
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-atom bg-gray-100 dark:bg-inmo-darktertiary flex items-center justify-center shrink-0 text-inmo-secondary dark:text-white">
+                <div className="w-8 h-8 rounded-atom bg-white dark:bg-inmo-darkcard border border-gray-100 dark:border-inmo-darktertiary flex items-center justify-center shrink-0 text-inmo-secondary dark:text-white">
                   <Bot className="w-4 h-4" />
                 </div>
                 <Skeleton className="w-40 h-10 rounded-2xl" />
@@ -169,7 +169,7 @@ export const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ onClose, hideCloseBu
           </div>
 
           {/* Input Area Docked */}
-          <div className="p-4 bg-white dark:bg-inmo-darkcard border-t border-gray-100 dark:border-inmo-darktertiary animate-in slide-in-from-bottom-4 duration-300">
+          <div className={`p-4 border-t border-gray-100 dark:border-inmo-darktertiary animate-in slide-in-from-bottom-4 duration-300 ${isEmbedded ? 'bg-transparent border-t-0' : 'bg-white dark:bg-inmo-darkcard'}`}>
             <div className="relative w-full mt-2 mb-1">
               <div className="absolute -inset-3 bg-gradient-to-r from-inmo-accent/40 via-inmo-accent/60 to-inmo-accent/40 dark:from-inmo-accent/50 dark:via-inmo-accent/70 dark:to-inmo-accent/50 blur-xl rounded-[40px] pointer-events-none opacity-100 animate-pulse" style={{ animationDuration: '3s' }} />
 

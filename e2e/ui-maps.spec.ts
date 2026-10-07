@@ -161,7 +161,7 @@ test.describe('native touch interactions', () => {
 
 test.describe('new messages layout touch', () => {
   test.use({ hasTouch: true });
-  for (const width of [390, 820]) test('real chat scroll, custom filters and assistant close ' + width, async ({ page, request }) => {
+  for (const width of [390, 820]) test('real chat scroll and custom filters ' + width, async ({ page, request }) => {
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.setViewportSize({ width, height: 900 });
     const customer = await authenticate(request, 'e2e-general@example.invalid', 'E2eTesting1!');
@@ -187,9 +187,7 @@ test.describe('new messages layout touch', () => {
     await expect(filter).toContainText('Archivados');
     await filter.press('Escape');
     await expect(filter).not.toBeVisible();
-    if (width >= 768) await page.getByRole('button', { name: 'Abrir asistente', exact: true }).tap();
-    else await navigate(page, '/asesor/mensajes?conversation=ai');
-    await page.getByRole('button', { name: 'Cerrar asistente', exact: true }).tap();
+    await expect(page.getByRole('button', { name: 'Abrir asistente', exact: true })).toHaveCount(0);
     await expect(page).not.toHaveURL(/conversation=/);
     expect(errors).toEqual([]);
   });
@@ -320,6 +318,13 @@ test('real Mapbox keeps canvases, markers and detail selection through delayed t
   await page.getByRole('button', { name: 'Mostrar fotografía 3', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Mostrar fotografía 3', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByLabel('Ubicación aproximada').filter({ visible: true }).locator('.mapboxgl-canvas')).toBeVisible();
+  const miniMap = page.getByLabel('Ubicación aproximada').filter({ visible: true });
+  const miniCanvas = await miniMap.locator('.mapboxgl-canvas').elementHandle();
+  const zoomOut = miniMap.getByRole('button', { name: 'Alejar mapa (zoom out)', exact: true });
+  await expect(zoomOut).toBeVisible();
+  expect((await zoomOut.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await zoomOut.click();
+  await miniMap.getByRole('button', { name: 'Recentrar ubicación', exact: true }).click();
   const mainMap = page.getByLabel('Mapa de inmuebles', { exact: true });
   await expect(mainMap).toHaveAttribute('aria-busy', 'false');
   const beforePan = await marker.boundingBox();
@@ -340,6 +345,7 @@ test('real Mapbox keeps canvases, markers and detail selection through delayed t
     expect((await marker.boundingBox())!.y).toBeCloseTo(cameraPosition!.y, 0);
     await expect(page.getByRole('button', { name: 'Mostrar fotografía 3', exact: true })).toHaveAttribute('aria-pressed', 'true');
     expect(await canvas!.evaluate(node => node.isConnected)).toBe(true);
+    expect(await miniCanvas!.evaluate(node => node.isConnected)).toBe(true);
   }
   await expect(page.getByText('Mapa no disponible', { exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'docs/evidence/bugs-mapa-galeria.png' });

@@ -119,7 +119,7 @@ export function PropertyDetailContent({ property, layout = 'vertical', owned = f
     <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar pb-[calc(100px+env(safe-area-inset-bottom))]">
       <div className="w-full relative rounded-b-[32px] overflow-hidden bg-gray-100 dark:bg-inmo-darkbg shrink-0">{photo('w-full h-[300px]')}</div>
       <div className="p-6 flex flex-col gap-5 flex-1">{gallery}{title}<div className="w-full h-px bg-gray-100 dark:bg-inmo-darktertiary" />{highlights}{features}
-        <div className="w-full h-[140px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0"><PropertyMiniMap loading={locationLoading} position={position} privateLocation={owned || moderation} /></div>
+        <div className="w-full h-[160px] bg-gray-100 dark:bg-inmo-darkbg rounded-[20px] overflow-hidden relative shrink-0 border border-gray-100 dark:border-inmo-darktertiary shadow-sm"><PropertyMiniMap loading={locationLoading} position={position} privateLocation={owned || moderation} /></div>
         <div><h3 className="font-montserrat font-bold text-lg text-inmo-secondary dark:text-white mb-2">Descripción</h3>{description}</div>
         {children}{moderation && bottomBar}
       </div>
