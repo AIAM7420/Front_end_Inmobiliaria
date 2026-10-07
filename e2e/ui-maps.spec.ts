@@ -492,7 +492,7 @@ test('published property without coordinates shows the general map and completio
   expect(saved.status()).toBe(200);
   try {
     await page.goto('/map');
-    await page.getByRole('button', { name: 'Ver 1 resultado', exact: true }).click();
+    await page.getByRole('button', { name: /^Ver \d+\+? coincidencias?$/ }).click();
     await page.getByRole('heading', { name: fixture.titulo, exact: true }).click();
     await expect(page.getByText('Mapa general de León. El asesor debe completar la ubicación del inmueble.', { exact: true }).filter({ visible: true })).toBeVisible();
     await expect(page.getByText('Ubicación sin registrar', { exact: true })).toHaveCount(0);

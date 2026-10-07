@@ -19,11 +19,12 @@ export function useThemedMap(container: RefObject<HTMLDivElement | null>, token:
   const [styleRevision, setStyleRevision] = useState(0);
   useEffect(() => {
     if (!container.current || !token) return;
+    const mapContainer = container.current;
     let active = true;
     let instance: mapboxgl.Map;
     try {
       appliedTheme.current = currentTheme.current;
-      instance = new mapboxgl.Map({ container: container.current, accessToken: token,
+      instance = new mapboxgl.Map({ container: mapContainer, accessToken: token,
         style: styleFor(currentTheme.current), center: LEON_CENTER, zoom: 12, ...initial.current });
     } catch { setStatus('error'); return; }
     setMap(instance); setStatus('loading');
@@ -42,7 +43,11 @@ export function useThemedMap(container: RefObject<HTMLDivElement | null>, token:
     resize.observe(container.current);
     return () => {
       active = false; resize.disconnect(); instance.off('style.load', ready); instance.off('load', ready); instance.off('idle', ready); instance.off('error', error);
-      instance.remove(); setMap(null);
+      instance.remove();
+      // This dedicated, childless React node belongs to the SDK. Remove residual
+      // SDK nodes before StrictMode remounts or the container is reused.
+      mapContainer.replaceChildren();
+      setMap(null);
     };
   }, [container, token]);
   useEffect(() => {
