@@ -18,6 +18,7 @@ dist-ssr
 playwright-report/
 test-results/
 .tmp/
+/mcp_config.json
 
 # Editor directories and files
 .vscode/*

@@ -4,7 +4,9 @@ Entrega del 2026-10-06 en ambos frontends: `AIAM7420/Front_end_Inmobiliaria` y `
 
 ## Procedencia y decisiones de integración
 
-Nuestro punto de partida es `df19aed2e861c6a1b44e672ee56fb2f7bbff2e66` (PR #7). INMO copia parte de `3e6344ebcb93c0542d1c4b4c649419d4829e6ab7`. Se conserva la ascendencia completa del equipo mediante un commit de integración con ambos historiales como padres; no se sustituyen ni atribuyen sus commits a otra persona.
+Nuestro punto de partida es `df19aed2e861c6a1b44e672ee56fb2f7bbff2e66` (PR #7). INMO copia parte de `3e6344ebcb93c0542d1c4b4c649419d4829e6ab7`. Se integran ambos historiales conservando la autoría del equipo. INMO copia mantiene sus commits originales y su main publicado no se reescribe.
+
+GitHub rechazó la primera subida al frontend propio por un token de Figma en el archivo histórico `mcp_config.json`, commit `0715a9c`. No se eludió la protección. Se excluye esa configuración local de los dos frontends publicados y se añade a gitignore; los archivos locales se conservan. En el frontend propio se reconstruyen solamente los 62 commits de la ascendencia importada aún no publicada sin ese archivo, manteniendo autoría, fechas, mensajes y todos los archivos de la aplicación. Sus hashes cambian y las firmas antiguas de commits reconstruidos se retiran. [Mapa de procedencia](Procedencia_INMO_historial.json) registra los hashes originales y saneados. El propietario del token expuesto debe revocarlo; esta entrega no accede a Figma ni puede confirmar su revocación.
 
 Los 13 commits incorporados desde `6a4c88e` son `55188a1`, `fd53687`, `f3b8031`, `f558662`, `31f14b2`, `8387f3e`, `6188d19`, `f1fd623`, `011439c`, `c737047`, `ab3925d`, `6453829` y `3e6344e`. [Comparación original](https://github.com/angggsoft/inmo/compare/6a4c88e...3e6344e).
 
