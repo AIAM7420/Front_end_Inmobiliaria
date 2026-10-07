@@ -148,7 +148,10 @@ test.describe('native touch interactions', () => {
       await page.getByRole('button', { name: 'Portafolio', exact: true }).filter({ visible: true }).tap();
       await expect(page).toHaveURL(new RegExp('/asesores/' + fixture.asesor_id));
       if (size.width < 768) {
-        const portfolioButton = page.getByRole('button', { name: 'Portafolio', exact: true });
+        const profile = page.getByRole('complementary');
+        await expect(profile.getByText('Perfil del Asesor', { exact: true })).toBeVisible();
+        const portfolioButton = profile.getByRole('button', { name: 'Portafolio', exact: true });
+        await expect(portfolioButton).toBeVisible();
         await portfolioButton.scrollIntoViewIfNeeded();
         const action = await portfolioButton.boundingBox();
         const navigation = await page.getByRole('navigation', { name: 'Navegación principal móvil' }).boundingBox();
