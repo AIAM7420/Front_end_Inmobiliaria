@@ -123,7 +123,7 @@ test('two real participants exchange private attachments, names, reading and per
     const missed = `Recuperación REST ${Date.now()}`;
     expect((await request.post(`${api}/conversaciones/${conversation.id}/mensajes`, { headers: advisor, data: { cliente_mensaje_id: crypto.randomUUID(), contenido: missed } })).status()).toBe(201);
     expect((await recovery).status()).toBe(200);
-    await expect(page.getByText(missed, { exact: true })).toHaveCount(1);
+    await expect(page.getByLabel('Historial de mensajes').getByText(missed, { exact: true })).toHaveCount(1);
     await advisorPage.screenshot({ path: 'docs/evidence/chat-private-real.png', fullPage: true });
   } finally { await second.close(); }
 });
